@@ -1,0 +1,35 @@
+## Objective function
+
+C set of classes
+c element of C
+B set of possible Bids
+P set of possible Prices
+
+n(c, bid) = number of daily clicks of class c, given the bid
+cost(bid) = cost per click, given the bid
+cr(c, price) = conversion rate for class c, given the price
+comebacks(c) = discrete random variable of the number a user of class c will come back to buy the item
+
+max(
+    sum(
+        - cost(bid) * n(c, bid) + n(c, bid) * cr(c, price) * price + n(c, bid) * E[comebacks(c)] * price * cr(c, price)
+        for c in C
+       )
+    for price in P
+    for bid in B
+   )
+
+(- cost(bid) + cr(c, price) * price + E[comebacks(c)] * price * cr(c, price)) * n(c, bid)
+
+n(c, bid) * (
+             cr(c, price) * price * ( E[comebacks(c)] + 1 )
+             - cost(bid)
+             )
+
+price * sum(
+            n(c, bid) * cr(c, price) * ( E[comebacks(c)] + 1 )
+            for c in C
+           )
+- sum ( cost(bid) * n(c, bid)
+        for c in C
+      )
