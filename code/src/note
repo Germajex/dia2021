@@ -33,3 +33,13 @@ price * sum(
 - sum ( cost(bid) * n(c, bid)
         for c in C
       )
+
+
+
+sum(
+    n(c, bid) * price * cr(c, price) * ( E[comebacks(c)] + 1 )
+    for c in C
+   )
+- sum ( cost(bid) * n(c, bid)
+        for c in C
+      )

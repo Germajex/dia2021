@@ -6,7 +6,7 @@ if __name__ == '__main__':
     rng = default_rng(seed=1234)
 
     creator = CustomerClassCreator()
-    classes = creator.getNewClasses()
+    classes = creator.getNewClasses(rng)
 
     for c in classes:
         c.printSummary()
