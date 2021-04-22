@@ -1,7 +1,7 @@
 from constants import _Const
 from CustomerClass import CustomerClass
 import itertools
-from numpy.random import Generator
+from numpy.random import Generator, default_rng
 
 
 class CustomerClassCreator:
@@ -32,3 +32,13 @@ class CustomerClassCreator:
             customerClasses.append(CustomerClass(CONST.NAMES[i], features, newClicksM, newClicksQ, crCenter, sigmoidZ, backMean, backDev))
 
         return customerClasses
+
+
+if __name__ == '__main__':
+    rng = default_rng(seed=1234)
+
+    creator = CustomerClassCreator()
+    classes = creator.getNewClasses(rng)
+
+    for c in classes:
+        c.printSummary()
