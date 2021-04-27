@@ -17,4 +17,4 @@ def optimize_all_known(classes, prices, bids):
 
     result = np.sum([c.getRevenue(P[p_ndx], B[b_ndx]) for c in C])
 
-    return p_ndx, b_ndx, result
+    return P[p_ndx], B[b_ndx], result
