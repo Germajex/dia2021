@@ -43,3 +43,65 @@ sum(
 - sum ( cost(bid) * n(c, bid)
         for c in C
       )
+
+--- d/dp
+
+sum(
+    n(c, bid) * ( E[comebacks(c)] + 1 ) * (cr(c, price) + price * cr'(c,price))
+    for c in C
+   )
+
+call n(c, bid) * ( E[comebacks(c)] + 1 ) = a(c,b)
+
+d(obj)
+------- = a(1,b)*(cr(1,p)+p * cr'(1,p)) + a(2,b)*(cr(2,p)+p * cr'(2,p)) + a(3,b)*(cr(3,p)+p * cr'(3,p))
+dp
+
+se P è il prezzo ottimo, allora vale
+
+a(1,b) * (cr(1,P) + P * cr'(1,P)) +
+a(2,b) * (cr(2,P) + P * cr'(2,P)) +
+a(3,b) * (cr(3,P) + P * cr'(3,P))
+= 0
+
+A(b) * k = 0
+
+d2(obj)
+------- = a'(1,b)*(cr(1,p)+p * cr'(1,p)) + a'(2,b)*(cr(2,p)+p * cr'(2,p)) + a'(3,b)*(cr(3,p)+p * cr'(3,p))
+dp db
+
+a'(1,b) * (cr(1,p) + p * cr'(1,p)) +
+a'(2,b) * (cr(2,p) + p * cr'(2,p)) +
+a'(3,b) * (cr(3,p) + p * cr'(3,p))
+= 0 ????
+
+if cr(i, P) + P * cr'(i,P) = 0 for i in {1,2,3}, then this is equal to zero
+^ this never happens
+
+if this is equal to zero, then the optimal p is independent of the bid
+
+
+where a is derived w.r.t. b and cr is derived w.r.t. p
+
+call n(c, bid) * ( E[comebacks(c)] + 1 ) = a(c,b)
+
+n(i,b) = R_i * sigm(z_i(b-c))
+
+n'(i,b) = R_i * sigm(z_i(b-c)) * (1 - sigm(z_i(b-c))) * z_i
+
+n'(i,b) = n(i,b) * (1 - sigm(z_i(b-c))) * z_i
+
+
+a'(i,b) = n'(i, bid) * ( E[comebacks(i)] + 1 )
+
+a'(i,b) = a(i,b) * (1 - sigm(z_i(b-c))) * z_i
+
+for each d exists l s.t.
+
+a(1, b+d) = l * a(1, b)
+a(2, b+d) = l * a(2, b)
+a(3, b+d) = l * a(3, b)
+
+n(i, b+d) = l * n(i,b)
+
+n(1,b)/n(1,b+d) = n(2,b)/n(2,b+d) = n(3,b)/n(3,b+d) = l
