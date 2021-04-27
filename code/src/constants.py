@@ -1,3 +1,5 @@
+import numpy as np
+
 def constant(f):
     def fset(self, value):
         raise TypeError
@@ -14,21 +16,25 @@ class _Const(object):
         return ['C1', 'C2', 'C3']
 
     @constant
-    def NEWCLICKS_MIN_M():
+    def BID_MIN():
         return 1
     @constant
-    def NEWCLICKS_MAX_M():
+    def BID_MAX():
+        return 20
+    @constant
+
+    def NEWCLICKS_MIN_R():
         return 5
     @constant
-    def NEWCLICKS_MIN_Q():
-        return 0
+    def NEWCLICKS_MAX_R():
+        return 50
     @constant
-    def NEWCLICKS_MAX_Q():
-        return 5
+    def SIGMOID_Z_VALUES_NC():
+        return [0.05, 0.1, 0.15, 0.2, 0.25, 0.3]
 
     @constant
-    def SIGMOID_Z_VALUES():
-        return [0.3, 0.5, 0.8, 1, 1.5, 2]
+    def SIGMOID_Z_VALUES_CR():
+        return [0.03, 0.05, 0.08, 0.1, 0.15, 0.2]
     @constant
     def CR_CENTER_MIN():
         return 1
