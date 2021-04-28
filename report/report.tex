@@ -49,6 +49,10 @@
 \renewcommand{\cftsecfont}{\rmfamily\mdseries\upshape}
 \renewcommand{\cftsecpagefont}{\rmfamily\mdseries\upshape} % No bold!
 
+ \setlength{\parindent}{0pt}
+
+\usepackage{amsmath, amssymb}
+\DeclareMathOperator{\EX}{\mathbb{E}}
 %%% END Article customizations
 
 %%% The "real" document content comes below...
@@ -63,10 +67,52 @@
 
 \section{The setting}
 
-Your text goes here.
+Advertising is used to attract users on an ecommerce website that sells only one type of item. Each user belongs to one of three classes, and the classes are determined by the combination of two features. For each class $c \in C$ the following functions are modeled:
+\begin{itemize}
+\item A stochastic number of daily clicks of new users (i.e., that have never clicked before on the ads), $n(c,b)$, where $b \in B$ is a bid value.
+\item A conversion rate function providing the probability that a user will buy the item at a certain price,  $r(c,p)$, where $p \in P$ is the price.
+\item A distribution probability $f(c)$ over the number of times the user will come back to the ecommerce website to buy that item by 30 days after the first purchase. In other words, when a user makes a purchase, they are somehow likely to make more purchases in the near future, and after that the user will leave the website forever. 
+\item TODO COST PER CLICK?
+\end{itemize}
 
-\subsection{A subsection}
+A margin function $m(p)$, where $p \in P$ is a price TODO CONTINUA
+
+
+\subsection{New Daily Clicks $n(c,b)$}
 
 More text.
+
+\subsection{Conversion Rate $r(c,p)$}
+
+More text.
+
+\subsection{Future Visits $f(c)$}
+
+More text.
+
+\subsection{Cost per click WIP}
+
+More text.
+
+\section{Step 1}
+TODO copy from note in pycharm
+
+\section{Step 2}
+We model the online learning problem as follows:
+\begin{itemize}
+\item The time steps are the single days. We consider the days as numbered from 1 to the learning horizon $H$.
+\item The learning horizon $H$ is 365.
+\item The learner will try a sequence of prices $(p_1, ..., p_H)$, $p_i \in P$.
+\item The learner will try a sequence of bids $(b_1, ..., b_H)$, $b_i \in B$.
+\item The full feedback of time step $t$ (the total profit generated from the users that clicked on the ad for the first time on time step $t$) is received after a delay of 30 time steps. The full feedback of time step $t$ is the sum of different profits that can come with different delays with respect to $t$.
+\item Until time step 30, the learner will use all the partial feedbacks of the previous time steps as if they were complete. After that, the feedbacks will always be complete.
+\end{itemize}
+
+The objective function to maximize is the cumulative expected profit over the learning horizon $H$:
+
+\begin{align*}
+\EX\left[\sum_{t=1}^H{\sum_{c \in C}{n(c,b_t)r(c,p_t)m(p_t)(1+\EX[f(c)])-n(c,b_t)cost}}\right]
+\end{align*}
+
 
 \end{document}
