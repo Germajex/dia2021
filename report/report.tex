@@ -53,6 +53,7 @@
 
 \usepackage{amsmath, amssymb}
 \DeclareMathOperator{\EX}{\mathbb{E}}
+\DeclareMathOperator*{\argmax}{arg\,max}
 %%% END Article customizations
 
 %%% The "real" document content comes below...
@@ -67,7 +68,7 @@
 
 \section{The setting}
 
-Advertising is used to attract users on an ecommerce website that sells only one type of item. Each user belongs to one of three classes, and the classes are determined by the combination of two features. For each class $c \in C$ the following functions are modeled:
+Advertising is used to attract users on an ecommerce website that sells only one type of item. Each user belongs to one of three classes, and the classes are determined by the combination of two binary features. For each class $c \in C$ the following functions are modeled:
 \begin{itemize}
 \item A stochastic number of daily clicks of new users (i.e., that have never clicked before on the ads), $n(c,b)$, where $b \in B$ is a bid value.
 \item A conversion rate function providing the probability that a user will buy the item at a certain price,  $r(c,p)$, where $p \in P$ is the price.
@@ -79,23 +80,37 @@ A margin function $m(p)$, where $p \in P$ is a price TODO CONTINUA
 
 
 \subsection{New Daily Clicks $n(c,b)$}
-
 More text.
 
 \subsection{Conversion Rate $r(c,p)$}
-
-More text.
-
+For each class $c \in C$, the function $r_c(p)$ used to model the conversion rate of users belonging to that class must have the following properties:
+\begin{itemize}
+\item $r_c(0) \approx 1$: The user will be very likely to buy the product if it comes for free.
+\item $\lim\limits_{p \to +\infty} r_c(p) = 0$: As the price goes to infinity, the probability that the user will buy it goes to zero.
+\item $r_c(p)$ is monotonically decreasing with respect to p: an increase of the price will never increase the probability that the user will buy it.
+\end{itemize}
+The function $r(c,p)$ is then defined as: $r(c,p) := r_c(p)$
+Despite the fact that the functions $r_c(p)$ could be in principle defined in completely different ways, in our implementation we chose to use only (reflected, translated and horizontally scaled) sigmoidal functions:
+\begin{align*}
+r_c(p) = \frac{1}{1+e^{-z_c(P_c-x)}}
+\end{align*}
+Where $P_c$, the inflection point of the sigmoid, can be seen as the average reserve price of the users of the class and $z_p$ can be seen as the precision of the user in estimating their own reserve price: if $z_c$ is small the function will be more flat and many points around $P_c$ will have a probability that is neither 1 or 0, while as $z_c$ grows, at the point $P_c$ there is a rapid transition from "buy" to "don't buy".
 \subsection{Future Visits $f(c)$}
 
 More text.
 
-\subsection{Cost per click WIP}
+\subsection{Cost per click $k(b)$}
 
 More text.
 
 \section{Step 1}
-TODO copy from note in pycharm
+The goal is to maximize the profit over a single day, where the future visits of a user that first purchased the product are considered to contribute in expected value to the profit of the day of the first visit.
+
+\begin{align*}
+\argmax_{p,b}{\sum_{c \in C}{n(c,b)r(c,p)(1+\EX[f(c)])m(p)-n(c,b)k(b)}}
+\end{align*}
+
+Where the term $(1+\EX[f(c)])$ represents the average total number of purchases of a user that decides to purchase the item for the first time and the term $n(c,b)r(c,p)$ represents the number of users of class c that will click on the ad and purchase the item for the first time.
 
 \section{Step 2}
 We model the online learning problem as follows:
