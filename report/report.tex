@@ -92,9 +92,9 @@ For each class $c \in C$, the function $r_c(p)$ used to model the conversion rat
 The function $r(c,p)$ is then defined as: $r(c,p) := r_c(p)$
 Despite the fact that the functions $r_c(p)$ could be in principle defined in completely different ways, in our implementation we chose to use only (reflected, translated and horizontally scaled) sigmoidal functions:
 \begin{align*}
-r_c(p) = \frac{1}{1+e^{-z_c(P_c-x)}}
+r_c(p) = \frac{1}{1+e^{-z_c(P_c-p)}}
 \end{align*}
-Where $P_c$, the inflection point of the sigmoid, can be seen as the average reserve price of the users of the class and $z_p$ can be seen as the precision of the user in estimating their own reserve price: if $z_c$ is small the function will be more flat and many points around $P_c$ will have a probability that is neither 1 or 0, while as $z_c$ grows, at the point $P_c$ there is a rapid transition from "buy" to "don't buy".
+Where $P_c$, the inflection point of the sigmoid, can be seen as the average reserve price of the users of the class and $z_c$ can be seen as the precision of the user in estimating their own reserve price: if $z_c$ is small the function will be more flat and many points around $P_c$ will have a probability that is neither 1 or 0, while as $z_c$ grows, at the point $P_c$ there is a rapid transition from "buy" to "don't buy".
 \subsection{Future Visits $f(c)$}
 
 More text.
