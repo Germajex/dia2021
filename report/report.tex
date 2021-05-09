@@ -55,6 +55,8 @@
 \DeclareMathOperator{\EX}{\mathbb{E}}
 \DeclareMathOperator{\Prob}{\mathbb{P}}
 \DeclareMathOperator*{\argmax}{arg\,max}
+
+\usepackage{xcolor}
 %%% END Article customizations
 
 %%% The "real" document content comes below...
@@ -119,28 +121,43 @@ More text.
 More text.
 
 \section{Step 1}
+{\color{red}
 The goal is to maximize the expected profit over a single day, where the future visits of a user that first purchased the product are considered to contribute in expected value to the profit of the day of the first visit.
 
 \begin{align*}
-\argmax_{p,b}{\sum_{c \in C}{\EX[N_{c,b}r(c,p)(1+\EX[f(c)])m(p)-N_{c,b}k(b)]}}
+\argmax_{p,b}{\sum_{c \in C}{n(c,b)r(c,p)(1+\EX[f(c)])m(p)-n(c,b)k(b)}}
 \end{align*}
 
 Where the term $(1+\EX[f(c)])$ represents the average total number of purchases of a user that decides to purchase the item for the first time and the term $n(c,b)r(c,p)$ represents the number of users of class c that will click on the ad and purchase the item for the first time.
 \newline
 \newline
-\textit{
-NOTA: Se abbiamo una var bernoulli $D_{c,i}$ (nome provvisorio) che indica se il i-esimo utente della classe c ha comprato oppure no, con media $\EX[D_{c,i}]=r(c,p)$, possiamo esprimere l'expected value sull'esperimento eleatorio di un giorno.
-Idem con le future visits: c'è la variabile $F_{c,i}$ con media $\EX[F_{c,i}]=f(c)$
+\textit{NOTA: Se abbiamo una var bernoulli $D_{c,i}$ (nome provvisorio) che indica se il i-esimo utente della classe c ha comprato oppure no, con media $\EX[D_{c,i}]=r(c,p)$, possiamo esprimere l'expected value sull'esperimento eleatorio di un giorno.
+Idem con le future visits: c'è la variabile $F_{c,i}$ con media $\EX[F_{c,i}]=f(c)$}
 }
+\newline
+\newline
+The goal is to maximize the expected profit over a single day, where the future visits of a user are considered to contribute in expected value to the profit of the day of the first visit.
 \begin{align*}
-\argmax_{p,b}{\EX\left[\sum_{c \in C}{\sum_{i =1}^{N_{c,b}}{\bigg( D_{c,i}(1+F_{c,i})m(p)-k(b)\bigg)}}\right]}
+ExpectedProfit(p,b) = \EX\left[\sum_{c \in C}{\sum_{i =1}^{N_{c,b}}{\bigg( D_{c,i}(1+F_{c,i})m(p)-k(b)\bigg)}}\right]
+\end{align*}
+We can therefore formulate the optimization problem as follows:
+\begin{align*}
+\argmax_{p,b}{ExpectedProfit(p,b)}
 \end{align*}
 
+With some manipulations using the properties of the expectation (Appendix \ref{sec.DerExpProf}), the expected profit can be expressed as follows:
 
 \begin{align*}
-\argmax_{p,b}{\EX\left[\sum_{c \in C}{m(p)\sum_{i =1}^{N_{c,b}}{\bigg( D_{c,i}(1+F_{c,i})\bigg)}-N_{c,b}k(b)}\right]}
+ExpectedProfit(p,b)=m(p)\sum_{c \in C}{n(c,b)r(c,p)(1+f(c))}-k(b)\sum_{c \in C}{n(c,b)}
 \end{align*}
 
+Obtaining the formulation:
+
+\begin{align*}
+\argmax_{p,b}{m(p)\sum_{c \in C}{n(c,b)r(c,p)(1+f(c))}-k(b)\sum_{c \in C}{n(c,b)}}
+\end{align*}
+
+{\color{red}
 \begin{align*}
 \EX\left[\sum_{i =1}^{N_{c,b}}{\bigg( D_{c,i}(1+F_{c,i})\bigg)}\right]=\EX\left[\sum_{i =1}^{N_{c,b}}{\EX[D_{c,i}(1+F_{c,i})]}\right]
 \end{align*}
@@ -154,6 +171,7 @@ Idem con le future visits: c'è la variabile $F_{c,i}$ con media $\EX[F_{c,i}]=f
 =\sum_{j}{\Prob(N_{c,b}=j)\sum_{i =1}^{j}{ r(c,p)(1+f(c))}}\\
 =\sum_{j}{\Prob(N_{c,b}=j) jr(c,p)(1+f(c))}
 \end{align*}
+}
 
 \section{Step 2}
 We model the online learning problem as follows:
@@ -172,5 +190,21 @@ The objective function to maximize is the cumulative expected profit over the le
 \EX\left[\sum_{t=1}^H{\sum_{c \in C}{n(c,b_t)r(c,p_t)m(p_t)(1+\EX[f(c)])-n(c,b_t)cost}}\right]
 \end{align*}
 
-
+\appendix
+\section{Derivation of ExpectedProfit}\label{sec.DerExpProf}
+\begin{align*}
+ExpectedProfit(p,b) 
+&= \EX\left[\sum_{c \in C}{\sum_{i =1}^{N_{c,b}}{\bigg( D_{c,i}(1+F_{c,i})m(p)-k(b)\bigg)}}\right]\\
+&= \EX\left[\sum_{c \in C}{\bigg(\sum_{i =1}^{N_{c,b}}{ D_{c,i}(1+F_{c,i})m(p)}-\sum_{i =1}^{N_{c,b}}k(b)\bigg)}\right]\\
+&= \EX\left[\sum_{c \in C}{\sum_{i =1}^{N_{c,b}}{ D_{c,i}(1+F_{c,i})m(p)}}-\sum_{c \in C}{\sum_{i =1}^{N_{c,b}}k(b)}\right]\\
+&= \EX\left[\sum_{c \in C}{\sum_{i =1}^{N_{c,b}}{ D_{c,i}(1+F_{c,i})m(p)}}-\sum_{c \in C}{N_{c,b}k(b)}\right]\\
+&= \EX\left[\sum_{c \in C}{\sum_{i =1}^{N_{c,b}}{ D_{c,i}(1+F_{c,i})m(p)}}\right]-\sum_{c \in C}{n(c,b)k(b)}\\
+&= m(p)\sum_{c \in C}{\EX\left[\sum_{i =1}^{N_{c,b}}{ D_{c,i}(1+F_{c,i})}\right]}-k(b)\sum_{c \in C}{n(c,b)}\\
+&= m(p)\sum_{c \in C}{\EX\left[\EX\left[\sum_{i =1}^{N_{c,b}}{ D_{c,i}(1+F_{c,i})}\Bigg|N_{c,b}\right]\right]}-k(b)\sum_{c \in C}{n(c,b)}\\
+&= m(p)\sum_{c \in C}{\EX\left[\sum_{i =1}^{N_{c,b}}{\EX\left[D_{c,i}(1+F_{c,i})\bigg|N_{c,b}\right]}\right]}-k(b)\sum_{c \in C}{n(c,b)}\\
+&= m(p)\sum_{c \in C}{\EX\left[\sum_{i =1}^{N_{c,b}}{\EX\left[D_{c,i}\bigg|N_{c,b}\right]\EX\left[(1+F_{c,i})\bigg|N_{c,b}\right]}\right]}-k(b)\sum_{c \in C}{n(c,b)}\\
+&= m(p)\sum_{c \in C}{\EX\left[\sum_{i =1}^{N_{c,b}}{r(c,p)\Big(1+f(c)\Big)}\right]}-k(b)\sum_{c \in C}{n(c,b)}\\
+&= m(p)\sum_{c \in C}{\EX\left[N_{c,b}r(c,p)\Big(1+f(c)\Big)\right]}-k(b)\sum_{c \in C}{n(c,b)}\\
+&= m(p)\sum_{c \in C}{n(c,b)r(c,p)\Big(1+f(c)\Big)}-k(b)\sum_{c \in C}{n(c,b)}
+\end{align*}
 \end{document}
