@@ -53,6 +53,7 @@
 
 \usepackage{amsmath, amssymb}
 \DeclareMathOperator{\EX}{\mathbb{E}}
+\DeclareMathOperator{\Prob}{\mathbb{P}}
 \DeclareMathOperator*{\argmax}{arg\,max}
 %%% END Article customizations
 
@@ -70,7 +71,7 @@
 
 Advertising is used to attract users on an ecommerce website that sells only one type of item. Each user belongs to one of three classes, and the classes are determined by the combination of two binary features. For each class $c \in C$ the following functions are modeled:
 \begin{itemize}
-\item A stochastic number of daily clicks of new users (i.e., that have never clicked before on the ads), $n(c,b)$, where $b \in B$ is a bid value.
+\item A stochastic number of daily clicks of new users (i.e., that have never clicked before on the ads), $N_{c,b}$, such that $\EX[N_{c,b}]=n(c,b)$, where $b \in B$ is a bid value. 
 \item A conversion rate function providing the probability that a user will buy the item at a certain price,  $r(c,p)$, where $p \in P$ is the price.
 \item A distribution probability $f(c)$ over the number of times the user will come back to the ecommerce website to buy that item by 30 days after the first purchase. In other words, when a user makes a purchase, they are somehow likely to make more purchases in the near future, and after that the user will leave the website forever. 
 \item TODO COST PER CLICK?
@@ -79,8 +80,22 @@ Advertising is used to attract users on an ecommerce website that sells only one
 A margin function $m(p)$, where $p \in P$ is a price TODO CONTINUA
 
 
-\subsection{New Daily Clicks $n(c,b)$}
-More text.
+\subsection{New Daily Clicks $N_{c,b}$}
+\textit{Nota: Per poter trasformare $E[N_{c,b}]$ in $n(c,b)$, dato che $N_{c,b}$ deve essere discreta è necessario che $n(c,b)$ sia a sua volta già la media di una distribuzione sui valori discreti che i nuovi clicks giornalieri possono assumere. Per incorporare la stocasticità possiamo sommare a questi nuovi click un white noise discreto, quindi $N_{c,b}=X+\epsilon$, con $E[\epsilon]=0$ e  $E[X] = n(c,b)$. In questo modo possiamo sicuramente togliere l'expectation nel primo punto ma dobbiamo fare in modo che aggiungendo il noise non si vada mai sotto 0. idea: $X>k,|\epsilon| <=k$. L'obiettivo è generare una distribuzione discreta che abbia il valore minimo $k$ e media $n(c,b)$}
+\newline
+\newline
+
+For each class $c$ and bid $b$ we define the discret random variable $N_{c,b}$ obtained as follows: $N_{c,b} = X_{c,b} + \eta_c$, where $X_{c,b}$ and $\eta_c$ are discrete random variables such that $\EX[X_{c,b}]=n(c,b)$ and $\EX[\eta_c]=0$. The variable $\eta_c$ represents a daily noise, and to ensure $\Prob(N_{c,b} < 0) = 0$ we assume that the smallest value that $N_{c,b}$ can take is larger than the absolute value of the smallest negative value that $\eta_c$ can assume.
+\newline
+\newline
+We furthermore adopt the following hypothesis: $n(c,b)=n(c)v(b)$, where $v(b)$ is a term representing the fact that higher bids will win more auctions and $n(c)$ is a term representing the fact that there are a different number of users for each class and a different percentage of the users will click on the ad once it has been displayed to them.
+\newline
+\newline
+In our implementation we defined:
+\begin{itemize}
+\item $n(c)=n_c$, for each class a constant $n_c > 0$ is randomly sampled when the environment is generated.
+\item $v(b)=\frac{1}{1+e^{-\overline z(b-\overline b)}}$, where $\overline z$ and $\overline b$ are randomly sampled when the environment is generated. The function $v(b)$ is the same for all the classes.
+\end{itemize}
 
 \subsection{Conversion Rate $r(c,p)$}
 For each class $c \in C$, the function $r_c(p)$ used to model the conversion rate of users belonging to that class must have the following properties:
@@ -94,7 +109,7 @@ Despite the fact that the functions $r_c(p)$ could be in principle defined in co
 \begin{align*}
 r_c(p) = \frac{1}{1+e^{-z_c(P_c-p)}}
 \end{align*}
-Where $P_c$, the inflection point of the sigmoid, can be seen as the average reserve price of the users of the class and $z_c$ can be seen as the precision of the user in estimating their own reserve price: if $z_c$ is small the function will be more flat and many points around $P_c$ will have a probability that is neither 1 or 0, while as $z_c$ grows, at the point $P_c$ there is a rapid transition from "buy" to "don't buy".
+Where $P_c$, the inflection point of the sigmoid, can be seen as the average reserve price of the users of the class and $z_c$ can be seen as the concentration of the reserve prices of the users around the average: if $z_c$ is small the reserve prices of the many users will be more distributed across the domain and the function will be more flat, while as $z_c$ grows the reserve prices of the many users will be more concentrated around the average and at the point $P_c$ there will be a rapid transition from "buy" to "don't buy".
 \subsection{Future Visits $f(c)$}
 
 More text.
@@ -104,13 +119,41 @@ More text.
 More text.
 
 \section{Step 1}
-The goal is to maximize the profit over a single day, where the future visits of a user that first purchased the product are considered to contribute in expected value to the profit of the day of the first visit.
+The goal is to maximize the expected profit over a single day, where the future visits of a user that first purchased the product are considered to contribute in expected value to the profit of the day of the first visit.
 
 \begin{align*}
-\argmax_{p,b}{\sum_{c \in C}{n(c,b)r(c,p)(1+\EX[f(c)])m(p)-n(c,b)k(b)}}
+\argmax_{p,b}{\sum_{c \in C}{\EX[N_{c,b}r(c,p)(1+\EX[f(c)])m(p)-N_{c,b}k(b)]}}
 \end{align*}
 
 Where the term $(1+\EX[f(c)])$ represents the average total number of purchases of a user that decides to purchase the item for the first time and the term $n(c,b)r(c,p)$ represents the number of users of class c that will click on the ad and purchase the item for the first time.
+\newline
+\newline
+\textit{
+NOTA: Se abbiamo una var bernoulli $D_{c,i}$ (nome provvisorio) che indica se il i-esimo utente della classe c ha comprato oppure no, con media $\EX[D_{c,i}]=r(c,p)$, possiamo esprimere l'expected value sull'esperimento eleatorio di un giorno.
+Idem con le future visits: c'è la variabile $F_{c,i}$ con media $\EX[F_{c,i}]=f(c)$
+}
+\begin{align*}
+\argmax_{p,b}{\EX\left[\sum_{c \in C}{\sum_{i =1}^{N_{c,b}}{\bigg( D_{c,i}(1+F_{c,i})m(p)-k(b)\bigg)}}\right]}
+\end{align*}
+
+
+\begin{align*}
+\argmax_{p,b}{\EX\left[\sum_{c \in C}{m(p)\sum_{i =1}^{N_{c,b}}{\bigg( D_{c,i}(1+F_{c,i})\bigg)}-N_{c,b}k(b)}\right]}
+\end{align*}
+
+\begin{align*}
+\EX\left[\sum_{i =1}^{N_{c,b}}{\bigg( D_{c,i}(1+F_{c,i})\bigg)}\right]=\EX\left[\sum_{i =1}^{N_{c,b}}{\EX[D_{c,i}(1+F_{c,i})]}\right]
+\end{align*}
+
+\textit{NOTA: cerca "Law of total expectation"}
+\begin{align*}
+\EX\left[\sum_{i =1}^{N_{c,b}}{\bigg( D_{c,i}(1+F_{c,i})\bigg)}\right]\\
+=\sum_{j}{\Prob(N_{c,b}=j)\EX\left[\sum_{i =1}^{N_{c,b}}{\bigg( D_{c,i}(1+F_{c,i})\bigg)}|N_{c,b}=j\right]}\\
+=\sum_{j}{\Prob(N_{c,b}=j)\EX\left[\sum_{i =1}^{j}{\bigg( D_{c,i}(1+F_{c,i})\bigg)}\right]}\\
+=\sum_{j}{\Prob(N_{c,b}=j)\sum_{i =1}^{j}{\EX\left[ D_{c,i}(1+F_{c,i})\right]}}\\
+=\sum_{j}{\Prob(N_{c,b}=j)\sum_{i =1}^{j}{ r(c,p)(1+f(c))}}\\
+=\sum_{j}{\Prob(N_{c,b}=j) jr(c,p)(1+f(c))}
+\end{align*}
 
 \section{Step 2}
 We model the online learning problem as follows:
