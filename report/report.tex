@@ -51,12 +51,15 @@
 
  \setlength{\parindent}{0pt}
 
-\usepackage{amsmath, amssymb}
+\usepackage{amsmath, amssymb, amsthm}
 \DeclareMathOperator{\EX}{\mathbb{E}}
 \DeclareMathOperator{\Prob}{\mathbb{P}}
 \DeclareMathOperator*{\argmax}{arg\,max}
 
 \usepackage{xcolor}
+
+\newtheorem*{assumption}{Assumption}
+\newtheorem*{lemma}{Lemma}
 %%% END Article customizations
 
 %%% The "real" document content comes below...
@@ -87,10 +90,14 @@ A margin function $m(p)$, where $p \in P$ is a price TODO CONTINUA
 \newline
 \newline
 
-For each class $c$ and bid $b$ we define the discret random variable $N_{c,b}$ obtained as follows: $N_{c,b} = X_{c,b} + \eta_c$, where $X_{c,b}$ and $\eta_c$ are discrete random variables such that $\EX[X_{c,b}]=n(c,b)$ and $\EX[\eta_c]=0$. The variable $\eta_c$ represents a daily noise, and to ensure $\Prob(N_{c,b} < 0) = 0$ we assume that the smallest value that $N_{c,b}$ can take is larger than the absolute value of the smallest negative value that $\eta_c$ can assume.
+For each class $c$ and bid $b$ we define the discret random variable $N_{c,b}$ obtained as follows: $N_{c,b} = X_{c,b} + \eta_c$, where $X_{c,b}$ and $\eta_c$ are discrete random variables such that $\EX[X_{c,b}]=n(c,b)$ and $\EX[\eta_c]=0$. The variable $\eta_c$ represents a daily noise, and to ensure $\Prob(N_{c,b} < 0) = 0$ we assume that the smallest value that $X_{c,b}$ can take is larger than the absolute value of the smallest negative value that $\eta_c$ can assume.
 \newline
 \newline
-We furthermore adopt the following hypothesis: $n(c,b)=n(c)v(b)$, where $v(b)$ is a term representing the fact that higher bids will win more auctions and $n(c)$ is a term representing the fact that there are a different number of users for each class and a different percentage of the users will click on the ad once it has been displayed to them.
+We furthermore adopt the following assumption: 
+\begin{assumption}[Agnostic Advertisor(forse meglio Publisher?)]
+$n(c,b)=n(c)v(b)$.
+\end{assumption}
+In the assumption above, $v(b)$ represents the fact that higher bids will win more auctions and $n(c)$ represents the fact that, for each class, a different percentage of the users will belong to class $c$ \textit{and} click on the ad. The meaning of the Agnostic Advertisor assumption is that a change in the bid will change the number of users seeing the ad but will never change the percentage of users for each class. In other words, the advertisor does not know about the classes of the users.
 \newline
 \newline
 In our implementation we defined:
@@ -106,7 +113,7 @@ For each class $c \in C$, the function $r_c(p)$ used to model the conversion rat
 \item $\lim\limits_{p \to +\infty} r_c(p) = 0$: As the price goes to infinity, the probability that the user will buy it goes to zero.
 \item $r_c(p)$ is monotonically decreasing with respect to p: an increase of the price will never increase the probability that the user will buy it.
 \end{itemize}
-The function $r(c,p)$ is then defined as: $r(c,p) := r_c(p)$
+The function $r(c,p)$ is then defined as: $r(c,p) := r_c(p)$.
 Despite the fact that the functions $r_c(p)$ could be in principle defined in completely different ways, in our implementation we chose to use only (reflected, translated and horizontally scaled) sigmoidal functions:
 \begin{align*}
 r_c(p) = \frac{1}{1+e^{-z_c(P_c-p)}}
@@ -131,14 +138,15 @@ The goal is to maximize the expected profit over a single day, where the future 
 Where the term $(1+\EX[f(c)])$ represents the average total number of purchases of a user that decides to purchase the item for the first time and the term $n(c,b)r(c,p)$ represents the number of users of class c that will click on the ad and purchase the item for the first time.
 \newline
 \newline
-\textit{NOTA: Se abbiamo una var bernoulli $D_{c,i}$ (nome provvisorio) che indica se il i-esimo utente della classe c ha comprato oppure no, con media $\EX[D_{c,i}]=r(c,p)$, possiamo esprimere l'expected value sull'esperimento eleatorio di un giorno.
+\textit{NOTA: Se abbiamo una var bernoulli $D_{c,p,i}$ (nome provvisorio) che indica se il i-esimo utente della classe c ha comprato oppure no, con media $\EX[D_{c,p,i}]=r(c,p)$, possiamo esprimere l'expected value sull'esperimento eleatorio di un giorno.
 Idem con le future visits: c'è la variabile $F_{c,i}$ con media $\EX[F_{c,i}]=f(c)$}
 }
 \newline
 \newline
 The goal is to maximize the expected profit over a single day, where the future visits of a user are considered to contribute in expected value to the profit of the day of the first visit.
+
 \begin{align*}
-ExpectedProfit(p,b) = \EX\left[\sum_{c \in C}{\sum_{i =1}^{N_{c,b}}{\bigg( D_{c,i}(1+F_{c,i})m(p)-k(b)\bigg)}}\right]
+ExpectedProfit(p,b) = \EX\left[\sum_{c \in C}{\sum_{i =1}^{N_{c,b}}{\bigg( D_{c,p,i}(1+F_{c,i})m(p)-k(b)\bigg)}}\right]
 \end{align*}
 We can therefore formulate the optimization problem as follows:
 \begin{align*}
@@ -157,17 +165,25 @@ Obtaining the formulation:
 \argmax_{p,b}{m(p)\sum_{c \in C}{n(c,b)r(c,p)(1+f(c))}-k(b)\sum_{c \in C}{n(c,b)}}
 \end{align*}
 
+Under the Agnostic Advertisor assumption, the following interesting result holds:
+
+\begin{lemma}[Constant optimal price]
+If a price $p*$ is a local maximum of $ExpectedProfit(p,\overline b)$ for some fixed bid value $\overline b$,  then $p*$ is a local maximum of $ExpectedProfit(p,b')$  for every possible fixed bid value $b'$.
+\end{lemma}
+\begin{proof}
+see Appendix \ref{sec.ConstOptPrice}.
+\end{proof}
 {\color{red}
 \begin{align*}
-\EX\left[\sum_{i =1}^{N_{c,b}}{\bigg( D_{c,i}(1+F_{c,i})\bigg)}\right]=\EX\left[\sum_{i =1}^{N_{c,b}}{\EX[D_{c,i}(1+F_{c,i})]}\right]
+\EX\left[\sum_{i =1}^{N_{c,b}}{\bigg( D_{c,p,i}(1+F_{c,i})\bigg)}\right]=\EX\left[\sum_{i =1}^{N_{c,b}}{\EX[D_{c,p,i}(1+F_{c,i})]}\right]
 \end{align*}
 
 \textit{NOTA: cerca "Law of total expectation"}
 \begin{align*}
-\EX\left[\sum_{i =1}^{N_{c,b}}{\bigg( D_{c,i}(1+F_{c,i})\bigg)}\right]\\
-=\sum_{j}{\Prob(N_{c,b}=j)\EX\left[\sum_{i =1}^{N_{c,b}}{\bigg( D_{c,i}(1+F_{c,i})\bigg)}|N_{c,b}=j\right]}\\
-=\sum_{j}{\Prob(N_{c,b}=j)\EX\left[\sum_{i =1}^{j}{\bigg( D_{c,i}(1+F_{c,i})\bigg)}\right]}\\
-=\sum_{j}{\Prob(N_{c,b}=j)\sum_{i =1}^{j}{\EX\left[ D_{c,i}(1+F_{c,i})\right]}}\\
+\EX\left[\sum_{i =1}^{N_{c,b}}{\bigg( D_{c,p,i}(1+F_{c,i})\bigg)}\right]\\
+=\sum_{j}{\Prob(N_{c,b}=j)\EX\left[\sum_{i =1}^{N_{c,b}}{\bigg( D_{c,p,i}(1+F_{c,i})\bigg)}|N_{c,b}=j\right]}\\
+=\sum_{j}{\Prob(N_{c,b}=j)\EX\left[\sum_{i =1}^{j}{\bigg( D_{c,p,i}(1+F_{c,i})\bigg)}\right]}\\
+=\sum_{j}{\Prob(N_{c,b}=j)\sum_{i =1}^{j}{\EX\left[ D_{c,p,i}(1+F_{c,i})\right]}}\\
 =\sum_{j}{\Prob(N_{c,b}=j)\sum_{i =1}^{j}{ r(c,p)(1+f(c))}}\\
 =\sum_{j}{\Prob(N_{c,b}=j) jr(c,p)(1+f(c))}
 \end{align*}
@@ -194,17 +210,45 @@ The objective function to maximize is the cumulative expected profit over the le
 \section{Derivation of ExpectedProfit}\label{sec.DerExpProf}
 \begin{align*}
 ExpectedProfit(p,b) 
-&= \EX\left[\sum_{c \in C}{\sum_{i =1}^{N_{c,b}}{\bigg( D_{c,i}(1+F_{c,i})m(p)-k(b)\bigg)}}\right]\\
-&= \EX\left[\sum_{c \in C}{\bigg(\sum_{i =1}^{N_{c,b}}{ D_{c,i}(1+F_{c,i})m(p)}-\sum_{i =1}^{N_{c,b}}k(b)\bigg)}\right]\\
-&= \EX\left[\sum_{c \in C}{\sum_{i =1}^{N_{c,b}}{ D_{c,i}(1+F_{c,i})m(p)}}-\sum_{c \in C}{\sum_{i =1}^{N_{c,b}}k(b)}\right]\\
-&= \EX\left[\sum_{c \in C}{\sum_{i =1}^{N_{c,b}}{ D_{c,i}(1+F_{c,i})m(p)}}-\sum_{c \in C}{N_{c,b}k(b)}\right]\\
-&= \EX\left[\sum_{c \in C}{\sum_{i =1}^{N_{c,b}}{ D_{c,i}(1+F_{c,i})m(p)}}\right]-\sum_{c \in C}{n(c,b)k(b)}\\
-&= m(p)\sum_{c \in C}{\EX\left[\sum_{i =1}^{N_{c,b}}{ D_{c,i}(1+F_{c,i})}\right]}-k(b)\sum_{c \in C}{n(c,b)}\\
-&= m(p)\sum_{c \in C}{\EX\left[\EX\left[\sum_{i =1}^{N_{c,b}}{ D_{c,i}(1+F_{c,i})}\Bigg|N_{c,b}\right]\right]}-k(b)\sum_{c \in C}{n(c,b)}\\
-&= m(p)\sum_{c \in C}{\EX\left[\sum_{i =1}^{N_{c,b}}{\EX\left[D_{c,i}(1+F_{c,i})\bigg|N_{c,b}\right]}\right]}-k(b)\sum_{c \in C}{n(c,b)}\\
-&= m(p)\sum_{c \in C}{\EX\left[\sum_{i =1}^{N_{c,b}}{\EX\left[D_{c,i}\bigg|N_{c,b}\right]\EX\left[(1+F_{c,i})\bigg|N_{c,b}\right]}\right]}-k(b)\sum_{c \in C}{n(c,b)}\\
+&= \EX\left[\sum_{c \in C}{\sum_{i =1}^{N_{c,b}}{\bigg( D_{c,p,i}(1+F_{c,i})m(p)-k(b)\bigg)}}\right]\\
+&= \EX\left[\sum_{c \in C}{\bigg(\sum_{i =1}^{N_{c,b}}{ D_{c,p,i}(1+F_{c,i})m(p)}-\sum_{i =1}^{N_{c,b}}k(b)\bigg)}\right]\\
+&= \EX\left[\sum_{c \in C}{\sum_{i =1}^{N_{c,b}}{ D_{c,p,i}(1+F_{c,i})m(p)}}-\sum_{c \in C}{\sum_{i =1}^{N_{c,b}}k(b)}\right]\\
+&= \EX\left[\sum_{c \in C}{\sum_{i =1}^{N_{c,b}}{ D_{c,p,i}(1+F_{c,i})m(p)}}-\sum_{c \in C}{N_{c,b}k(b)}\right]\\
+&= \EX\left[\sum_{c \in C}{\sum_{i =1}^{N_{c,b}}{ D_{c,p,i}(1+F_{c,i})m(p)}}\right]-\sum_{c \in C}{\EX[N_{c,b}]k(b)}\\
+&= m(p)\sum_{c \in C}{\EX\left[\sum_{i =1}^{N_{c,b}}{ D_{c,p,i}(1+F_{c,i})}\right]}-\sum_{c \in C}{n(c,b)k(b)}\\
+&= m(p)\sum_{c \in C}{\EX\left[\EX\left[\sum_{i =1}^{N_{c,b}}{ D_{c,p,i}(1+F_{c,i})}\Bigg|N_{c,b}\right]\right]}-k(b)\sum_{c \in C}{n(c,b)}\\
+&= m(p)\sum_{c \in C}{\EX\left[\sum_{i =1}^{N_{c,b}}{\EX\left[D_{c,p,i}(1+F_{c,i})\bigg|N_{c,b}\right]}\right]}-k(b)\sum_{c \in C}{n(c,b)}\\
+&= m(p)\sum_{c \in C}{\EX\left[\sum_{i =1}^{N_{c,b}}{\EX\left[D_{c,p,i}\bigg|N_{c,b}\right]\EX\left[(1+F_{c,i})\bigg|N_{c,b}\right]}\right]}-k(b)\sum_{c \in C}{n(c,b)}\\
 &= m(p)\sum_{c \in C}{\EX\left[\sum_{i =1}^{N_{c,b}}{r(c,p)\Big(1+f(c)\Big)}\right]}-k(b)\sum_{c \in C}{n(c,b)}\\
 &= m(p)\sum_{c \in C}{\EX\left[N_{c,b}r(c,p)\Big(1+f(c)\Big)\right]}-k(b)\sum_{c \in C}{n(c,b)}\\
+&= m(p)\sum_{c \in C}{\EX\left[N_{c,b}\right]r(c,p)\Big(1+f(c)\Big)}-k(b)\sum_{c \in C}{n(c,b)}\\
 &= m(p)\sum_{c \in C}{n(c,b)r(c,p)\Big(1+f(c)\Big)}-k(b)\sum_{c \in C}{n(c,b)}
+\end{align*}
+
+\section{Proof of the Contant optimal price Lemma}\label{sec.ConstOptPrice}
+\begin{align*}
+ExpectedProfit(p,b)=\sum_{c \in C}{n(c,b)r(c,p)m(p)(1+f(c))}-k(b)\sum_{c \in C}{n(c,b)}
+\end{align*}
+The partial derivative with respect to p is:
+\begin{align*}
+\frac{\partial ExpectedProfit(p,b)}{\partial p}=\sum_{c \in C}{n(c,b)(1+f(c))\bigg(\frac{\partial r(c,p)}{\partial p}m(p) + r(c,p)\frac{\partial m(p)}{\partial p}\bigg)}
+\end{align*}
+The derivative can be seen as the scalar product of two $|C|$-dimensional vectors $\underline n(b)$ and $\underline s(p)$, where the c-th element of $\underline n(b)$ is $n(c,b)$ and the c-th element of $\underline s(p)$ is $(1+f(c))\bigg(\frac{\partial r(c,p)}{\partial p}m(p) + r(c,p)\frac{\partial m(p)}{\partial p}\bigg)$.
+\begin{align*}
+\frac{\partial ExpectedProfit(p,b)}{\partial p}=\underline n(b)\cdot \underline s(p)
+\end{align*}
+Let's assume that in $(p*, \overline b)$ the partial derivative equals 0:
+\begin{align*}
+\underline n(\overline b)\cdot \underline s(p*) = 0
+\end{align*}
+Let's focus on the vector $\underline n(b)$: it holds that $\forall b \ \forall d \ \exists \gamma \  | \ \underline n(b + d)=\gamma\underline n(b)$.
+
+This can be shown element-wise:
+\begin{align*}
+\frac{n(c, b+d)}{n(c,b)} = \frac{n(c)v(b+d)}{n(c)v(b)} = \frac{v(b+d)}{v(b)} = \gamma
+\end{align*}
+Therefore
+\begin{align*}
+\left.\frac{\partial ExpectedProfit(p,b)}{\partial p}\right\rvert_{p=p*, b=\overline b+d}=\underline n(\overline b+d)\cdot \underline s(p*) = \gamma \underline n(\overline b)\cdot \underline s(p*) = 0
 \end{align*}
 \end{document}
