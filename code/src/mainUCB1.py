@@ -12,4 +12,4 @@ customer[0].printSummary()
 env = BanditEnviroment(5, customer)
 learner = UCB1Learner(5, env)
 
-learner.learn_price(1000, [10, 20, 50, 70, 90], 15)
+learner.learn_price(1000, [10, 20, 50, 70, 90], 10)

@@ -7,8 +7,8 @@ class BanditEnviroment:
         self.bids = bids
         self.prices = prices
 
-    def round(self, class_n, pulled_arm_val):
-        pass
+    def get_optimal_reward(self, class_n, prices, bid):
+        return np.max([self.classes[class_n].getRevenue(p, bid) for p in prices])
 
     def round_bids_known(self, class_n, pulled_arm_val, bid):
         # First extract the cr
