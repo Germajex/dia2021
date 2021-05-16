@@ -34,9 +34,10 @@ class CustomerClass:
     def getCustomerBackMean(self):
         return self.backMean
 
-    def getRevenue(self, price, bid):
+    def getRevenue(self, price, bid, cr=None):
         n = self.getNewClicks(bid)
-        cr = self.getConversionRate(price)
+        if cr is None:
+            cr = self.getConversionRate(price)
         back = self.getCustomerBackMean()
 
         rev = (-bid * n) + (n * cr * price) + (n * back * cr * price)

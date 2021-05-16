@@ -6,7 +6,7 @@ import numpy as np
 
 
 class CustomerClassCreator:
-    def getNewClasses(self, rng: Generator):
+    def getNewClasses(self, rng: Generator, n_classes=None):
         CONST = _Const()
         customerClasses = []
 
@@ -18,7 +18,11 @@ class CustomerClassCreator:
         newClicksC = np.around(rng.choice(possible_bids_centers), 2)
         newClicksZ = rng.choice(CONST.SIGMOID_Z_VALUES_NC)
 
-        for i in range(CONST.N_CUSTOMER_CLASSES):
+        n_classes = n_classes
+        if n_classes is None:
+            n_classes = CONST.N_CUSTOMER_CLASSES
+
+        for i in range(n_classes):
             # Give joint features to the class
             n_joints = rng.integers(1, (len(joint_features) - (CONST.N_CUSTOMER_CLASSES-i-1)))
             features = []
