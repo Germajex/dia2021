@@ -9,7 +9,7 @@ def plot_results(names, rewards, prices, bids, n_rounds, env: BanditEnvironment)
     ax[0].set_title("Cumulative rewards")
     ax[1].set_title("Regret")
 
-    clairvoyant = [env.get_optimal_reward(0, prices, bids[0]) * t for t in
+    clairvoyant = [env.get_optimal_reward(0, bids[0]) * t for t in
                    range(n_rounds+1)]
 
     x = [i for i in range(n_rounds+1)]

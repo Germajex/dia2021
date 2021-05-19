@@ -9,16 +9,15 @@ rng = np.random.default_rng()
 creator = CustomerClassCreator()
 
 # Fixed variables for our problem
-N_ROUNDS = 1000
+N_ROUNDS = 365
 arms = [10, 20, 30, 40, 50, 60, 70, 80, 90, 100]
-bid = 15
-
+bid = 10
 customer = creator.getNewClasses(rng, 1)
 customer[0].printSummary()
 
 env = BanditEnvironment(10, customer)
 
-tsLearner = TSLearner(10, env)
+tsLearner = TSLearner(10, 0.5, env)
 ucbLearner = UCB1Learner(10, env)
 
 print("\n > > Starting simulation... < <\n")
