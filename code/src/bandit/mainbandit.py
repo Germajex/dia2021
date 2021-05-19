@@ -9,7 +9,7 @@ rng = np.random.default_rng()
 creator = CustomerClassCreator()
 
 # Fixed variables for our problem
-N_ROUNDS = 5000
+N_ROUNDS = 1000
 arms = [10, 20, 30, 40, 50, 60, 70, 80, 90, 100]
 bid = 15
 

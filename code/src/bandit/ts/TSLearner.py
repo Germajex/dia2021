@@ -13,7 +13,7 @@ class TSLearner:
         self.partial_rewards = [0]
 
         # In our model the likelihood is a gaussian function with unknown mean and variance, thus
-        # the prior we consider is a normal gamma distribution, characterized by three parameters:
+        # the prior we consider is a normal gamma distribution, characterized by four parameters:
         # mu (mean), v, alpha (shape), beta (inverse scale)
 
         self.priors = [NormalGamma(1, 1, 1, 1) for i in range(n_arms)]
@@ -49,7 +49,7 @@ class TSLearner:
             new_mu = (v * mu0 + n * x_bar) / (v + n)
             new_v = v + n
             new_alpha = alpha + (n / 2)
-            new_beta = beta + np.sum([(x - x_bar) ** 2 for x in self.rewards_per_arm[a]]) + (n * v) / (v + n) * (
+            new_beta = beta + 0.5*np.sum([(x - x_bar) ** 2 for x in self.rewards_per_arm[a]]) + (n * v) / (v + n) * (
                     ((x_bar - mu0) ** 2) / 2)
 
             self.priors[a].update_params(new_mu, new_v, new_alpha, new_beta)
