@@ -1,11 +1,11 @@
 import numpy as np
-from BanditEnviroment import BanditEnviroment
+from code.src.bandit.BanditEnvironment import BanditEnvironment
 import matplotlib.pyplot as plt
 
+
 class UCB1Learner:
-    def __init__(self, n_arms : int, env : BanditEnviroment):
+    def __init__(self, n_arms: int, env: BanditEnvironment):
         self.rewards_per_arm = [[] for i in range(n_arms)]
-        self.cr_per_arm = [[] for i in range(n_arms)]
         self.env = env
         self.n_arms = n_arms
         self.prices = []
@@ -13,30 +13,22 @@ class UCB1Learner:
         self.partial_rewards = [0]
         self.c = 500
 
-    def cr_empirical_mean(self, arm):
-        return np.mean(self.cr_per_arm[arm])
-
     def explore_price(self):
         for a in range(self.n_arms):
             self.pull_arm_price(a)
 
     def learn_price(self, n_rounds, prices, bid):
         self.prices = prices
-        self.bids =[bid]
+        self.bids = [bid]
 
         self.explore_price()
-        #self.wait_and_show(self.n_arms)
+        # self.wait_and_show(self.n_arms)
 
         for i in range(self.n_arms, n_rounds):
             a = self.choose_arm(i)
             self.pull_arm_price(a)
 
-            """if i % 50 == 0:
-                self.pulled_arms_recap()
-                self.wait_and_show(i)"""
-
         self.pulled_arms_recap()
-        self.regret_and_graph()
 
     def wait_and_show(self, t):
         print(f"[info] Showing round {t}")
@@ -73,25 +65,28 @@ class UCB1Learner:
         return np.mean(self.rewards_per_arm[arm]) - self.ucb_confidence_bound(arm, time, self.c)
 
     def ucb_confidence_bound(self, a, t, c):
-        return c*np.sqrt(2*np.log(t)/len(self.rewards_per_arm[a]))
+        return c * np.sqrt(2 * np.log(t) / len(self.rewards_per_arm[a]))
 
     def pull_arm_price(self, a):
-        rwd, cr = self.env.round_bids_known(0, self.prices[a], self.bids[0])
+        rwd = self.env.round_bids_known(0, self.prices[a], self.bids[0])
 
         self.rewards_per_arm[a].append(rwd)
-        self.cr_per_arm[a].append(cr)
 
         self.partial_rewards.append(self.partial_rewards[-1] + rwd)
 
     def pulled_arms_recap(self):
+        print("\nUCB Learner")
+
         for a in range(self.n_arms):
-            print(f"[info] Arm {a} pulled {len(self.cr_per_arm[a])} times - avg reward: {np.mean(self.rewards_per_arm[a])}")
+            print(
+                f"[info] Arm {a} pulled {len(self.rewards_per_arm[a])} times - avg reward: {np.mean(self.rewards_per_arm[a])}")
 
     def regret_and_graph(self):
         fig, ax = plt.subplots(2, 1, constrained_layout=True)
 
         alg_y = self.partial_rewards
-        clairv_y = [self.env.get_optimal_reward(0, self.prices, self.bids[0]) * t for t in range(len(self.partial_rewards))]
+        clairv_y = [self.env.get_optimal_reward(0, self.prices, self.bids[0]) * t for t in
+                    range(len(self.partial_rewards))]
 
         regret = np.array(clairv_y) - np.array(alg_y)
 

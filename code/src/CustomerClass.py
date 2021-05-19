@@ -1,7 +1,7 @@
 import numpy.random.mtrand
 import numpy as np
 
-from utils import sigmoid
+from code.src.utils import sigmoid
 
 class CustomerClass:
     def __init__(self, name, features, newClicksR, newClicksCenter, newClicksZ, crCenter, sigmoidZ, backDev, backMean):

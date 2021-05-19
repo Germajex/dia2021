@@ -6,6 +6,7 @@ from algorithms import optimize_all_known
 from mpl_toolkits import mplot3d
 import matplotlib.pyplot as plt
 
+
 def run_all_known(classes, verbose=1):
     if verbose > 0:
         for c in classes:
@@ -33,7 +34,7 @@ def run_all_known(classes, verbose=1):
             print("\n!!! FAIL !!!")
             print(f"Best revenue={max_revenue}, found revenue={found_revenue} for price={res[0]} and bid={res[1]}")
     else:
-        outcome=True
+        outcome = True
         if verbose > 0:
             print("\nSUCCESS")
             print(f"Result found. Price={res[0]}, bid={res[1]}, revenue={found_revenue}")
@@ -46,7 +47,7 @@ if __name__ == '__main__':
     rng = default_rng()
 
     res = True
-    i=0
+    i = 0
 
     while res and i < 5000:
         creator = CustomerClassCreator()
@@ -57,7 +58,7 @@ if __name__ == '__main__':
         # If something goes wrong, let's see better what's happening
         if not res:
             res = run_all_known(classes, verbose=1)
-        i +=1
+        i += 1
 
     print(res)
 
@@ -66,17 +67,17 @@ if __name__ == '__main__':
         x = np.linspace(1, 80, 100)
         y = np.linspace(1, 80, 100)
         z = [
-                [
-                    np.sum([c.getRevenue(p, b) for c in classes])
-                    for p in x
-                ]
+            [
+                np.sum([c.getRevenue(p, b) for c in classes])
+                for p in x
+            ]
             for b in y
         ]
         opt = [
             x[np.argmax([
-                    np.sum([c.getRevenue(p, b) for c in classes])
-                    for p in x
-                ])]
+                np.sum([c.getRevenue(p, b) for c in classes])
+                for p in x
+            ])]
             for b in y
         ]
         graph = 2
@@ -97,5 +98,3 @@ if __name__ == '__main__':
             ax.set_xlabel('bids')
             ax.set_ylabel('optimal_p')
             plt.show()
-
-

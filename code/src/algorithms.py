@@ -1,5 +1,6 @@
 import numpy as np
 
+
 def optimize_all_known(classes, prices, bids):
     # Sets of items
     C = classes
