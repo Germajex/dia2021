@@ -86,29 +86,26 @@ A margin function $m(p)$, where $p \in P$ is a price, is available to indicate h
 
 
 \subsection{New Daily Clicks $NewClicks(c,b)$}
-\textit{{\color{red}Nota: Per poter trasformare $E[N_{c,b}]$ in $n(c,b)$, dato che $N_{c,b}$ deve essere discreta è necessario che $n(c,b)$ sia a sua volta già la media di una distribuzione sui valori discreti che i nuovi clicks giornalieri possono assumere. Per incorporare la stocasticità possiamo sommare a questi nuovi click un white noise discreto, quindi $N_{c,b}=X+\epsilon$, con $E[\epsilon]=0$ e  $E[X] = n(c,b)$. In questo modo possiamo sicuramente togliere l'expectation nel primo punto ma dobbiamo fare in modo che aggiungendo il noise non si vada mai sotto 0. idea: $X>k,|\epsilon| <=k$. L'obiettivo è generare una distribuzione discreta che abbia il valore minimo $k$ e media $n(c,b)$}}
+The $NewClicks(c,b)$ distribution is used to sample the number of daily clicks from users of class $c$ if the bid $b$ is used.
 \newline
 \newline
-
-For each class $c$ and bid $b$ we define the discret random variable $N_{c,b}$ obtained as follows: $N_{c,b} = X_{c,b} + \eta_c$, where $X_{c,b}$ and $\eta_c$ are discrete random variables such that $\EX[X_{c,b}]=n(c,b)$ and $\EX[\eta_c]=0$. The variable $\eta_c$ represents a daily noise, and to ensure $\Prob(N_{c,b} < 0) = 0$ we assume that the smallest value that $X_{c,b}$ can take is larger than the absolute value of the smallest negative value that $\eta_c$ can assume.{\color{red} Ma sbaglio o il noise è inutile? non basta una normale distribuzione troncata? Bisogna descrivere come abbiamo implementato la distribuzione NewClicks(c,b) una volta che la avremo fatta}
-\newline
-\newline
-We furthermore adopt the following assumption: 
-\begin{assumption}[Agnostic Advertisor{\color{red}(forse meglio Publisher?)}] The mean of $NewClicks(c,b)$, $n(c,b)$, can be expressed as:
+We adopt the following assumption about the distribution: 
+\begin{assumption}[Agnostic Publisher] The mean of $NewClicks(c,b)$, $n(c,b)$, can be expressed as:
 \begin{align*}
 n(c,b)=n(c)v(b)
 \end{align*}
 Where $n(c)$ does not depend on $b$ and $v(b)$ does not depend on $c$.
 \end{assumption}
-In the assumption above, $v(b)$ represents the fact that higher bids will win more auctions and $n(c)$ represents the fact that, for each class, a different percentage of the users will belong to class $c$ \textit{and} click on the ad. The meaning of the Agnostic Advertisor assumption is that a change in the bid will change the number of users seeing the ad but will never change the percentage of users for each class. In other words, the advertisor does not know about the classes of the users and an increase in the auctions won will reflect in an increase in the number of clicks with the same proportion on all the classes.
+In the assumption above, $v(b)$ represents the fact that higher bids will win more auctions and $n(c)$ represents the fact that, for each class, a different percentage of the users will belong to class $c$ \textit{and} click on the ad. The meaning of the Agnostic Publisher assumption is that a change in the bid will change the number of users seeing the ad but will never change the percentage of users for each class. In other words, an increase in the auctions won will reflect in an increase in the number of clicks with the same proportion on all the classes. The reason behind the name is that in every auction the average concurrency does not depend on the user class, because the Publisher does not know anything about the class of the user (assuming that the Publisher is choosing every aspect of when and where to display the ad).
 \newline
 \newline
 In our implementation we defined:
 \begin{itemize}
 \item $n(c)=n_c$, for each class a constant $n_c > 0$ is randomly sampled when the environment is generated.
-\item $v(b)=\frac{1}{1+e^{-\overline z(b-\overline b)}}$, where $\overline z$ and $\overline b$ are randomly sampled when the environment is generated. The function $v(b)$ is the same for all the classes.
+\item $v(b)=\frac{1}{1+e^{-\overline z(b-\overline b)}}$, where $\overline z > 0$ and $\overline b > 0$ are randomly sampled when the environment is generated. The function $v(b)$ is the same for all the classes.
 \end{itemize}
-
+And we defined the distribution as
+{\color{red}Come la abbiamo definita}
 \subsection{Conversion Rate $r(c,p)$}
 For each class $c \in C$, the function $r_c(p)$ used to model the conversion rate of users belonging to that class must have the following properties:
 \begin{itemize}
@@ -125,48 +122,38 @@ Where $P_c$, the inflection point of the sigmoid, can be seen as the average res
 \subsection{Future Visits $FutureVisits(c)$}
 {\color{red}Descrizione di come la abbiamo implementata.}
 
-\subsection{Cost per click $ClickCost(b)$}
-The Cost per click function represents the cost that is paid to the ad publisher whenever a user clicks on the ad. Because of the  auction mechanism and the unknown budget constraints of the competitors, it could be smaller than the bid by a stochastic amount.
-\newline
-\newline
+\subsection{Cost per click $ClickCost(c,b)$}
+The $ClickCost$ distribution is used to sample the cost that is paid to the ad publisher whenever a user clicks on the ad. Because of the  auction mechanism and the unknown bids and budget constraints of the competitors, it could be smaller than the bid by a stochastic amount.
+We adopt the following assumption: 
+\begin{assumption}[Class-independent cost per click] The probability distribution $ClickCost(c,b)$ does not depend on c, that is:
+\begin{align*}
+ClickCost(c,b)=ClickCost(b)\\
+k(c,b) = k(b)
+\end{align*}
+\end{assumption}
 In our implementation we chose to keep it constant and equal to the bid, that is:
 \begin{align*}
 \Prob(C_{c,b} = k(c,b)) = 1\\
 k(c,b) = b
 \end{align*}
-
+\subsection{Margin function $m(p)$}
+{\color{red}Come la abbiamo definita}
 \section{Step 1}
-{\color{red}
-The goal is to maximize the expected profit over a single day, where the future visits of a user that first purchased the product are considered to contribute in expected value to the profit of the day of the first visit.
-
-
-\begin{align*}
-\argmax_{p,b}{\sum_{c \in C}{n(c,b)r(c,p)(1+\EX[f(c)])m(p)-n(c,b)k(b)}}
-\end{align*}
-
-Where the term $(1+\EX[f(c)])$ represents the average total number of purchases of a user that decides to purchase the item for the first time and the term $n(c,b)r(c,p)$ represents the number of users of class c that will click on the ad and purchase the item for the first time.
-\newline
-\newline
-\textit{NOTA: Se abbiamo una var bernoulli $D_{c,p,i}$ (nome provvisorio) che indica se il i-esimo utente della classe c ha comprato oppure no, con media $\EX[D_{c,p,i}]=r(c,p)$, possiamo esprimere l'expected value sull'esperimento eleatorio di un giorno.
-Idem con le future visits: c'è la variabile $F_{c,i}$ con media $\EX[F_{c,i}]=f(c)$}
-}
-\newline
-\newline
 The goal is to maximize the expected profit over a single day, where the future visits of a user are considered to contribute in expected value to the profit of the day of the first visit.
 \newline
 \newline
 For each class $c$, we define:
 \begin{itemize}
 \item The random variable $N_{c,b}$ representing the number of new clicks of users of class $c$, such that $N_{c,b} \sim NewClicks(c,b)$
-\item The sequence $(C_{c,b,i})_{i=1,...,N_{c,b}}$ of random variables representing the cost paid for each click $i$, such that $C_{c,b,i}\sim ClickCost(c,b)$
+\item The sequence $(C_{b,i})_{i=1,...,N_{c,b}}$ of random variables representing the cost paid for each click $i$, such that $C_{b,i}\sim ClickCost(b)$
 \item The sequence $(D_{c,p,i})_{i=1,...,N_{c,b}}$ of random variables representing whether user $i$ of class $c$ purchased the item, such that $D_{c,p,i}\sim Bern(r(c,p))$
 \item The sequence $(F_{c,i})_{i=1,...,N_{c,b}}$ of random variables representing the number of future visits of the user $i$ of class $c$, such that $F_{c,i}\sim FutureVisits(c)$
 \end{itemize}
-We then express the expected profit as follows:
+We can express the expected profit as follows:
 \begin{align*}
-ExpectedProfit(p,b) = \EX\left[\sum_{c \in C}{\sum_{i =1}^{N_{c,b}}{\bigg( D_{c,p,i}(1+F_{c,i})m(p)-C_{c,b,i}\bigg)}}\right]
+ExpectedProfit(p,b) = \EX\left[\sum_{c \in C}{\sum_{i =1}^{N_{c,b}}{\bigg( D_{c,p,i}(1+F_{c,i})m(p)-C_{b,i}\bigg)}}\right]
 \end{align*}
-We can therefore formulate the optimization problem as follows:
+And therefore formulate the optimization problem as follows:
 \begin{align*}
 \argmax_{p,b}{ExpectedProfit(p,b)}
 \end{align*}
@@ -177,13 +164,13 @@ With some manipulations using the properties of the expected value (Appendix \re
 ExpectedProfit(p,b)=m(p)\sum_{c \in C}{n(c,b)r(c,p)(1+f(c))}-k(b)\sum_{c \in C}{n(c,b)}
 \end{align*}
 
-Obtaining the formulation:
+Obtaining the following formulation, that depends only on the means of the distributions:
 
 \begin{align*}
 \argmax_{p,b}{m(p)\sum_{c \in C}{n(c,b)r(c,p)(1+f(c))}-k(b)\sum_{c \in C}{n(c,b)}}
 \end{align*}
 
-Under the Agnostic Advertisor assumption, the following interesting result holds:
+Under the Agnostic Publisher assumption, the following interesting result holds:
 
 \begin{lemma}[Constant optimal price]
 If a price $p^*$ is a local maximum of $ExpectedProfit(p,\overline b)$ for some fixed bid value $\overline b$,  then $p^*$ is a local maximum of $ExpectedProfit(p,b')$  for every possible fixed bid value $b'$.
@@ -196,25 +183,7 @@ As a consequence of this result, we developed an algorithm that:
 \begin{itemize}
 \item Finds the optimal price $p^*$ that maximizes $ExpectedProfit(p,\overline b)$ for a fixed bid value $\overline b$ (We take the median of the set of possible values). The time complexity of this step is $O(|P|)$
 \item Finds the optimal bid value $b^*$ that maximizes $ExpectedProfit(p^*, b)$, using the optimal price $p^*$ computed at step 1. The time complexity of this step is $O(|B|)$
-\item 
 \end{itemize}
-
-
-{\color{red}
-\begin{align*}
-\EX\left[\sum_{i =1}^{N_{c,b}}{\bigg( D_{c,p,i}(1+F_{c,i})\bigg)}\right]=\EX\left[\sum_{i =1}^{N_{c,b}}{\EX[D_{c,p,i}(1+F_{c,i})]}\right]
-\end{align*}
-
-\textit{NOTA: cerca "Law of total expectation"}
-\begin{align*}
-\EX\left[\sum_{i =1}^{N_{c,b}}{\bigg( D_{c,p,i}(1+F_{c,i})\bigg)}\right]\\
-=\sum_{j}{\Prob(N_{c,b}=j)\EX\left[\sum_{i =1}^{N_{c,b}}{\bigg( D_{c,p,i}(1+F_{c,i})\bigg)}|N_{c,b}=j\right]}\\
-=\sum_{j}{\Prob(N_{c,b}=j)\EX\left[\sum_{i =1}^{j}{\bigg( D_{c,p,i}(1+F_{c,i})\bigg)}\right]}\\
-=\sum_{j}{\Prob(N_{c,b}=j)\sum_{i =1}^{j}{\EX\left[ D_{c,p,i}(1+F_{c,i})\right]}}\\
-=\sum_{j}{\Prob(N_{c,b}=j)\sum_{i =1}^{j}{ r(c,p)(1+f(c))}}\\
-=\sum_{j}{\Prob(N_{c,b}=j) jr(c,p)(1+f(c))}
-\end{align*}
-}
 
 \section{Step 2}
 We model the online learning problem as follows:
@@ -237,11 +206,11 @@ The objective function to maximize is the cumulative expected profit over the le
 \section{Derivation of ExpectedProfit}\label{sec.DerExpProf}
 \begin{align*}
 ExpectedProfit(p,b) 
-&= \EX\left[\sum_{c \in C}{\sum_{i =1}^{N_{c,b}}{\bigg( D_{c,p,i}(1+F_{c,i})m(p)-C_{c,b,i}\bigg)}}\right]\\
-&= \EX\left[\sum_{c \in C}{\bigg(\sum_{i =1}^{N_{c,b}}{ D_{c,p,i}(1+F_{c,i})m(p)}-\sum_{i =1}^{N_{c,b}}C_{c,b,i}\bigg)}\right]\\
-&= \EX\left[\sum_{c \in C}{\sum_{i =1}^{N_{c,b}}{ D_{c,p,i}(1+F_{c,i})m(p)}}\right]-\sum_{c \in C}{\EX\left[\sum_{i =1}^{N_{c,b}}C_{c,b,i}\right]}\\
-&= \EX\left[\sum_{c \in C}{\sum_{i =1}^{N_{c,b}}{ D_{c,p,i}(1+F_{c,i})m(p)}}\right]-\sum_{c \in C}{\EX\left[\EX\left[\sum_{i =1}^{N_{c,b}}C_{c,b,i}\bigg|N_{c,b}\right]\right]}\\
-&= \EX\left[\sum_{c \in C}{\sum_{i =1}^{N_{c,b}}{ D_{c,p,i}(1+F_{c,i})m(p)}}\right]-\sum_{c \in C}{\EX\left[\sum_{i =1}^{N_{c,b}}\EX\left[C_{c,b,i}\bigg|N_{c,b}\right]\right]}\\
+&= \EX\left[\sum_{c \in C}{\sum_{i =1}^{N_{c,b}}{\bigg( D_{c,p,i}(1+F_{c,i})m(p)-C_{b,i}\bigg)}}\right]\\
+&= \EX\left[\sum_{c \in C}{\bigg(\sum_{i =1}^{N_{c,b}}{ D_{c,p,i}(1+F_{c,i})m(p)}-\sum_{i =1}^{N_{c,b}}C_{b,i}\bigg)}\right]\\
+&= \EX\left[\sum_{c \in C}{\sum_{i =1}^{N_{c,b}}{ D_{c,p,i}(1+F_{c,i})m(p)}}\right]-\sum_{c \in C}{\EX\left[\sum_{i =1}^{N_{c,b}}C_{b,i}\right]}\\
+&= \EX\left[\sum_{c \in C}{\sum_{i =1}^{N_{c,b}}{ D_{c,p,i}(1+F_{c,i})m(p)}}\right]-\sum_{c \in C}{\EX\left[\EX\left[\sum_{i =1}^{N_{c,b}}C_{b,i}\bigg|N_{c,b}\right]\right]}\\
+&= \EX\left[\sum_{c \in C}{\sum_{i =1}^{N_{c,b}}{ D_{c,p,i}(1+F_{c,i})m(p)}}\right]-\sum_{c \in C}{\EX\left[\sum_{i =1}^{N_{c,b}}\EX\left[C_{b,i}\bigg|N_{c,b}\right]\right]}\\
 &= \EX\left[\sum_{c \in C}{\sum_{i =1}^{N_{c,b}}{ D_{c,p,i}(1+F_{c,i})m(p)}}\right]-\sum_{c \in C}{\EX\left[\sum_{i =1}^{N_{c,b}}k(c,b)\right]}\\
 &= \EX\left[\sum_{c \in C}{\sum_{i =1}^{N_{c,b}}{ D_{c,p,i}(1+F_{c,i})m(p)}}\right]-\sum_{c \in C}{\EX\left[N_{c,b}k(c,b)\right]}\\
 &= \EX\left[\sum_{c \in C}{\sum_{i =1}^{N_{c,b}}{ D_{c,p,i}(1+F_{c,i})m(p)}}\right]-\sum_{c \in C}{\EX[N_{c,b}]k(b)}\\
@@ -289,8 +258,8 @@ Let us now consider the condition on the second order derivative. Since $p^*$ is
 \begin{align*}
 \left. \frac{\partial^2 ExpectedProfit(p,b)}{\partial p^2}\right \rvert_{p=p^*}=\underline n(b)\cdot \left. \frac{\partial \underline s(p)}{\partial p}\right \rvert_{p=p^*} < 0
 \end{align*}
-Since $\gamma$ is a positive number, it holds that
+Since $\gamma > 0 $, it holds that
 \begin{align*}
-\underline n(b)\cdot \left. \frac{\partial \underline s(p)}{\partial p}\right \rvert_{p=p^*} < 0 \Rightarrow \underline n(b+d)\cdot \left. \frac{\partial \underline s(p)}{\partial p}\right \rvert_{p=p^*}= \gamma \underline n(b)\cdot \left. \frac{\partial \underline s(p)}{\partial p}\right \rvert_{p=p^*} < 0 
+\underline n(b+d)\cdot \left. \frac{\partial \underline s(p)}{\partial p}\right \rvert_{p=p^*}= \gamma \underline n(b)\cdot \left. \frac{\partial \underline s(p)}{\partial p}\right \rvert_{p=p^*} < 0 
 \end{align*}
 \end{document}
