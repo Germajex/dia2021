@@ -17,4 +17,3 @@ learner = UCB1Learner(10, env)
 
 learner.learn_price(N_ROUNDS, [10, 20, 30, 40, 50, 60, 70, 80, 90, 100], 10)
 
-stats.plot_results(["ucb1"], [learner.partial_rewards], learner.prices, learner.bids, N_ROUNDS, env)

@@ -24,7 +24,8 @@ class CustomerClassCreator:
 
         for i in range(n_classes):
             # Give joint features to the class
-            n_joints = rng.integers(1, (len(joint_features) - (CONST.N_CUSTOMER_CLASSES-i-1)))
+            max_features_pop = (len(joint_features) - (n_classes-i-1))
+            n_joints = rng.integers(1, max_features_pop+1)
             features = []
             for j in range(n_joints):
                 features.append(joint_features.pop())

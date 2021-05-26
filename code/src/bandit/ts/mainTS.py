@@ -12,7 +12,7 @@ N_ROUNDS = 365
 customer = creator.getNewClasses(rng, 1)
 customer[0].printSummary()
 
-rhos = [0.001, 0.01, 0.1, 0.5, 1, 10, 100, 1000]
+rhos = [0.01, 0.1, 0.5, 1, 10]
 prices = [10, 20, 30, 40, 50, 60, 70, 80, 90, 100]
 bid = 10
 
@@ -27,4 +27,3 @@ for learner in learners:
     learner.learn_price(N_ROUNDS, prices, bid)
     rewards.append(learner.partial_rewards)
 
-stats.plot_results(rhos, rewards, prices, [bid], N_ROUNDS, env)

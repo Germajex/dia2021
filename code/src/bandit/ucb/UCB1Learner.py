@@ -13,11 +13,14 @@ class UCB1Learner:
         self.partial_rewards = [0]
         self.c = 500
 
+    # This method runs a first round of exploration, initializing the UCB algorithm
     def explore_price(self):
         for a in range(self.n_arms):
             self.pull_arm_price(a)
 
-    def learn_price(self, n_rounds, prices, bid):
+    # The 'core' UCB algorithm, it learns the best price possible, given the number of rounds, the possible prices
+    # and the fixed bid
+    def learn_price(self, n_rounds, prices, bid, verbose=True):
         self.prices = prices
         self.bids = [bid]
 
@@ -28,8 +31,10 @@ class UCB1Learner:
             a = self.choose_arm(i)
             self.pull_arm_price(a)
 
-        self.pulled_arms_recap()
+        if verbose:
+            self.pulled_arms_recap()
 
+    # Method used for debugging mainly. Plots the average reward and the confidence bounds used by the UCB algorithm
     def wait_and_show(self, t):
         print(f"[info] Showing round {t}")
 
@@ -53,50 +58,36 @@ class UCB1Learner:
 
         plt.show()
 
-    # Choose the arm to pull based on the reward upper bound (reward computed with cr upper bound)
+    # Choose the arm to pull based on the reward upper bound (reward computed with cr upper bound).
+    # Returns the index of the arm to be pulled
     def choose_arm(self, t):
         rwds_array = [self.ucb_upper_bound(a, t) for a in range(self.n_arms)]
         return np.argmax(rwds_array)
 
+    # Computes the ucb upper bound of a given arm at a given time
     def ucb_upper_bound(self, arm, time):
         return np.mean(self.rewards_per_arm[arm]) + self.ucb_confidence_bound(arm, time, self.c)
 
+    # Computes the ucb lower bound of a given arm at a given time
     def ucb_lower_bound(self, arm, time):
         return np.mean(self.rewards_per_arm[arm]) - self.ucb_confidence_bound(arm, time, self.c)
 
+    # Implementation of the UCB confidence bound. It needs the arm, the timestamp and an hyperparameter c
     def ucb_confidence_bound(self, a, t, c):
         return c * np.sqrt(2 * np.log(t) / len(self.rewards_per_arm[a]))
 
+    # Pulls the given arm, which is a price to be tested. Also appends the collected reward.
     def pull_arm_price(self, a):
-        rwd = self.env.round_bids_known(0, self.prices[a], self.bids[0])
+        rwd = self.env.round_bids_fixed(self.prices[a], self.bids[0])
 
         self.rewards_per_arm[a].append(rwd)
 
         self.partial_rewards.append(self.partial_rewards[-1] + rwd)
 
+    # Prints out a brief recap of the activities done by the learner
     def pulled_arms_recap(self):
         print("\nUCB Learner")
 
         for a in range(self.n_arms):
             print(
                 f"[info] Arm {a} pulled {len(self.rewards_per_arm[a])} times - avg reward: {np.mean(self.rewards_per_arm[a])}")
-
-    def regret_and_graph(self):
-        fig, ax = plt.subplots(2, 1, constrained_layout=True)
-
-        alg_y = self.partial_rewards
-        clairv_y = [self.env.get_optimal_reward(0, self.prices, self.bids[0]) * t for t in
-                    range(len(self.partial_rewards))]
-
-        regret = np.array(clairv_y) - np.array(alg_y)
-
-        x = [i for i in range(len(self.partial_rewards))]
-
-        ax[0].set_title("Clairvoyant vs UCB1")
-        ax[0].plot(x, alg_y)
-        ax[0].plot(x, clairv_y)
-
-        ax[1].set_title("Regret")
-        ax[1].plot(x, regret)
-
-        plt.show()
