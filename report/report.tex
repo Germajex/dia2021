@@ -77,9 +77,9 @@
 Advertising is used to attract users on an ecommerce website that sells only one type of item. Each user belongs to one of three classes, and the classes are determined by the combination of two binary features. For each class $c \in C$ the following functions are modeled:
 \begin{itemize}
 \item A stochastic number of daily clicks of new users (i.e., that have never clicked before on the ads), represented by the discrete random variable $N_{c,b}\sim NewClicks(c,b)$, such that $\EX[N_{c,b}]=n(c,b)$, where $b \in B$ is a bid value. 
-\item A conversion rate function providing the probability that a user will buy the item at a certain price,  $r(c,p)$, where $p \in P$ is the price. For each user of class $c$ that has clicked on the ad, a Bernoulli random variable $D_{c,p} \sim Bern(r(c,p))$ indicates whether the user bought the product ($D_{c,p}=1$) or not ($D_{c,p}=0$).
+\item A conversion rate function providing the probability that a user will buy the item at a certain price,  $r(c,p)$, where $p \in P$ is the price. For each user of class $c$ that has clicked on the ad, a Bernoulli random variable $D_{c,p} \sim Bern(r(c,p))$ indicates whether the user bought the product ($D_{c,p}=1$) or not ($D_{c,p}=0$), such that $\EX[D_{c,p}]=r(c,p)$. In the code, such distribution is called $ClickConverted(c,p)$.
 \item A probability distribution $FutureVisits(c)$ over the number of times a user of class $c$ will come back to the ecommerce website to buy that item by 30 days after the first purchase. In other words, when a user makes a purchase, they are somehow likely to make more purchases in the near future, and after that they will leave the website forever. For each user of class $c$, a discrete random variable $F_c \sim FutureVisits(c)$ indicates the number of times that the user came back, and for each class $c$ the function $f(c)$ is defined such that $\EX[F_c] = f(c)$
-\item A probability distribution $ClickCost(c,b)$. For each click, the random variable $C_{c,b}\sim ClickCost(c,b)$ represents the amount that is paid to the ad publisher, such that $\EX[C_{c,b}] = k(c,b)$ and $\Prob(C_{c,b} \leq b) = 1$.
+\item A probability distribution $CostPerClick(c,b)$. For each click, the random variable $C_{c,b}\sim CostPerClick(c,b)$ represents the amount that is paid to the ad publisher, such that $\EX[C_{c,b}] = k(c,b)$ and $\Prob(C_{c,b} \leq b) = 1$.
 \end{itemize}
 
 A margin function $m(p)$, where $p \in P$ is a price, is available to indicate how much profit is obtained if the an item is sold at the price $p$. 
@@ -96,7 +96,7 @@ n(c,b)=n(c)v(b)
 \end{align*}
 Where $n(c)$ does not depend on $b$ and $v(b)$ does not depend on $c$.
 \end{assumption}
-In the assumption above, $v(b)$ represents the fact that higher bids will win more auctions and $n(c)$ represents the fact that, for each class, a different percentage of the users will belong to class $c$ \textit{and} click on the ad. The meaning of the Agnostic Publisher assumption is that a change in the bid will change the number of users seeing the ad but will never change the percentage of users for each class. In other words, an increase in the auctions won will reflect in an increase in the number of clicks with the same proportion on all the classes. The reason behind the name is that in every auction the average concurrency does not depend on the user class, because the Publisher does not know anything about the class of the user (assuming that the Publisher is choosing every aspect of when and where to display the ad).
+In the assumption above, $v(b)$ represents the fact that higher bids will win more auctions and $n(c)$ represents the fact that, for each class, a different percentage of the users will belong to class $c$ \textit{and} click on the ad. The meaning of the Agnostic Publisher assumption is that a change in the bid will change the number of users seeing the ad but will never change the percentage of users for each class. In other words, an increase in the auctions won will reflect in an increase in the number of clicks with the same proportion on all the classes. The reason behind the name is that in every auction the average competition does not depend on the user class, because the Publisher does not know anything about the class of the user (assuming that the Publisher is choosing every aspect of when and where to display the ad).
 \newline
 \newline
 In our implementation we defined:
@@ -122,12 +122,12 @@ Where $P_c$, the inflection point of the sigmoid, can be seen as the average res
 \subsection{Future Visits $FutureVisits(c)$}
 {\color{red}Descrizione di come la abbiamo implementata.}
 
-\subsection{Cost per click $ClickCost(c,b)$}
-The $ClickCost$ distribution is used to sample the cost that is paid to the ad publisher whenever a user clicks on the ad. Because of the  auction mechanism and the unknown bids and budget constraints of the competitors, it could be smaller than the bid by a stochastic amount.
+\subsection{Cost per click $CostPerClick(c,b)$}
+The $CostPerClick$ distribution is used to sample the cost that is paid to the ad publisher whenever a user clicks on the ad. Because of the  auction mechanism and the unknown bids and budget constraints of the competitors, it could be smaller than the bid by a stochastic amount.
 We adopt the following assumption: 
-\begin{assumption}[Class-independent cost per click] The probability distribution $ClickCost(c,b)$ does not depend on c, that is:
+\begin{assumption}[Class-independent cost per click] The probability distribution $CostPerClick(c,b)$ does not depend on c, that is:
 \begin{align*}
-ClickCost(c,b)=ClickCost(b)\\
+CostPerClick(c,b)=CostPerClick(b)\\
 k(c,b) = k(b)
 \end{align*}
 \end{assumption}
@@ -145,7 +145,7 @@ The goal is to maximize the expected profit over a single day, where the future 
 For each class $c$, we define:
 \begin{itemize}
 \item The random variable $N_{c,b}$ representing the number of new clicks of users of class $c$, such that $N_{c,b} \sim NewClicks(c,b)$
-\item The sequence $(C_{b,i})_{i=1,...,N_{c,b}}$ of random variables representing the cost paid for each click $i$, such that $C_{b,i}\sim ClickCost(b)$
+\item The sequence $(C_{b,i})_{i=1,...,N_{c,b}}$ of random variables representing the cost paid for each click $i$, such that $C_{b,i}\sim CostPerClick(b)$
 \item The sequence $(D_{c,p,i})_{i=1,...,N_{c,b}}$ of random variables representing whether user $i$ of class $c$ purchased the item, such that $D_{c,p,i}\sim Bern(r(c,p))$
 \item The sequence $(F_{c,i})_{i=1,...,N_{c,b}}$ of random variables representing the number of future visits of the user $i$ of class $c$, such that $F_{c,i}\sim FutureVisits(c)$
 \end{itemize}
@@ -172,17 +172,18 @@ Obtaining the following formulation, that depends only on the means of the distr
 
 Under the Agnostic Publisher assumption, the following interesting result holds:
 
-\begin{lemma}[Constant optimal price]
-If a price $p^*$ is a local maximum of $ExpectedProfit(p,\overline b)$ for some fixed bid value $\overline b$,  then $p^*$ is a local maximum of $ExpectedProfit(p,b')$  for every possible fixed bid value $b'$.
+\begin{lemma}[Bid Independent Price Hierarchy]
+If $ExpectedProfit(p_1,\overline b) \ge ExpectedProfit(p_2,\overline b)$ for some bid value $\overline b$,  then $ExpectedProfit(p_1,\overline b) \ge ExpectedProfit(p_2,\overline b)$  for every possible bid value $b'$.
 \end{lemma}
 \begin{proof}
-see Appendix \ref{sec.ConstOptPrice}.
+see Appendix \ref{sec.BIPHLProof}.
 \end{proof}
 
 As a consequence of this result, we developed an algorithm that:
 \begin{itemize}
-\item Finds the optimal price $p^*$ that maximizes $ExpectedProfit(p,\overline b)$ for a fixed bid value $\overline b$ (We take the median of the set of possible values). The time complexity of this step is $O(|P|)$
-\item Finds the optimal bid value $b^*$ that maximizes $ExpectedProfit(p^*, b)$, using the optimal price $p^*$ computed at step 1. The time complexity of this step is $O(|B|)$
+\item Finds the optimal price $p^*\in P$ that maximizes $ExpectedProfit(p,\overline b)$ for a fixed bid value $\overline b$ (We take the median of the set of possible values). The time complexity of this step is $O(|P|)$
+\item Finds the optimal bid value $b^* \in B$ that maximizes $ExpectedProfit(p^*, b)$, using the optimal price $p^*$ found at step 1. The time complexity of this step is $O(|B|)$
+\item The solution is $(p^*, b^*)$.
 \end{itemize}
 
 \section{Step 2}
@@ -225,41 +226,16 @@ ExpectedProfit(p,b)
 &= m(p)\sum_{c \in C}{n(c,b)r(c,p)\Big(1+f(c)\Big)}-k(b)\sum_{c \in C}{n(c,b)}
 \end{align*}
 
-\section{Proof of the Contant optimal price Lemma}\label{sec.ConstOptPrice}
+\section{Proof of the Bid Independent Price Hierarchy lemma}\label{sec.BIPHLProof}
 \begin{align*}
 ExpectedProfit(p,b)=\sum_{c \in C}{n(c,b)r(c,p)m(p)(1+f(c))}-k(b)\sum_{c \in C}{n(c,b)}
 \end{align*}
-The partial derivative with respect to p is:
 \begin{align*}
-\frac{\partial ExpectedProfit(p,b)}{\partial p}=\sum_{c \in C}{n(c,b)(1+f(c))\bigg(\frac{\partial r(c,p)}{\partial p}m(p) + r(c,p)\frac{\partial m(p)}{\partial p}\bigg)}
+\sum_{c \in C}{n(c,b)r(c,p_1)m(p_1)(1+f(c))}-k(b)\sum_{c \in C}{n(c,b)}  &\ge \sum_{c \in C}{n(c,b)r(c,p_2)m(p_2)(1+f(c))}-k(b)\sum_{c \in C}{n(c,b)}\\
+\sum_{c \in C}{n(c,b)r(c,p_1)m(p_1)(1+f(c))}  &\ge \sum_{c \in C}{n(c,b)r(c,p_2)m(p_2)(1+f(c))}\\
+\sum_{c \in C}{n(c)v(b)r(c,p_1)m(p_1)(1+f(c))}  &\ge \sum_{c \in C}{n(c)v(b)r(c,p_2)m(p_2)(1+f(c))}\\
+v(b)m(p_1)\sum_{c \in C}{n(c)r(c,p_1)(1+f(c))}  &\ge v(b)m(p_2)\sum_{c \in C}{n(c)r(c,p_2)(1+f(c))}\\
+m(p_1)\sum_{c \in C}{n(c)r(c,p_1)(1+f(c))}  &\ge m(p_2)\sum_{c \in C}{n(c)r(c,p_2)(1+f(c))}
 \end{align*}
-The derivative can be seen as the scalar product of two $|C|$-dimensional vectors $\underline n(b)$ and $\underline s(p)$, where the c-th element of $\underline n(b)$ is $n(c,b)$ and the c-th element of $\underline s(p)$ is $(1+f(c))\bigg(\frac{\partial r(c,p)}{\partial p}m(p) + r(c,p)\frac{\partial m(p)}{\partial p}\bigg)$.
-\begin{align*}
-\frac{\partial ExpectedProfit(p,b)}{\partial p}=\underline n(b)\cdot \underline s(p)
-\end{align*}
-Let's assume that in $(p^*, \overline b)$ the partial derivative equals 0:
-\begin{align*}
-\underline n(\overline b)\cdot \underline s(p^*) = 0
-\end{align*}
-Let's focus on the vector $\underline n(b)$: it holds that $\forall b \ \forall d \ \exists \gamma \  | \ \gamma > 0\  \wedge \   \underline n(b + d)=\gamma\underline n(b)$.
-
-This can be shown element-wise:
-\begin{align*}
-\frac{n(c, b+d)}{n(c,b)} = \frac{n(c)v(b+d)}{n(c)v(b)} = \frac{v(b+d)}{v(b)} = \gamma > 0
-\end{align*}
-Therefore if we change the bid by a value of $d$:
-\begin{align*}
-\left.\frac{\partial ExpectedProfit(p,b)}{\partial p}\right\rvert_{p=p^*, b=\overline b+d}=\underline n(\overline b+d)\cdot \underline s(p^*) = \gamma \underline n(\overline b)\cdot \underline s(p^*) = 0
-\end{align*}
-And $p^*$ is a stationary point for the bid $\overline b+d$ too.
-\newline
-\newline
-Let us now consider the condition on the second order derivative. Since $p^*$ is a point of local maximum with respect to p, it must hold
-\begin{align*}
-\left. \frac{\partial^2 ExpectedProfit(p,b)}{\partial p^2}\right \rvert_{p=p^*}=\underline n(b)\cdot \left. \frac{\partial \underline s(p)}{\partial p}\right \rvert_{p=p^*} < 0
-\end{align*}
-Since $\gamma > 0 $, it holds that
-\begin{align*}
-\underline n(b+d)\cdot \left. \frac{\partial \underline s(p)}{\partial p}\right \rvert_{p=p^*}= \gamma \underline n(b)\cdot \left. \frac{\partial \underline s(p)}{\partial p}\right \rvert_{p=p^*} < 0 
-\end{align*}
+Therefore the relation holds for every possible value of the bid.
 \end{document}
