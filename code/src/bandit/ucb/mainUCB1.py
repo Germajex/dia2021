@@ -9,11 +9,13 @@ N_ROUNDS = 365
 rng = np.random.default_rng()
 creator = CustomerClassCreator()
 
+bid = 10
+
 customer = creator.getNewClasses(rng, 1)
 customer[0].printSummary()
 
-env = BanditEnvironment(10, customer)
+env = BanditEnvironment(10, 3, rng, [bid])
 learner = UCB1Learner(10, env)
 
-learner.learn_price(N_ROUNDS, [10, 20, 30, 40, 50, 60, 70, 80, 90, 100], 10)
+learner.learn_price(N_ROUNDS, [10, 20, 30, 40, 50, 60, 70, 80, 90, 100], bid)
 

@@ -30,14 +30,13 @@ for r in range(N_RUNS):
 
     print(f"\n[info] Run n°{r} ...")
     # Create customer and environment
-    customers = creator.getNewClasses(rng, 3)
-    env = BanditEnvironment(10, customers, bids=[bid])
+    env = BanditEnvironment(10, 3, rng)
 
     # Show summary of the customer classes
-    for c in customers:
+    for c in env.classes:
         c.printSummary()
 
-    clairvoyants.append(env.get_clairvoyant_partial_rewards(N_ROUNDS))
+    clairvoyants.append(env.get_clairvoyant_partial_rewards_price(N_ROUNDS, bid))
 
     # Test algorithms
     tsLearner = TSLearner(10, 0.05, env)
@@ -49,8 +48,8 @@ for r in range(N_RUNS):
     ts_rewards.append(tsLearner.partial_rewards)
     ucb_rewards.append(ucbLearner.partial_rewards)
 
-    ts_regrets.append(env.get_cumulative_regret(tsLearner.partial_rewards))
-    ucb_regrets.append(env.get_cumulative_regret(ucbLearner.partial_rewards))
+    ts_regrets.append(env.get_cumulative_regret_price(bid, tsLearner.partial_rewards))
+    ucb_regrets.append(env.get_cumulative_regret_price(bid, ucbLearner.partial_rewards))
 
 # Average rewards and then plot
 ts_rewards = np.mean(ts_rewards, axis=0)

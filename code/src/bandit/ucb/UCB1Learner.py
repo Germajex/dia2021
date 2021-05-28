@@ -78,7 +78,7 @@ class UCB1Learner:
 
     # Pulls the given arm, which is a price to be tested. Also appends the collected reward.
     def pull_arm_price(self, a):
-        rwd = self.env.round_bids_fixed(self.prices[a], self.bids[0])
+        rwd = self.env.round_bids_fixed(self.prices[a], self.bids[0])[0]
 
         self.rewards_per_arm[a].append(rwd)
 

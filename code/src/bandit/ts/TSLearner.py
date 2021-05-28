@@ -24,7 +24,7 @@ class TSLearner:
     # price
     def pull_arm_price(self, a):
         # Get the reward from the environment
-        rwd = self.env.round_bids_fixed(self.prices[a], self.bids[0])
+        rwd = self.env.round_bids_fixed(self.prices[a], self.bids[0])[0]
         self.rewards_per_arm[a].append(rwd)
         self.partial_rewards.append(self.partial_rewards[-1] + rwd)
 

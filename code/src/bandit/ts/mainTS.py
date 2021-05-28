@@ -17,7 +17,7 @@ prices = [10, 20, 30, 40, 50, 60, 70, 80, 90, 100]
 bid = 10
 
 learners = []
-env = BanditEnvironment(10, customer)
+env = BanditEnvironment(10, 3, rng, [bid])
 for rho in rhos:
     learners.append(TSLearner(10, rho, env))
 
