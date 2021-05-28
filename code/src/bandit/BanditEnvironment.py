@@ -51,6 +51,10 @@ class BanditEnvironment:
     def get_reward(self, class_n, price, bid, cr):
         return self.classes[class_n].getRevenue(price, bid, cr=cr)
 
+    # Returns the total reward obtained by all classes, given a price, a bid and the cr
+    def get_total_reward(self, price, bid, cr):
+        return np.sum([self.get_reward(n, price, bid, cr) for n in range(len(self.classes))])
+
     # Returns a list containing all the cumulative rewards of the clairvoyant, given a bid.
     # Used mainly to compute regret, for the pricing problem
     def get_clairvoyant_partial_rewards_price(self, n_rounds, bid):

@@ -3,13 +3,15 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 
-def plot_results(names, rewards, regrets, clairvoyant, n_rounds):
+def plot_results(names, rewards, clairvoyant, n_rounds):
     fig, ax = plt.subplots(2, 1, constrained_layout=True)
     ax[0].set_title("Cumulative rewards")
     ax[1].set_title("Regret")
 
+    regrets = np.array(clairvoyant) - np.array(rewards)
+
     x = [i for i in range(n_rounds + 1)]
-    ax[0].plot(x, clairvoyant, 'green')
+    ax[0].plot(x, clairvoyant, 'red')
 
     for i in range(len(names)):
         alg_y = rewards[i]
