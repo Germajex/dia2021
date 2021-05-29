@@ -19,12 +19,21 @@ class NormalGamma:
         self.alpha = alpha
         self.beta = beta
 
-    def sample(self):
-        tau = np.random.gamma(self.alpha, 1/self.beta)
-        x = np.random.normal(self.mu, 1 / (self.v * tau))
-
     def sample_zhu_tan(self):
         tau = np.random.gamma(self.alpha, self.beta)
-        theta = np.random.normal(self.mu, 1/self.v)
+        theta = np.random.normal(self.mu, 1 / self.v)
 
         return tau, theta
+
+
+class Beta:
+    def __init__(self, alpha, beta):
+        self.alpha = alpha
+        self.beta = beta
+
+    def sample(self):
+        return np.random.beta(self.alpha, self.beta)
+
+    def update_params(self, successes, failures):
+        self.alpha += successes
+        self.beta += failures

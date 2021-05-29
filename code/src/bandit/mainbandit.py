@@ -10,12 +10,13 @@ creator = CustomerClassCreator()
 
 # Fixed variables for our problem
 N_ROUNDS = 365
-N_RUNS = 10
+N_RUNS = 5
 arms = [10, 20, 30, 40, 50, 60, 70, 80, 90, 100]
-bid = 7
+bid = 10
 
 # Rewards
-ts_rewards = []
+ts_rwd_rewards = []
+ts_cr_rewards = []
 ucb_cr_rewards = []
 ucb_rwd_rewards = []
 
@@ -30,7 +31,7 @@ for r in range(N_RUNS):
     # Create customer and environment
     env = BanditEnvironment(10, 3, rng)
 
-    if False:
+    if True:
         # Show summary of the customer classes
         for c in env.classes:
             c.printSummary()
@@ -38,24 +39,28 @@ for r in range(N_RUNS):
     clairvoyants.append(env.get_clairvoyant_partial_rewards_price(N_ROUNDS, bid))
 
     # Test algorithms
-    tsLearner = TSLearner(10, 0.05, env)
+    tsLearner_rwd = TSLearner(10, 0.05, env)
+    tsLearner_cr = TSLearner(10, 0, env)
     ucbLearner_cr = UCB1Learner(10, env)
     ucbLearner_rwd = UCB1Learner(10, env)
 
-    tsLearner.learn_price(N_ROUNDS, arms, bid, verbose=False)
-    ucbLearner_cr.learn_price(N_ROUNDS, arms, bid, mode='cr', verbose=False)
-    ucbLearner_rwd.learn_price(N_ROUNDS, arms, bid, mode='rwd', verbose=False)
+    tsLearner_rwd.learn_price(N_ROUNDS, arms, bid, mode='rwd', verbose=True)
+    tsLearner_cr.learn_price(N_ROUNDS, arms, bid, mode='cr', verbose=True)
+    ucbLearner_cr.learn_price(N_ROUNDS, arms, bid, mode='cr', verbose=True)
+    ucbLearner_rwd.learn_price(N_ROUNDS, arms, bid, mode='rwd', verbose=True)
 
-    ts_rewards.append(tsLearner.partial_rewards)
+    ts_rwd_rewards.append(tsLearner_rwd.cumulative_rewards)
+    ts_cr_rewards.append(tsLearner_cr.cumulative_rewards)
     ucb_cr_rewards.append(ucbLearner_cr.cumulative_rewards)
     ucb_rwd_rewards.append(ucbLearner_rwd.cumulative_rewards)
 
 # Average rewards and then plot
-ts_rewards = np.mean(ts_rewards, axis=0)
+ts_rwd_rewards = np.mean(ts_rwd_rewards, axis=0)
+ts_cr_rewards = np.mean(ts_cr_rewards, axis=0)
 ucb_cr_rewards = np.mean(ucb_cr_rewards, axis=0)
 ucb_rwd_rewards = np.mean(ucb_rwd_rewards, axis=0)
 
 clairvoyants = np.mean(clairvoyants, axis=0)
 
-Stats.plot_results(["ts", "ucb cr mode", "ucb rwd mode"], [ts_rewards, ucb_cr_rewards, ucb_rwd_rewards],
+Stats.plot_results(["ts cr mode", "ts rwd mode", "ucb cr mode", "ucb rwd mode"], [ts_cr_rewards, ts_rwd_rewards, ucb_cr_rewards, ucb_rwd_rewards],
                    clairvoyants, N_ROUNDS)

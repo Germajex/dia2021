@@ -30,7 +30,7 @@ class UCB1Learner:
         if c_param is not None:
             self.c = c_param
         elif mode == 'cr':
-            self.c = 0.01
+            self.c = 0.02
         elif mode == 'rwd':
             self.c = 200
         else:

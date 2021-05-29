@@ -25,7 +25,7 @@ rewards = []
 
 for learner in learners:
     learner.learn_price(N_ROUNDS, prices, bid)
-    rewards.append(learner.partial_rewards)
+    rewards.append(learner.cumulative_rewards)
 
 
 
