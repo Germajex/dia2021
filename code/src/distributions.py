@@ -20,18 +20,20 @@ class NewClicksDistribution(Distribution):
     def sample(self, rng:Generator, customerClass: CustomerClass, bid: float):
         return -1
 
-    def mean(self, customerClass: CustomerClass, bid: float):
-        return customerClass.newClicksR*sigmoid(bid, customerClass.newClicksC, customerClass.newClicksZ)
+    @staticmethod
+    def mean(customer_class: CustomerClass, bid: float):
+        return round(customer_class.newClicksR * sigmoid(bid, customer_class.newClicksC, customer_class.newClicksZ))
 
 
 class CostPerClickDistribution(Distribution):
     def __init__(self, rng: Generator):
         super().__init__(rng=rng)
 
-    def sample(self, customerClass: CustomerClass, bid: float):
+    def sample(self, bid: float):
         return bid
 
-    def mean(self, customerClass: CustomerClass, bid: float):
+    @staticmethod
+    def mean(bid: float):
         return bid
 
 
@@ -42,19 +44,21 @@ class FutureVisitsDistribution(Distribution):
     def sample(self, customerClass: CustomerClass):
         return -1
 
-    def mean(self, customerClass: CustomerClass):
-        return customerClass.backMean
+    @staticmethod
+    def mean(customer_class: CustomerClass):
+        return customer_class.backMean
 
 
 class ClickConvertedDistribution(Distribution):
     def __init__(self, rng: Generator):
         super().__init__(rng=rng)
 
-    def sample(self, customerClass: CustomerClass, price: float):
-        return self.rng.binomial(1, self.mean(customerClass=customerClass, price=price))
+    def sample(self, customer_class: CustomerClass, price: float):
+        return self.rng.binomial(1, self.mean(customer_class=customer_class, price=price))
 
-    def sample_n(self, customerClass: CustomerClass, price: float, n):
-        return self.rng.binomial(n, self.mean(customerClass=customerClass, price=price))
+    def sample_n(self, customer_class: CustomerClass, price: float, n):
+        return self.rng.binomial(n, self.mean(customer_class=customer_class, price=price))
 
-    def mean(self, customerClass: CustomerClass, price: float):
-        return sigmoid(-price, -customerClass.crCenter, customerClass.sigmoidZ)
+    @staticmethod
+    def mean(customer_class: CustomerClass, price: float):
+        return sigmoid(-price, -customer_class.crCenter, customer_class.sigmoidZ)
