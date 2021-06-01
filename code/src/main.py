@@ -25,19 +25,18 @@ def run_all_known(classes, verbose=1):
             revenues.append(np.sum([c.getRevenue(p, b) for c in classes]))
 
     max_revenue = np.amax(revenues)
-    res = optimize_all_known(classes, prices, bids)
-    found_revenue = res[2]
+    opt_price, opt_bid, found_revenue = optimize_all_known(classes, prices, bids)
 
     if max_revenue > found_revenue:
         outcome = False
         if verbose > 0:
             print("\n!!! FAIL !!!")
-            print(f"Best revenue={max_revenue}, found revenue={found_revenue} for price={res[0]} and bid={res[1]}")
+            print(f"Best revenue={max_revenue}, found revenue={found_revenue} for price={opt_price} and bid={opt_bid}")
     else:
         outcome = True
         if verbose > 0:
             print("\nSUCCESS")
-            print(f"Result found. Price={res[0]}, bid={res[1]}, revenue={found_revenue}")
+            print(f"Result found. Price={opt_price}, bid={opt_bid}, revenue={found_revenue}")
 
     return outcome
 
