@@ -18,7 +18,7 @@ class NewClicksDistribution(Distribution):
         super().__init__(rng=rng)
 
     def sample(self, rng:Generator, customerClass: CustomerClass, bid: float):
-        return -1
+        raise NotImplementedError
 
     @staticmethod
     def mean(customer_class: CustomerClass, bid: float):
@@ -42,7 +42,7 @@ class FutureVisitsDistribution(Distribution):
         super().__init__(rng=rng)
 
     def sample(self, customerClass: CustomerClass):
-        return -1
+        raise NotImplementedError
 
     @staticmethod
     def mean(customer_class: CustomerClass):
