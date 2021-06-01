@@ -1,14 +1,12 @@
 from numpy.random import default_rng, Generator
-
-
-class Customer:
-    def __init__(self, feature1: bool, feature2: bool):
-        self.feature1 = feature1
-        self.feature2 = feature2
+from src.constants import _Const
+from src.CustomerClassCreator import CustomerClassCreator
+from src.distributions import NewClicksDistribution, ClickConvertedDistribution, FutureVisitsDistribution, CostPerClickDistribution
 
 
 class Environment:
     def __init__(self, random_seed=None):
+        CONST = _Const()
         if random_seed is None:
             self.rng: Generator = default_rng()
             random_seed = self.rng.integers(0, 2**32)
@@ -16,5 +14,9 @@ class Environment:
         self.rng: Generator = default_rng(seed=random_seed)
         print(f'Created environment with seed {random_seed}')
 
-        # TODO self.customerClasses = CustomerClasses(self.rng)
-        # TODO spostare dentro a CustomerClasses?
+        self.classes = CustomerClassCreator().getNewClasses(self.rng, CONST.N_CUSTOMER_CLASSES)
+
+        self.distNewClicks = NewClicksDistribution(self.rng)
+        self.distClickConverted = ClickConvertedDistribution(self.rng)
+        self.distFutureVisits = FutureVisitsDistribution(self.rng)
+        self.distCostPerClick = CostPerClickDistribution(self.rng)
