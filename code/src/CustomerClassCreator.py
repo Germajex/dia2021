@@ -1,5 +1,5 @@
-from code.src.constants import _Const
-from code.src.CustomerClass import CustomerClass
+from src.constants import _Const
+from src.CustomerClass import CustomerClass
 import itertools
 from numpy.random import Generator, default_rng
 import numpy as np
