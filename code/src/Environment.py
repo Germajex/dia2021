@@ -7,16 +7,28 @@ from src.distributions import NewClicksDistribution, ClickConvertedDistribution,
 class Environment:
     def __init__(self, random_seed=None):
         CONST = _Const()
+
         if random_seed is None:
-            self.rng: Generator = default_rng()
-            random_seed = self.rng.integers(0, 2**32)
+            self._rng: Generator = default_rng()
+            random_seed = self._rng.integers(0, 2 ** 32)
 
-        self.rng: Generator = default_rng(seed=random_seed)
-        print(f'Created environment with seed {random_seed}')
+        self._seed = random_seed
+        self._rng: Generator = default_rng(seed=random_seed)
 
-        self.classes = CustomerClassCreator().getNewClasses(self.rng, CONST.N_CUSTOMER_CLASSES)
+        self.classes = CustomerClassCreator().getNewClasses(self._rng, CONST.N_CUSTOMER_CLASSES)
 
-        self.distNewClicks = NewClicksDistribution(self.rng)
-        self.distClickConverted = ClickConvertedDistribution(self.rng)
-        self.distFutureVisits = FutureVisitsDistribution(self.rng)
-        self.distCostPerClick = CostPerClickDistribution(self.rng)
+        self.newClicksC, self.newClicksZ = CustomerClassCreator().getNewClicksVParameters(self._rng)
+
+        self.distNewClicks = NewClicksDistribution(self._rng, self.newClicksC, self.newClicksZ)
+        self.distClickConverted = ClickConvertedDistribution(self._rng)
+        self.distFutureVisits = FutureVisitsDistribution(self._rng)
+        self.distCostPerClick = CostPerClickDistribution(self._rng)
+
+
+    def get_seed(self):
+        return self._seed
+
+    @staticmethod
+    def margin(price: float):
+        return price
+
