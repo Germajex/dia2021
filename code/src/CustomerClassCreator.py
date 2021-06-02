@@ -43,6 +43,13 @@ class CustomerClassCreator:
 
         return customerClasses
 
+    def getNewClicksVParameters(self, rng: Generator):
+        CONST = _Const()
+        possible_bids_centers = np.linspace(CONST.BID_MIN, CONST.BID_MAX, 100)
+        newClicksC = np.around(rng.choice(possible_bids_centers), 2)
+        newClicksZ = rng.choice(CONST.SIGMOID_Z_VALUES_NC)
+        return newClicksC, newClicksZ
+
 
 if __name__ == '__main__':
     rng = default_rng(seed=1234)
