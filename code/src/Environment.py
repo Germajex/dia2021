@@ -1,7 +1,8 @@
 from numpy.random import default_rng, Generator
 from src.constants import _Const
 from src.CustomerClassCreator import CustomerClassCreator
-from src.distributions import NewClicksDistribution, ClickConvertedDistribution, FutureVisitsDistribution, CostPerClickDistribution
+from src.distributions import NewClicksDistribution, ClickConvertedDistribution, FutureVisitsDistribution, \
+    CostPerClickDistribution
 
 
 class Environment:
@@ -15,15 +16,14 @@ class Environment:
         self._seed = random_seed
         self._rng: Generator = default_rng(seed=random_seed)
 
-        self.classes = CustomerClassCreator().getNewClasses(self._rng, CONST.N_CUSTOMER_CLASSES)
+        self.classes = CustomerClassCreator().get_new_classes(self._rng, CONST.N_CUSTOMER_CLASSES)
 
-        self.newClicksC, self.newClicksZ = CustomerClassCreator().getNewClicksVParameters(self._rng)
+        self.newClicksC, self.newClicksZ = CustomerClassCreator().get_new_clicks_v_parameters(self._rng)
 
         self.distNewClicks = NewClicksDistribution(self._rng, self.newClicksC, self.newClicksZ)
         self.distClickConverted = ClickConvertedDistribution(self._rng)
         self.distFutureVisits = FutureVisitsDistribution(self._rng)
         self.distCostPerClick = CostPerClickDistribution(self._rng)
-
 
     def get_seed(self):
         return self._seed
@@ -31,4 +31,3 @@ class Environment:
     @staticmethod
     def margin(price: float):
         return price
-

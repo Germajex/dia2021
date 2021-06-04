@@ -1,5 +1,5 @@
 import numpy as np
-from code.src.bandit.BanditEnvironment import BanditEnvironment
+from src.bandit.BanditEnvironment import BanditEnvironment
 import matplotlib.pyplot as plt
 
 
@@ -11,8 +11,11 @@ class UCB1Learner:
         self.n_arms = n_arms
         self.prices = []
         self.bids = []
-        self.cumulative_rewards = [0]
+        self.history_rewards = [0]
         self.c = 1
+
+    def get_cumulative_rewards(self):
+        return np.cumsum(self.history_rewards)
 
     # This method runs a first round of exploration, initializing the UCB algorithm
     def explore_price(self, mode):
@@ -30,7 +33,7 @@ class UCB1Learner:
         if c_param is not None:
             self.c = c_param
         elif mode == 'cr':
-            self.c = 0.02
+            self.c = 0.1
         elif mode == 'rwd':
             self.c = 200
         else:
@@ -136,27 +139,20 @@ class UCB1Learner:
     def pull_arm_price(self, a, mode):
         rwd, successes, failures = self.env.round_bids_fixed(self.prices[a], self.bids[0])
 
-        if mode == 'rwd':
-            self.rewards_per_arm[a].append(rwd)
-        elif mode == 'cr':
-            self.cr_per_arm[a].append(successes / (successes + failures))
-            self.rewards_per_arm[a].append(rwd)
+        self.cr_per_arm[a].append(successes / (successes + failures))
+        self.rewards_per_arm[a].append(rwd)
 
         # We still want to record the cumulative rewards, to compute the regret
-        self.cumulative_rewards.append(self.cumulative_rewards[-1] + rwd)
+        self.history_rewards.append(rwd)
 
     # Prints out a brief recap of the activities done by the learner
     def pulled_arms_recap(self, mode):
         print(f"\nUCB Learner working in mode {mode}")
 
         for a in range(self.n_arms):
-            n_pulls = 0
+            n_pulls = len(self.rewards_per_arm[a])
             avg_reward = np.mean(self.rewards_per_arm[a])
-
-            if mode == 'cr':
-                n_pulls = len(self.cr_per_arm[a])
-            elif mode == 'rwd':
-                n_pulls = len(self.rewards_per_arm[a])
+            avg_cr = np.mean(self.cr_per_arm[a])
 
             print(
-                f"[info] Arm {a} pulled {n_pulls} times - avg reward: {avg_reward}")
+                f"[info] Arm {a} pulled {n_pulls} times - avg reward: {avg_reward:.2f} - avg cr: {avg_cr:.2f}")

@@ -1,5 +1,5 @@
-from code.src.bandit.BanditEnvironment import BanditEnvironment
-from code.src.utils import NormalGamma, Beta
+from src.bandit.BanditEnvironment import BanditEnvironment
+from src.utils import NormalGamma, Beta
 import numpy as np
 
 
@@ -9,9 +9,10 @@ class TSLearner:
         self.n_arms = n_arms
         self.env = env
         self.rewards_per_arm = [[] for i in range(n_arms)]
+        self.cr_per_arm = [[] for i in range(n_arms)]
         self.prices = []
         self.bids = []
-        self.cumulative_rewards = [0]
+        self.history_rewards = [0]
         self.rho = rho
 
         # For a Gaussian TS the likelihood is a gaussian function with unknown mean and variance, thus
@@ -32,13 +33,17 @@ class TSLearner:
         # Get the reward from the environment
         rwd, successes, failures = self.env.round_bids_fixed(self.prices[a], self.bids[0])
         self.rewards_per_arm[a].append(rwd)
-        self.cumulative_rewards.append(self.cumulative_rewards[-1] + rwd)
+        self.cr_per_arm[a].append(successes / (successes + failures))
+        self.history_rewards.append(rwd)
 
         # Update the correct prior distribution according to the learning mode
         if mode == 'rwd':
             self.update_gaussian_price_priors(a, rwd)
         elif mode == 'cr':
             self.update_beta_price_priors(a, successes, failures)
+
+    def get_cumulative_rewards(self):
+        return np.cumsum(self.history_rewards)
 
     # This method updates the prior distributions of the price arms, according to
     # Zhu, Tan (https://arxiv.org/pdf/2002.00232.pdf)
@@ -123,5 +128,8 @@ class TSLearner:
             if len(self.rewards_per_arm[a]) == 0:
                 print(f"[info] Arm {a} was never pulled")
             else:
+                n_pulls = len(self.rewards_per_arm[a])
+                avg_rwd = np.mean(self.rewards_per_arm[a])
+                avg_cr = np.mean(self.cr_per_arm[a])
                 print(
-                    f"[info] Arm {a} pulled {len(self.rewards_per_arm[a])} times - avg reward: {np.mean(self.rewards_per_arm[a])}")
+                    f"[info] Arm {a} pulled {n_pulls} times - avg reward: {avg_rwd:.2f} - avg cr: {avg_cr:.2f}")

@@ -21,7 +21,7 @@ class NormalGamma:
 
     def sample_zhu_tan(self):
         tau = np.random.gamma(self.alpha, self.beta)
-        theta = np.random.normal(self.mu, 1 / self.v)
+        theta = np.random.normal(self.mu, 1 / (self.v*tau))
 
         return tau, theta
 

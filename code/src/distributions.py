@@ -76,7 +76,7 @@ class ClickConvertedDistribution(Distribution):
     def sample(self, customer_class: CustomerClass, price: float):
         return self.rng.binomial(1, self.mean(customer_class=customer_class, price=price))
 
-    def sample_n(self, customer_class: CustomerClass, price: float, n):
+    def sample_n(self, customer_class: CustomerClass, price: float, n: int):
         return self.rng.binomial(n, self.mean(customer_class=customer_class, price=price))
 
     @staticmethod

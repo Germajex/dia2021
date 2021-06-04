@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 def run_all_known(classes, verbose=1):
     if verbose > 0:
         for c in classes:
-            c.printSummary()
+            c.print_summary()
 
     prices = np.sort(rng.choice(range(1, 100), 10, replace=False))
     bids = np.sort(np.around(rng.choice(np.linspace(1, 40, 50), 10, replace=False), 2))
@@ -22,7 +22,7 @@ def run_all_known(classes, verbose=1):
     revenues = []
     for p in prices:
         for b in bids:
-            revenues.append(np.sum([c.getRevenue(p, b) for c in classes]))
+            revenues.append(np.sum([c.get_revenue(p, b) for c in classes]))
 
     max_revenue = np.amax(revenues)
     opt_price, opt_bid, found_revenue = optimize_all_known(classes, prices, bids)
@@ -50,7 +50,7 @@ if __name__ == '__main__':
 
     while res and i < 5000:
         creator = CustomerClassCreator()
-        classes = creator.getNewClasses(rng)
+        classes = creator.get_new_classes(rng)
 
         res = run_all_known(classes, verbose=0)
 
@@ -67,14 +67,14 @@ if __name__ == '__main__':
         y = np.linspace(1, 80, 100)
         z = [
             [
-                np.sum([c.getRevenue(p, b) for c in classes])
+                np.sum([c.get_revenue(p, b) for c in classes])
                 for p in x
             ]
             for b in y
         ]
         opt = [
             x[np.argmax([
-                np.sum([c.getRevenue(p, b) for c in classes])
+                np.sum([c.get_revenue(p, b) for c in classes])
                 for p in x
             ])]
             for b in y

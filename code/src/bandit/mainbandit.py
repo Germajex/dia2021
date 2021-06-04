@@ -1,66 +1,53 @@
-from code.src.bandit.BanditEnvironment import BanditEnvironment
+from BanditEnvironment import BanditEnvironment
 from ts.TSLearner import TSLearner
 from ucb.UCB1Learner import UCB1Learner
-from code.src.CustomerClassCreator import CustomerClassCreator
+from src.CustomerClassCreator import CustomerClassCreator
 import numpy as np
-import code.src.bandit.LearningStats as Stats
+import LearningStats as Stats
 
+# seed=0xdeadbeef
 rng = np.random.default_rng()
 creator = CustomerClassCreator()
 
 # Fixed variables for our problem
-N_ROUNDS = 365
-N_RUNS = 5
-arms = [10, 20, 30, 40, 50, 60, 70, 80, 90, 100]
+N_ROUNDS = 1000
+arms = np.linspace(10, 100, 10)
+n_arms = len(arms)
 bid = 10
-
-# Rewards
-ts_rwd_rewards = []
-ts_cr_rewards = []
-ucb_cr_rewards = []
-ucb_rwd_rewards = []
-
-clairvoyants = []
 
 print("\n > > Starting simulation... < <\n")
 
-# Runs the learning algorithm N_RUNS times in order to average the results
-for r in range(N_RUNS):
+# Create customer and environment
+env = BanditEnvironment(n_arms, 3, rng)
 
-    print(f"\n[info] Run n°{r+1} ...")
-    # Create customer and environment
-    env = BanditEnvironment(10, 3, rng)
+if True:
+    # Show summary of the customer classes
+    for c in env.classes:
+        c.print_summary()
 
-    if True:
-        # Show summary of the customer classes
-        for c in env.classes:
-            c.printSummary()
+optimal_arm = env.get_optimal_arm(arms, bid)
+optimal_reward = np.mean(env.get_clairvoyant_rewards_price(N_ROUNDS, arms, bid))
+optimal_cr = env.get_optimal_cr(arms, bid)
+print(f"\nOptimal arm is n°{optimal_arm}")
+print(f"With expected reward {optimal_reward:.2f}")
+print(f"And expected cr {optimal_cr:.2f}")
+clairvoyant = env.get_clairvoyant_cumulative_rewards_price(N_ROUNDS, arms, bid)
 
-    clairvoyants.append(env.get_clairvoyant_partial_rewards_price(N_ROUNDS, bid))
+# Test algorithms
+tsLearner_rwd = TSLearner(n_arms, 0.5, env)
+tsLearner_cr = TSLearner(n_arms, 0, env)
+ucbLearner_cr = UCB1Learner(n_arms, env)
+ucbLearner_rwd = UCB1Learner(n_arms, env)
 
-    # Test algorithms
-    tsLearner_rwd = TSLearner(10, 0.05, env)
-    tsLearner_cr = TSLearner(10, 0, env)
-    ucbLearner_cr = UCB1Learner(10, env)
-    ucbLearner_rwd = UCB1Learner(10, env)
+tsLearner_rwd.learn_price(N_ROUNDS, arms, bid, mode='rwd', verbose=True)
+tsLearner_cr.learn_price(N_ROUNDS, arms, bid, mode='cr', verbose=True)
+ucbLearner_cr.learn_price(N_ROUNDS, arms, bid, mode='cr', verbose=True)
+ucbLearner_rwd.learn_price(N_ROUNDS, arms, bid, mode='rwd', verbose=True)
 
-    tsLearner_rwd.learn_price(N_ROUNDS, arms, bid, mode='rwd', verbose=True)
-    tsLearner_cr.learn_price(N_ROUNDS, arms, bid, mode='cr', verbose=True)
-    ucbLearner_cr.learn_price(N_ROUNDS, arms, bid, mode='cr', verbose=True)
-    ucbLearner_rwd.learn_price(N_ROUNDS, arms, bid, mode='rwd', verbose=True)
+ts_rwd_reward = tsLearner_rwd.get_cumulative_rewards()
+ts_cr_reward = tsLearner_cr.get_cumulative_rewards()
+ucb_cr_reward = ucbLearner_cr.get_cumulative_rewards()
+ucb_rwd_reward = ucbLearner_rwd.get_cumulative_rewards()
 
-    ts_rwd_rewards.append(tsLearner_rwd.cumulative_rewards)
-    ts_cr_rewards.append(tsLearner_cr.cumulative_rewards)
-    ucb_cr_rewards.append(ucbLearner_cr.cumulative_rewards)
-    ucb_rwd_rewards.append(ucbLearner_rwd.cumulative_rewards)
-
-# Average rewards and then plot
-ts_rwd_rewards = np.mean(ts_rwd_rewards, axis=0)
-ts_cr_rewards = np.mean(ts_cr_rewards, axis=0)
-ucb_cr_rewards = np.mean(ucb_cr_rewards, axis=0)
-ucb_rwd_rewards = np.mean(ucb_rwd_rewards, axis=0)
-
-clairvoyants = np.mean(clairvoyants, axis=0)
-
-Stats.plot_results(["ts cr mode", "ts rwd mode", "ucb cr mode", "ucb rwd mode"], [ts_cr_rewards, ts_rwd_rewards, ucb_cr_rewards, ucb_rwd_rewards],
-                   clairvoyants, N_ROUNDS)
+Stats.plot_results(["ts cr mode", "ts rwd mode", "ucb cr mode", "ucb rwd mode"],
+                   [ts_cr_reward, ts_rwd_reward, ucb_cr_reward, ucb_rwd_reward], clairvoyant, N_ROUNDS, smooth=True)
