@@ -15,14 +15,6 @@ def main():
     print('Optimal price and bid found.')
     print(f'p = {opt_price}, b = {opt_bid}, expected profit = {profit}')
 
-    """
-    print('Computing the optimal price and bid with old algorithm:')
-
-    opt_price, opt_bid, profit = optimize_all_known(env.classes, prices, bids)
-    print('Optimal price and bid found.')
-    print(f'p = {opt_price}, b = {opt_bid}, expected profit = {profit}')
-    """
-
 
 if __name__ == "__main__":
     main()

@@ -1,53 +1,36 @@
 import numpy as np
-from numpy.random import Generator
 from typing import List
 
+from src.Environment import Environment
 from src.constants import _Const
-from src.distributions import NewClicksDistribution, ClickConvertedDistribution, CostPerClickDistribution, \
-    FutureVisitsDistribution
-from src.CustomerClassCreator import CustomerClassCreator
+from src.algorithms import optimal_price_for_bid, simple_class_profit
 from src.CustomerClass import CustomerClass
-
-intlist = List[int]
-
 
 # This class is the basic environment for a Bandit learning. Provides many black-box functionalities to the learners
 # Allows to set prices, bids, run rounds, get the clairvoyant and compute regret
 class BanditEnvironment:
-    def __init__(self, n_arms: int, n_classes: int, generator: Generator):
+    def __init__(self, environment: Environment, n_arms: int):
         # Init local vars
         self.n_arms = n_arms
-        self.classes = CustomerClassCreator().get_new_classes(generator, n_classes)
-        self.n_classes = len(self.classes)
-        self.rng = generator
-
-        # Sample random values for distributions
-        const = _Const()
-        new_clicks_c = self.rng.choice(np.around(np.linspace(const.BID_MIN, const.BID_MAX, 20)))
-        new_clicks_z = self.rng.choice(const.SIGMOID_Z_VALUES_NC)
-        # Distribution of the new clicks
-        self.new_clicks = NewClicksDistribution(generator, new_clicks_c, new_clicks_z)
-        # Distribution for the conversion rate
-        self.conversion_rates = ClickConvertedDistribution(generator)
-        # Distribution for the cost per click
-        self.cost_per_clicks = CostPerClickDistribution(generator)
-        # Distribution for future visits
-        self.future_visits = FutureVisitsDistribution(generator)
+        self.env = environment
 
     # This methods returns the best reward possible, given a set of possible prices and a fixed bid
     def get_optimal_reward(self, prices, bid):
         optimal_arm = self.get_optimal_arm(prices, bid)
-        rwd = np.sum([self.get_reward(class_n, prices[optimal_arm], bid, new_clicks_rounded=True)
-                      for class_n in range(len(self.classes))])
+        rwd = np.sum([self.get_class_reward(class_n, prices[optimal_arm], bid, new_clicks_rounded=True)
+                      for class_n in range(len(self.env.classes))])
         return rwd
 
     # This method returns the optimal CR, given a set of prices and a fixed bid
     def get_optimal_cr(self, prices, bid):
-        arm = self.get_optimal_arm(prices, bid)
+        optimal_arm = self.get_optimal_arm(prices, bid)
 
-        total_clicks = np.sum([self.new_clicks.mean(c, bid) for c in self.classes])
+        total_clicks = np.sum([self.env.distNewClicks.mean(c, bid) for c in self.env.classes])
         successes = np.sum(
-            [self.conversion_rates.mean(c, prices[arm]) * self.new_clicks.mean(c, bid) for c in self.classes])
+            [
+                self.env.distClickConverted.mean(c, prices[optimal_arm]) * self.env.distNewClicks.mean(c, bid)
+                for c in self.env.classes
+             ])
 
         cr = successes / total_clicks
 
@@ -55,14 +38,15 @@ class BanditEnvironment:
 
     # This method returns the index of the optimal arm (price). Given a set of prices and a fixed bid
     def get_optimal_arm(self, prices, bid):
-        return np.argmax([np.sum([self.get_reward(c, p, bid) for c in range(self.n_classes)]) for p in prices])
+        optimal_price = optimal_price_for_bid(self.env, prices=prices, bid=bid)
+        return list(prices).index(optimal_price)
 
     # Method used to sample a conversion rate from a customer class, given the price and the bid.
     # Returns the cr, the number of successes, the number of failures
     def sample_cr(self, class_n, price, bid):
-        c = self.classes[class_n]
-        new_clicks = int(self.new_clicks.mean(c, bid))
-        successes = self.conversion_rates.sample_n(c, price, new_clicks)
+        c = self.env.classes[class_n]
+        new_clicks = np.ceil(self.env.distNewClicks.mean(c, bid))
+        successes = self.env.distClickConverted.sample_n(c, price, new_clicks)
         cr = successes / new_clicks
         failures = new_clicks - successes
 
@@ -75,18 +59,18 @@ class BanditEnvironment:
         successes_total = 0
         new_clicks_total = 0
 
-        for c in self.classes:
+        for c in self.env.classes:
             if not self.class_matches_filters(features, c):
                 print("WTFFF")
                 continue
 
-            class_n = self.classes.index(c)
+            class_n = self.env.classes.index(c)
 
             # First extract the cr
             cr, successes, failures = self.sample_cr(class_n, pulled_arm_val, bid)
 
             # get the reward
-            rwd = self.get_reward(class_n, pulled_arm_val, bid, cr, new_clicks_rounded=True)
+            rwd = self.get_class_reward(class_n, pulled_arm_val, bid, cr, new_clicks_rounded=True)
 
             # sum to the total
             total_reward += rwd
@@ -109,26 +93,26 @@ class BanditEnvironment:
         return False
 
     # Given a class, price and bid, returns the revenue
-    def get_reward(self, class_n, price, bid, cr=None, new_clicks_rounded=False):
-        cust_class = self.classes[class_n]
+    def get_class_reward(self, class_n, price, bid, cr=None, new_clicks_rounded=False):
+        cust_class = self.env.classes[class_n]
 
+        n = self.env.distNewClicks.mean(cust_class, bid)
         if new_clicks_rounded:
-            n = np.ceil(self.new_clicks.mean(cust_class, bid))
-        else:
-            n = self.new_clicks.mean(cust_class, bid)
+            n = np.ceil(n)
 
         if cr is None:
-            cr = self.conversion_rates.mean(cust_class, price)
-        future_visits = self.future_visits.mean(cust_class)
-        cost = self.cost_per_clicks.mean(bid)
+            cr = self.env.distClickConverted.mean(cust_class, price)
 
-        rev = (-cost * n) + (n * cr * price) + (n * future_visits * cr * price)
+        future_visits = self.env.distFutureVisits.mean(cust_class)
+        cost = self.env.distCostPerClick.mean(bid)
+
+        rev = simple_class_profit(self.env.margin(price), n, cr, future_visits, cost)
 
         return np.around(rev, 2)
 
     # Returns the total reward obtained by all classes, given a price, a bid and the cr
     def get_total_reward(self, price, bid, cr):
-        return np.sum([self.get_reward(n, price, bid, cr) for n in range(len(self.classes))])
+        return np.sum([self.get_class_reward(n, price, bid, cr) for n in range(len(self.env.classes))])
 
     # Returns the list of rewards obtained by a clairvoyant in the scenario of price learning, with fixed bid
     def get_clairvoyant_rewards_price(self, n_rounds, prices, bid):

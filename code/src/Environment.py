@@ -1,4 +1,5 @@
 from numpy.random import default_rng, Generator
+
 from src.constants import _Const
 from src.CustomerClassCreator import CustomerClassCreator
 from src.distributions import NewClicksDistribution, ClickConvertedDistribution, FutureVisitsDistribution, \
@@ -31,3 +32,7 @@ class Environment:
     @staticmethod
     def margin(price: float):
         return price
+
+    def print_class_summary(self):
+        for c in self.classes:
+            c.print_summary()

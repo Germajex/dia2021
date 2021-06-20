@@ -1,13 +1,16 @@
-from code.src.bandit.BanditEnvironment import BanditEnvironment
+from src.bandit.BanditEnvironment import BanditEnvironment
 from UCB1Learner import UCB1Learner
-from code.src.CustomerClassCreator import CustomerClassCreator
 import numpy as np
-import code.src.bandit.LearningStats as Stats
+import src.bandit.LearningStats as Stats
+from src.Environment import Environment
 
 N_RUNS = 20
 N_ROUNDS = 700
 
 rng = np.random.default_rng()
+
+env = Environment()
+print(f'Created environment with seed {env.get_seed()}')
 
 prices = [10, 20, 30, 40, 50, 60, 70, 80, 90, 100]
 bid = 10
@@ -22,13 +25,15 @@ for i in range(N_RUNS):
     print(f'[info] Running run n°{i+1}')
 
     # Create environment and compute clairvoyant results
-    env = BanditEnvironment(10, 3, rng)
-    clairvoyants.append(env.get_clairvoyant_cumulative_rewards_price(N_ROUNDS, prices, bid))
+    bandit_env = BanditEnvironment(environment=env, n_arms=10)
+    clairvoyants.append(bandit_env.get_clairvoyant_cumulative_rewards_price(N_ROUNDS, prices, bid))
+
+
     learners = []
 
     # Create the learners
     for j in range(len(cs)):
-        learners.append(UCB1Learner(10, env))
+        learners.append(UCB1Learner(10, bandit_env))
 
     # Run all the learners and save their results
     for learner in learners:

@@ -1,6 +1,10 @@
 import numpy as np
 
 
+def simple_class_profit(m, n, cr, f, k):
+    return n * (m * cr * (1 + f) - k)
+
+
 def expected_profit(env, p, b):
     m = env.margin
     n = env.distNewClicks.mean
@@ -8,11 +12,8 @@ def expected_profit(env, p, b):
     f = env.distFutureVisits.mean
     k = env.distCostPerClick.mean
 
-    profit = m(p) * sum(
-        n(c, b) * r(c, p) * (1 + f(c))
-        for c in env.classes
-    ) - k(b) * sum(
-        n(c, b)
+    profit = sum(
+        simple_class_profit(m(p), n(c, b), r(c, p), f(c), k(b))
         for c in env.classes
     )
 
@@ -37,7 +38,7 @@ def optimal_bid_for_price(env, bids, price):
 
 
 def step1(env, prices, bids):
-    median_b = bids[len(bids)//2]
+    median_b = bids[len(bids) // 2]
 
     optimal_price = optimal_price_for_bid(env, prices, median_b)
     optimal_bid = optimal_bid_for_price(env, bids, optimal_price)
