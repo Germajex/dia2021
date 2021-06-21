@@ -35,7 +35,7 @@ class UCB1Learner:
         elif mode == 'cr':
             self.c = 0.1
         elif mode == 'rwd':
-            self.c = 200
+            self.c = 0.01
         else:
             self.c = 1
 
@@ -126,13 +126,26 @@ class UCB1Learner:
 
     # Implementation of the UCB confidence bound. It needs the arm, the timestamp and an hyper-parameter c
     def ucb_confidence_bound(self, a, t, mode):
-        n_pulls = 0
         if mode == 'cr':
             n_pulls = len(self.cr_per_arm[a])
+            return self.c * np.sqrt(2 * np.log(t) / n_pulls)
         elif mode == 'rwd':
             n_pulls = len(self.rewards_per_arm[a])
+            b = self.get_max_reward()
+            sigma = 1/(t**4)
+            num = self.c*np.log((4*self.n_arms*(t**3))/sigma)
+            den = n_pulls
 
-        return self.c * np.sqrt(2 * np.log(t) / n_pulls)
+            return b*np.sqrt(num/den)
+
+    def get_max_reward(self):
+        max_rwd = 0
+        for r in self.rewards_per_arm:
+            r_max = np.max(r)
+            if r_max > max_rwd:
+                max_rwd = r_max
+
+        return max_rwd
 
     # Pulls the given arm, which is a price to be tested. Also appends the collected reward, or the cr, depending on the
     # operation mode

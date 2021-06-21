@@ -6,12 +6,8 @@ from src.CustomerClassCreator import CustomerClassCreator
 import numpy as np
 import LearningStats as Stats
 
-# seed=0xdeadbeef
-rng = np.random.default_rng()
-creator = CustomerClassCreator()
-
 # Fixed variables for our problem
-N_ROUNDS = 1000
+N_ROUNDS = 365
 prices = np.linspace(10, 100, 10)
 n_arms = len(prices)
 bid = 10
@@ -19,7 +15,7 @@ bid = 10
 print("\n > > Starting simulation... < <\n")
 
 # Create customer and environment
-env = Environment()
+env = Environment(random_seed=None)
 print(f'Generated environment with seed {env.get_seed()}')
 bandit_env = BanditEnvironment(environment=env, n_arms=n_arms)
 
@@ -35,7 +31,7 @@ print(f"And expected cr {optimal_cr:.2f}")
 clairvoyant = bandit_env.get_clairvoyant_cumulative_rewards_price(N_ROUNDS, prices, bid)
 
 # Test algorithms
-tsLearner_rwd = TSLearner(n_arms, 0.5, bandit_env)
+tsLearner_rwd = TSLearner(n_arms, 1, bandit_env)
 tsLearner_cr = TSLearner(n_arms, 0, bandit_env)
 ucbLearner_cr = UCB1Learner(n_arms, bandit_env)
 ucbLearner_rwd = UCB1Learner(n_arms, bandit_env)

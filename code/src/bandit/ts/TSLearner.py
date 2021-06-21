@@ -66,7 +66,10 @@ class TSLearner:
     # This method updated the Beta prior distributions of the price arms. This is the standard update done by a
     # classic TS
     def update_beta_price_priors(self, arm_n, successes, failures):
-        self.beta_price_priors[arm_n].update_params(successes, failures)
+        s = np.ceil(successes/4)
+        f = np.ceil(failures/4)
+
+        self.beta_price_priors[arm_n].update_params(s, f)
 
     # Method used to select the most promising price to be tested. Returns the index of the selected arm
     def choose_arm_price(self, mode):
