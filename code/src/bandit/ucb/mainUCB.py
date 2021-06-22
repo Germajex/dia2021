@@ -33,7 +33,7 @@ for i in range(N_RUNS):
 
     # Create the learners
     for j in range(len(cs)):
-        learners.append(UCBLearner(10, bandit_env))
+        learners.append(UCBLearner(bandit_env))
 
     # Run all the learners and save their results
     for learner in learners:

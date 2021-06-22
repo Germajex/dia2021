@@ -13,7 +13,7 @@ def expected_profit(env, p, b):
     k = env.distCostPerClick.mean
 
     profit = sum(
-        simple_class_profit(m(p), n(c, b), r(c, p), f(c), k(b))
+        simple_class_profit(m(p), n(c, b), r(c, p), f(c), k(c,b))
         for c in env.classes
     )
 

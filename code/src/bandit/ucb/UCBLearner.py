@@ -1,18 +1,95 @@
+import numpy
 import numpy as np
 from src.bandit.BanditEnvironment import BanditEnvironment
 import matplotlib.pyplot as plt
 
 
 class UCBLearner:
-    def __init__(self, n_arms: int, env: BanditEnvironment):
-        self.rewards_per_arm = [[] for i in range(n_arms)]
-        self.cr_per_arm = [[] for i in range(n_arms)]
+    def __init__(self, env: BanditEnvironment):
+        self.n_arms = env.n_arms
+        self.future_visits_per_arm = [[] for i in range(self.n_arms)]
+        self.purchases_per_arm = [[] for i in range(self.n_arms)]
+        self.new_clicks_per_arm = [[] for i in range(self.n_arms)]
+        self.tot_cost_per_click = 0
+        self.current_round = 0
+
+
+        self.rewards_per_arm = [[] for i in range(self.n_arms)]
+        self.cr_per_arm = [[] for i in range(self.n_arms)]
         self.env = env
-        self.n_arms = n_arms
         self.prices = []
         self.bids = []
         self.history_rewards = [0]
         self.c = 1
+
+    def learn2(self, n_rounds: int):
+        self.round_robin()
+
+        while self.current_round < n_rounds:
+            arm = self.choose_next_arm()
+            self.pull_from_env(arm=arm)
+            print(f'{self.current_round}')
+
+    def choose_next_arm(self):
+        return int(np.argmax(self.compute_projected_profits()))
+
+    def compute_projected_profits(self):
+        new_clicks = self.compute_new_clicks()
+        margin = np.array([self.env.margin(a) for a in range(self.n_arms)])
+        crs = self.compute_conversion_rates_upper_bounds()
+        future_visits = self.compute_future_visits()
+        cost_per_click = self.tot_cost_per_click / np.sum(np.sum(self.new_clicks_per_arm))
+
+        projected_profit = new_clicks * (margin * crs * (1 + future_visits) - cost_per_click)
+
+        return projected_profit
+
+    def compute_future_visits(self):
+        successes_sum = 0
+
+        for arm in range(self.n_arms):
+            complete_samples = len(self.future_visits_per_arm[arm])
+            successes_sum += np.sum(self.purchases_per_arm[arm][:complete_samples])
+
+        return sum(sum(r) for r in self.future_visits_per_arm)/successes_sum
+
+    def compute_new_clicks(self):
+        return sum(sum(r) for r in self.new_clicks_per_arm)/sum(len(r) for r in self.new_clicks_per_arm)
+
+    def compute_conversion_rates_upper_bounds(self):
+        averages = np.array([sum(self.purchases_per_arm[arm]) / sum(self.new_clicks_per_arm[arm])
+                             for arm in range(self.n_arms)]).reshape((10,))
+
+        tot_clicks = sum(sum(r) for r in self.new_clicks_per_arm)
+        tot_clicks_per_arm = np.array([np.sum(self.new_clicks_per_arm[arm])
+                                       for arm in range(self.n_arms)])
+
+        radia = np.sqrt(2*np.log(tot_clicks) / tot_clicks_per_arm)
+        upper_bounds = averages + radia
+
+        return upper_bounds
+
+    def round_robin(self):
+        while not all(self.future_visits_per_arm):
+            arm = self.current_round % self.n_arms
+            self.pull_from_env(arm)
+
+    def pull_from_env(self, arm: int):
+        new_clicks, purchases, tot_cost_per_clicks, \
+        (old_a, visits) = self.env.pull_arm_no_discrimination(arm)
+
+        self.new_clicks_per_arm[arm].append(new_clicks)
+        self.purchases_per_arm[arm].append(purchases)
+        self.tot_cost_per_click += tot_cost_per_clicks
+
+        if old_a is not None:
+            self.future_visits_per_arm[old_a].append(visits)
+
+        self.current_round += 1
+
+    def estimate_new_clicks(self):
+        return np.mean(self.new_clicks_per_arm)
+        #return sum(sum(e) for e in self.new_clicks_per_arm)/sum(len(e) for e in self.new_clicks_per_arm)
 
     def get_cumulative_rewards(self):
         return np.cumsum(self.history_rewards)

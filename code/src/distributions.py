@@ -44,11 +44,15 @@ class CostPerClickDistribution(Distribution):
         super().__init__(rng=rng)
 
     @staticmethod
-    def sample(bid: float):
+    def sample(customer_class: CustomerClass, bid: float):
         return bid
 
     @staticmethod
-    def mean(bid: float):
+    def sample_n(customer_class: CustomerClass, bid: float, n: int):
+        return [bid]*n
+
+    @staticmethod
+    def mean(customer_class: CustomerClass, bid: float):
         return bid
 
 
