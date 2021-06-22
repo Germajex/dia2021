@@ -208,22 +208,15 @@ The objective function to maximize is the cumulative expected profit over the le
 \begin{align*}
 ExpectedProfit(p,b) 
 &= \EX\left[\sum_{c \in C}{\sum_{i =1}^{N_{c,b}}{\bigg( D_{c,p,i}(1+F_{c,i})m(p)-C_{b,i}\bigg)}}\right]\\
-&= \EX\left[\sum_{c \in C}{\bigg(\sum_{i =1}^{N_{c,b}}{ D_{c,p,i}(1+F_{c,i})m(p)}-\sum_{i =1}^{N_{c,b}}C_{b,i}\bigg)}\right]\\
-&= \EX\left[\sum_{c \in C}{\sum_{i =1}^{N_{c,b}}{ D_{c,p,i}(1+F_{c,i})m(p)}}\right]-\sum_{c \in C}{\EX\left[\sum_{i =1}^{N_{c,b}}C_{b,i}\right]}\\
-&= \EX\left[\sum_{c \in C}{\sum_{i =1}^{N_{c,b}}{ D_{c,p,i}(1+F_{c,i})m(p)}}\right]-\sum_{c \in C}{\EX\left[\EX\left[\sum_{i =1}^{N_{c,b}}C_{b,i}\bigg|N_{c,b}\right]\right]}\\
-&= \EX\left[\sum_{c \in C}{\sum_{i =1}^{N_{c,b}}{ D_{c,p,i}(1+F_{c,i})m(p)}}\right]-\sum_{c \in C}{\EX\left[\sum_{i =1}^{N_{c,b}}\EX\left[C_{b,i}\bigg|N_{c,b}\right]\right]}\\
-&= \EX\left[\sum_{c \in C}{\sum_{i =1}^{N_{c,b}}{ D_{c,p,i}(1+F_{c,i})m(p)}}\right]-\sum_{c \in C}{\EX\left[\sum_{i =1}^{N_{c,b}}k(c,b)\right]}\\
-&= \EX\left[\sum_{c \in C}{\sum_{i =1}^{N_{c,b}}{ D_{c,p,i}(1+F_{c,i})m(p)}}\right]-\sum_{c \in C}{\EX\left[N_{c,b}k(c,b)\right]}\\
-&= \EX\left[\sum_{c \in C}{\sum_{i =1}^{N_{c,b}}{ D_{c,p,i}(1+F_{c,i})m(p)}}\right]-\sum_{c \in C}{\EX[N_{c,b}]k(b)}\\
-&= m(p)\sum_{c \in C}{\EX\left[\sum_{i =1}^{N_{c,b}}{ D_{c,p,i}(1+F_{c,i})}\right]}-\sum_{c \in C}{n(c,b)k(b)}\\
-&= m(p)\sum_{c \in C}{\EX\left[\EX\left[\sum_{i =1}^{N_{c,b}}{ D_{c,p,i}(1+F_{c,i})}\Bigg|N_{c,b}\right]\right]}-k(b)\sum_{c \in C}{n(c,b)}\\
-&= m(p)\sum_{c \in C}{\EX\left[\sum_{i =1}^{N_{c,b}}{\EX\left[D_{c,p,i}(1+F_{c,i})\bigg|N_{c,b}\right]}\right]}-k(b)\sum_{c \in C}{n(c,b)}\\
-&= m(p)\sum_{c \in C}{\EX\left[\sum_{i =1}^{N_{c,b}}{\EX\left[D_{c,p,i}\bigg|N_{c,b}\right]\EX\left[(1+F_{c,i})\bigg|N_{c,b}\right]}\right]}-k(b)\sum_{c \in C}{n(c,b)}\\
-&= m(p)\sum_{c \in C}{\EX\left[\sum_{i =1}^{N_{c,b}}{\EX\left[D_{c,p,i}\right]\EX\left[(1+F_{c,i})\right]}\right]}-k(b)\sum_{c \in C}{n(c,b)}\\
-&= m(p)\sum_{c \in C}{\EX\left[\sum_{i =1}^{N_{c,b}}{r(c,p)\Big(1+f(c)\Big)}\right]}-k(b)\sum_{c \in C}{n(c,b)}\\
-&= m(p)\sum_{c \in C}{\EX\left[N_{c,b}r(c,p)\Big(1+f(c)\Big)\right]}-k(b)\sum_{c \in C}{n(c,b)}\\
-&= m(p)\sum_{c \in C}{\EX\left[N_{c,b}\right]r(c,p)\Big(1+f(c)\Big)}-k(b)\sum_{c \in C}{n(c,b)}\\
-&= m(p)\sum_{c \in C}{n(c,b)r(c,p)\Big(1+f(c)\Big)}-k(b)\sum_{c \in C}{n(c,b)}
+&= \EX_{n_{c,b}\sim NewClicks(c,b)}\left[\EX\left[\sum_{c \in C}{\sum_{i =1}^{N_{c,b}}{\bigg( D_{c,p,i}(1+F_{c,i})m(p)-C_{b,i}\bigg)}}\bigg|N_{c,b}=n_{c,b}\right]\right]\\
+&= \EX_{n_{c,b}\sim NewClicks(c,b)}\left[\sum_{c \in C}{\sum_{i =1}^{n_{c,b}}{\bigg(\EX\bigg[D_{c,p,i}(1+F_{c,i})m(p)-C_{b,i}\bigg|N_{c,b}=n_{c,b}\bigg]\bigg)}}\right]\\
+&= \EX_{n_{c,b}\sim NewClicks(c,b)}\left[\sum_{c \in C}{\sum_{i =1}^{n_{c,b}}{\bigg(\EX\bigg[D_{c,p,i}(1+F_{c,i})m(p)\bigg|N_{c,b}=n_{c,b}\bigg]-k(b)\bigg)}}\right]\\
+&= \EX_{n_{c,b}\sim NewClicks(c,b)}\left[\sum_{c \in C}{\sum_{i =1}^{n_{c,b}}{\bigg(r(c,p)(1+f(c))m(p)-k(b)\bigg)}}\right]\\
+&= \EX_{n_{c,b}\sim NewClicks(c,b)}\left[\sum_{c \in C}{n_{c,b}\bigg(r(c,p)(1+f(c))m(p)-k(b)\bigg)}\right]\\
+&=\sum_{c \in C}{ \EX_{n_{c,b}\sim NewClicks(c,b)}\left[n_{c,b}\bigg(r(c,p)(1+f(c))m(p)-k(b)\bigg)\right]}\\
+&=\sum_{c \in C}{ \EX_{n_{c,b}\sim NewClicks(c,b)}\left[n_{c,b}\right]\bigg(r(c,p)(1+f(c))m(p)-k(b)\bigg)}\\
+&=\sum_{c \in C}{ n(c,b)\bigg(r(c,p)(1+f(c))m(p)-k(b)\bigg)}\\
+&=m(p)\sum_{c \in C}{ n(c,b)r(c,p)(1+f(c))}-k(b)\sum_{c \in C}{ n(c,b)}\\
 \end{align*}
 
 \section{Proof of the Bid Independent Price Hierarchy lemma}\label{sec.BIPHLProof}
