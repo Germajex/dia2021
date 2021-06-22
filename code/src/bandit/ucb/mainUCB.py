@@ -1,5 +1,5 @@
 from src.bandit.BanditEnvironment import BanditEnvironment
-from UCB1Learner import UCB1Learner
+from UCBLearner import UCBLearner
 import numpy as np
 import src.bandit.LearningStats as Stats
 from src.Environment import Environment
@@ -33,7 +33,7 @@ for i in range(N_RUNS):
 
     # Create the learners
     for j in range(len(cs)):
-        learners.append(UCB1Learner(10, bandit_env))
+        learners.append(UCBLearner(10, bandit_env))
 
     # Run all the learners and save their results
     for learner in learners:

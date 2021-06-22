@@ -3,7 +3,7 @@ from src.bandit.BanditEnvironment import BanditEnvironment
 import matplotlib.pyplot as plt
 
 
-class UCB1Learner:
+class UCBLearner:
     def __init__(self, n_arms: int, env: BanditEnvironment):
         self.rewards_per_arm = [[] for i in range(n_arms)]
         self.cr_per_arm = [[] for i in range(n_arms)]

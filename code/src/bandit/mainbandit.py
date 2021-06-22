@@ -1,7 +1,7 @@
 from BanditEnvironment import BanditEnvironment
 from src.Environment import Environment
 from ts.TSLearner import TSLearner
-from ucb.UCB1Learner import UCB1Learner
+from ucb.UCBLearner import UCBLearner
 from src.CustomerClassCreator import CustomerClassCreator
 import numpy as np
 import LearningStats as Stats
@@ -33,8 +33,8 @@ clairvoyant = bandit_env.get_clairvoyant_cumulative_rewards_price(N_ROUNDS, pric
 # Test algorithms
 tsLearner_rwd = TSLearner(n_arms, 1, bandit_env)
 tsLearner_cr = TSLearner(n_arms, 0, bandit_env)
-ucbLearner_cr = UCB1Learner(n_arms, bandit_env)
-ucbLearner_rwd = UCB1Learner(n_arms, bandit_env)
+ucbLearner_cr = UCBLearner(n_arms, bandit_env)
+ucbLearner_rwd = UCBLearner(n_arms, bandit_env)
 
 tsLearner_rwd.learn_price(N_ROUNDS, prices, bid, mode='rwd', verbose=True)
 tsLearner_cr.learn_price(N_ROUNDS, prices, bid, mode='cr', verbose=True)

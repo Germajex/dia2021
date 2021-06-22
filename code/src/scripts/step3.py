@@ -1,6 +1,6 @@
 from src.Environment import Environment
 from src.bandit.BanditEnvironment import BanditEnvironment
-from src.bandit.ucb.UCB1Learner import UCB1Learner
+from src.bandit.ucb.UCBLearner import UCBLearner
 
 
 def main():
@@ -8,7 +8,7 @@ def main():
     env = Environment()
     bandit_env = BanditEnvironment(environment=env, n_arms=10)
 
-    learner = UCB1Learner(10, bandit_env)
+    learner = UCBLearner(10, bandit_env)
 
 
 
