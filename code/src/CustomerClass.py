@@ -30,3 +30,6 @@ class CustomerClass:
         print("New clicks params: range={}".format(self.newClicksR))
         print("Conversion rate params: center={}, z={}".format(self.crCenter, self.sigmoidZ))
         print("Client fidelity params: mean={}, variance={}".format(self.backMean, self.backDev))
+
+    def get_name(self):
+        return self.name

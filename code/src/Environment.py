@@ -36,3 +36,15 @@ class Environment:
     def print_class_summary(self):
         for c in self.classes:
             c.print_summary()
+
+    def get_dist_new_clicks(self):
+        return self.distNewClicks
+
+    def get_dist_future_visits(self):
+        return self.distFutureVisits
+
+    def get_dist_click_converted(self):
+        return self.distClickConverted
+
+    def get_classes(self):
+        return self.classes
