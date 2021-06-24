@@ -4,7 +4,8 @@ import numpy as np
 from src.Environment import Environment
 
 
-def plot_new_clicks(environment: Environment):
+# path must include the NAME and the EXTENSION of the image
+def plot_new_clicks(environment: Environment, path=None):
     bids = np.linspace(1, 100, 101)
     plt.title(f"NEW CLICKS\nseed: {environment.get_seed()}")
     plt.xlabel("Bid")
@@ -15,10 +16,15 @@ def plot_new_clicks(environment: Environment):
         plt.plot(bids, new_clicks, label=c.get_name())
 
     plt.legend()
+
+    if path is not None:
+        plt.savefig(path)
+
     plt.show()
 
 
-def plot_future_visits(environment: Environment):
+# path must include the NAME and the EXTENSION of the image
+def plot_future_visits(environment: Environment, path=None):
     x_future_visits = np.linspace(1, 100, 1000)
     plt.title(f"FUTURE VISITS\nseed: {environment.get_seed()}")
 
@@ -27,10 +33,15 @@ def plot_future_visits(environment: Environment):
         plt.plot(x_future_visits, future_visits, label=c.get_name())
 
     plt.legend()
+
+    if path is not None:
+        plt.savefig(path)
+
     plt.show()
 
 
-def plot_clicks_converted(environment: Environment):
+# path must include the NAME and the EXTENSION of the image
+def plot_clicks_converted(environment: Environment, path=None):
     prices = np.linspace(1, 100, 1000)
     plt.title(f"CLICKS CONVERTED\nseed: {environment.get_seed()}")
     plt.xlabel("Price")
@@ -41,11 +52,15 @@ def plot_clicks_converted(environment: Environment):
         plt.plot(prices, clicks_converted, label=c.get_name())
 
     plt.legend()
+
+    if path is not None:
+        plt.savefig(path)
+
     plt.show()
 
 
-# plots each chart for every class
-def plot_everything(environment: Environment):
+# plots each chart for every class (path must include the NAME and the EXTENSION of the image)
+def plot_everything(environment: Environment, path=None):
     bids = np.linspace(1, 100, 101)
     x_future_visits = np.linspace(1, 100, 1000)
     prices = np.linspace(1, 100, 1000)
@@ -78,6 +93,9 @@ def plot_everything(environment: Environment):
         ax.set_ylabel(f'{y_labels[i]}', fontsize=12)
         i += 1
 
+    if path is not None:
+        plt.savefig(path)
+
     plt.show()
 
 
@@ -85,4 +103,4 @@ test_environment = Environment()
 # plot_new_clicks(test_environment)
 # plot_future_visits(test_environment)
 # plot_clicks_converted(test_environment)
-plot_everything(test_environment)
+plot_everything(test_environment, r"C:\Users\Gabriele\Desktop\lel.jpg")
