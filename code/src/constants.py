@@ -1,6 +1,3 @@
-import numpy as np
-
-
 def constant(f):
     def fset(self, value):
         raise TypeError

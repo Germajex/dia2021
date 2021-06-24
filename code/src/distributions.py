@@ -85,3 +85,20 @@ class ClickConvertedDistribution(Distribution):
     @staticmethod
     def mean(customer_class: CustomerClass, price: float):
         return sigmoid(-price, -customer_class.crCenter, customer_class.sigmoidZ)
+
+
+class Beta:
+    def __init__(self, alpha, beta, rng: Generator):
+        self.alpha = alpha
+        self.beta = beta
+        self.rng = rng
+
+    def sample(self):
+        return self.rng.beta(self.alpha, self.beta)
+
+    def update_params(self, successes, failures):
+        self.alpha += successes
+        self.beta += failures
+
+    def mean(self):
+        return self.alpha / (self.alpha + self.beta)
