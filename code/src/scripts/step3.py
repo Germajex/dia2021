@@ -1,35 +1,39 @@
 from src.Environment import Environment
+from src.TSOptimalPriceLearner import TSOptimalPriceLearner
 from src.algorithms import step1
 from src.bandit.BanditEnvironment import BanditEnvironment
-from src.bandit.ucb.UCBLearner import UCBLearner
+from src.UCBOptimalPriceLearner import UCBOptimalPriceLearner
 import numpy as np
+
 
 def main():
     prices = np.arange(10, 101, 10)
     bids = np.arange(1, 100)
 
     env = Environment()
+    n_rounds = 100
+    future_visits_delay = 30
 
     opt_price, opt_bid, profit = step1(env, prices, bids)
 
-    bandit_env = BanditEnvironment(env, prices, opt_bid, 30)
+    bandit_env = BanditEnvironment(env, prices, opt_bid, future_visits_delay)
 
-    learner = UCBLearner(bandit_env)
+    ts_learner = TSOptimalPriceLearner(bandit_env)
+    ucb_leaner = UCBOptimalPriceLearner(bandit_env, lambda r: r % 50 == 51)
 
-    learner.learn2(100)
+    ucb_leaner.learn(n_rounds)
 
-    print(learner.compute_projected_profits())
+    bandit_env.reset_state()
 
+    ts_learner.learn(n_rounds)
 
-
-
-
-
-
-
-
-
-
+    for name, learner in [("UCB", ucb_leaner), ("TS", ts_learner)]:
+        print(name)
+        print("Projected profits: " + " ".join(f'{p:10.2f}' for p in learner.compute_projected_profits()))
+        print("Expected profits:  " + " ".join(f'{p:10.2f}' for p in learner.compute_expected_profits()))
+        print("Averages:          " + " ".join(f'{p:10.2f}' for p in learner.get_average_conversion_rates()))
+        print("Number of pulls:   " + " ".join(f'{p:10d}' for p in learner.get_number_of_pulls()))
+        print()
 
 
 if __name__ == "__main__":

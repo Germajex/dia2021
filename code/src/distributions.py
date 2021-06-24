@@ -21,8 +21,7 @@ class NewClicksDistribution(Distribution):
         self.new_clicks_z = new_clicks_z
 
     def sample(self, customer_class: CustomerClass, bid: float):
-        mean = self.mean(customer_class=customer_class, bid=bid)
-        return self.rng.poisson(lam=mean, size=1)
+        return int(self.sample_n(customer_class, bid, 1))
 
     def sample_n(self, customer_class: CustomerClass, bid: float, n):
         mean = self.mean(customer_class=customer_class, bid=bid)
@@ -45,7 +44,7 @@ class CostPerClickDistribution(Distribution):
 
     @staticmethod
     def sample(customer_class: CustomerClass, bid: float):
-        return bid
+        return int(CostPerClickDistribution.sample_n(customer_class, bid, 1)[0])
 
     @staticmethod
     def sample_n(customer_class: CustomerClass, bid: float, n: int):
@@ -62,7 +61,7 @@ class FutureVisitsDistribution(Distribution):
 
     def sample(self, customer_class: CustomerClass):
         mean = self.mean(customer_class=customer_class)
-        return self.rng.poisson(lam=mean, size=1)
+        return int(self.rng.poisson(lam=mean, size=1)[0])
 
     def sample_n(self, customer_class: CustomerClass, n):
         mean = self.mean(customer_class=customer_class)
@@ -78,7 +77,7 @@ class ClickConvertedDistribution(Distribution):
         super().__init__(rng=rng)
 
     def sample(self, customer_class: CustomerClass, price: float):
-        return self.rng.binomial(1, self.mean(customer_class=customer_class, price=price))
+        return int(self.sample_n(customer_class, price, 1)[0])
 
     def sample_n(self, customer_class: CustomerClass, price: float, n: int):
         return self.rng.binomial(n, self.mean(customer_class=customer_class, price=price))

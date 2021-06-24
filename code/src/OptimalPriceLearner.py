@@ -1,34 +1,29 @@
-import numpy
+from typing import List
+
 import numpy as np
 from src.bandit.BanditEnvironment import BanditEnvironment
-import matplotlib.pyplot as plt
 
 
-class UCBLearner:
+class OptimalPriceLearner:
     def __init__(self, env: BanditEnvironment):
-        self.n_arms = env.n_arms
+        self.env = env
+        self.n_arms = self.env.n_arms
         self.future_visits_per_arm = [[] for i in range(self.n_arms)]
         self.purchases_per_arm = [[] for i in range(self.n_arms)]
-        self.new_clicks_per_arm = [[] for i in range(self.n_arms)]
+        self.new_clicks_per_arm: List[List[int]] = [[] for i in range(self.n_arms)]
         self.tot_cost_per_click = 0
         self.current_round = 0
 
-
-        self.rewards_per_arm = [[] for i in range(self.n_arms)]
-        self.cr_per_arm = [[] for i in range(self.n_arms)]
-        self.env = env
-        self.prices = []
-        self.bids = []
-        self.history_rewards = [0]
-        self.c = 1
-
-    def learn2(self, n_rounds: int):
+    def learn(self, n_rounds: int):
         self.round_robin()
 
         while self.current_round < n_rounds:
-            arm = self.choose_next_arm()
-            self.pull_from_env(arm=arm)
-            print(f'{self.current_round}')
+            self.learn_one_round()
+            #print(f'{self.current_round}')
+
+    def learn_one_round(self):
+        arm = self.choose_next_arm()
+        self.pull_from_env(arm=arm)
 
     def choose_next_arm(self):
         return int(np.argmax(self.compute_projected_profits()))
@@ -36,9 +31,20 @@ class UCBLearner:
     def compute_projected_profits(self):
         new_clicks = self.compute_new_clicks()
         margin = np.array([self.env.margin(a) for a in range(self.n_arms)])
-        crs = self.compute_conversion_rates_upper_bounds()
+        crs = self.compute_projection_conversion_rates()
         future_visits = self.compute_future_visits()
-        cost_per_click = self.tot_cost_per_click / np.sum(np.sum(self.new_clicks_per_arm))
+        cost_per_click = self.tot_cost_per_click / self.sum_ragged_matrix(self.new_clicks_per_arm)
+
+        projected_profit = new_clicks * (margin * crs * (1 + future_visits) - cost_per_click)
+
+        return projected_profit
+
+    def compute_expected_profits(self):
+        new_clicks = self.compute_new_clicks()
+        margin = np.array([self.env.margin(a) for a in range(self.n_arms)])
+        crs = self.get_average_conversion_rates()
+        future_visits = self.compute_future_visits()
+        cost_per_click = self.tot_cost_per_click / self.sum_ragged_matrix(self.new_clicks_per_arm)
 
         projected_profit = new_clicks * (margin * crs * (1 + future_visits) - cost_per_click)
 
@@ -51,23 +57,19 @@ class UCBLearner:
             complete_samples = len(self.future_visits_per_arm[arm])
             successes_sum += np.sum(self.purchases_per_arm[arm][:complete_samples])
 
-        return sum(sum(r) for r in self.future_visits_per_arm)/successes_sum
+        return self.sum_ragged_matrix(self.future_visits_per_arm)/successes_sum
 
     def compute_new_clicks(self):
-        return sum(sum(r) for r in self.new_clicks_per_arm)/sum(len(r) for r in self.new_clicks_per_arm)
+        return self.average_ragged_matrix(self.new_clicks_per_arm)
 
-    def compute_conversion_rates_upper_bounds(self):
-        averages = np.array([sum(self.purchases_per_arm[arm]) / sum(self.new_clicks_per_arm[arm])
-                             for arm in range(self.n_arms)]).reshape((10,))
+    def compute_projection_conversion_rates(self):
+        raise NotImplementedError
 
-        tot_clicks = sum(sum(r) for r in self.new_clicks_per_arm)
-        tot_clicks_per_arm = np.array([np.sum(self.new_clicks_per_arm[arm])
-                                       for arm in range(self.n_arms)])
+    def get_average_conversion_rates(self):
+        raise NotImplementedError
 
-        radia = np.sqrt(2*np.log(tot_clicks) / tot_clicks_per_arm)
-        upper_bounds = averages + radia
-
-        return upper_bounds
+    def get_number_of_pulls(self):
+        return [len(a) for a in self.new_clicks_per_arm]
 
     def round_robin(self):
         while not all(self.future_visits_per_arm):
@@ -76,7 +78,7 @@ class UCBLearner:
 
     def pull_from_env(self, arm: int):
         new_clicks, purchases, tot_cost_per_clicks, \
-        (old_a, visits) = self.env.pull_arm_no_discrimination(arm)
+        (old_a, visits) = self.env.pull_arm_not_discriminating(arm)
 
         self.new_clicks_per_arm[arm].append(new_clicks)
         self.purchases_per_arm[arm].append(purchases)
@@ -87,9 +89,19 @@ class UCBLearner:
 
         self.current_round += 1
 
-    def estimate_new_clicks(self):
-        return np.mean(self.new_clicks_per_arm)
-        #return sum(sum(e) for e in self.new_clicks_per_arm)/sum(len(e) for e in self.new_clicks_per_arm)
+        return new_clicks, purchases, tot_cost_per_clicks, (old_a, visits)
+
+    @staticmethod
+    def average_ragged_matrix(mat):
+        return OptimalPriceLearner.sum_ragged_matrix(mat) / OptimalPriceLearner.count_ragged_matrix(mat)
+
+    @staticmethod
+    def count_ragged_matrix(mat):
+        return np.sum(len(r) for r in mat)
+
+    @staticmethod
+    def sum_ragged_matrix(mat: List[List[int]]):
+        return np.sum(np.sum(r) for r in mat)
 
     def get_cumulative_rewards(self):
         return np.cumsum(self.history_rewards)
@@ -132,40 +144,6 @@ class UCBLearner:
 
         if verbose:
             self.pulled_arms_recap(mode)
-
-    # Method used for debugging mainly. Plots the average reward and the confidence bounds used by the UCB algorithm
-    def wait_and_show(self, t, mode):
-
-        x = [a for a in range(self.n_arms)]
-
-        fig, ax = plt.subplots(1)
-
-        ax.set_title(f"Round {t}")
-
-        arr = []
-        if mode == 'cr':
-            ax.set_ylabel("expected cr")
-            arr = self.cr_per_arm
-        elif mode == 'rwd':
-            ax.set_ylabel("expected rwd")
-            arr = self.rewards_per_arm
-        y = [np.mean(arr[a]) for a in range(self.n_arms)]
-
-        ax.set_xlabel("arms")
-
-        ax.set_xticklabels(self.prices)
-        ax.set_xticks(x)
-
-        ax.scatter(x, y)
-
-        y_min = [self.ucb_lower_bound(a, t, mode) for a in range(self.n_arms)]
-        y_max = [self.ucb_upper_bound(a, t, mode) for a in range(self.n_arms)]
-
-        ax.vlines(x, y_min, y_max)
-        ax.hlines([0, 1], -1, 11, colors='red')
-        ax.set_xlim(-1, 11)
-
-        plt.show()
 
     # Choose the arm to pull based on the reward upper bound (reward computed with cr upper bound).
     # Returns the index of the arm to be pulled
@@ -223,17 +201,6 @@ class UCBLearner:
                 max_rwd = r_max
 
         return max_rwd
-
-    # Pulls the given arm, which is a price to be tested. Also appends the collected reward, or the cr, depending on the
-    # operation mode
-    def pull_arm_price(self, a, mode):
-        rwd, successes, failures = self.env.round_bids_fixed(self.prices[a], self.bids[0])
-
-        self.cr_per_arm[a].append(successes / (successes + failures))
-        self.rewards_per_arm[a].append(rwd)
-
-        # We still want to record the cumulative rewards, to compute the regret
-        self.history_rewards.append(rwd)
 
     # Prints out a brief recap of the activities done by the learner
     def pulled_arms_recap(self, mode):

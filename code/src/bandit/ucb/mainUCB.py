@@ -1,5 +1,5 @@
 from src.bandit.BanditEnvironment import BanditEnvironment
-from UCBLearner import UCBLearner
+from src.UCBOptimalPriceLearner import UCBLearner
 import numpy as np
 import src.bandit.LearningStats as Stats
 from src.Environment import Environment

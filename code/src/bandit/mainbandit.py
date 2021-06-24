@@ -1,8 +1,7 @@
 from BanditEnvironment import BanditEnvironment
 from src.Environment import Environment
 from ts.TSLearner import TSLearner
-from ucb.UCBLearner import UCBLearner
-from src.CustomerClassCreator import CustomerClassCreator
+from src.UCBOptimalPriceLearner import UCBLearner
 import numpy as np
 import LearningStats as Stats
 
