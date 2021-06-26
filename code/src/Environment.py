@@ -1,3 +1,5 @@
+import itertools
+
 from numpy.random import default_rng, Generator
 
 from src.constants import _Const
@@ -18,6 +20,8 @@ class Environment:
         self.rng: Generator = default_rng(seed=random_seed)
 
         self.classes = CustomerClassCreator().get_new_classes(self.rng, CONST.N_CUSTOMER_CLASSES)
+        self.feature_1_likelihood = 0.5
+        self.feature_2_likelihood = 0.5
 
         self.newClicksC, self.newClicksZ = CustomerClassCreator().get_new_clicks_v_parameters(self.rng)
 
@@ -48,3 +52,11 @@ class Environment:
 
     def get_classes(self):
         return self.classes
+
+    def get_features_combinations(self):
+        return list(itertools.chain.from_iterable(c.features for c in self.classes))
+
+    def get_features_comb_likelihood(self, f):
+        f1 = self.feature_1_likelihood if f[0] else 1 - self.feature_1_likelihood
+        f2 = self.feature_2_likelihood if f[1] else 1 - self.feature_2_likelihood
+        return f1 * f2
