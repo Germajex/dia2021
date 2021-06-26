@@ -10,7 +10,7 @@ class OptimalPriceLearner:
         self.n_arms = self.env.n_arms
         self.future_visits_per_arm = [[] for i in range(self.n_arms)]
         self.purchases_per_arm = [[] for i in range(self.n_arms)]
-        self.new_clicks_per_arm: List[List[int]] = [[] for i in range(self.n_arms)]
+        self.new_clicks_per_arm = [[] for i in range(self.n_arms)]
         self.tot_cost_per_click = 0
         self.current_round = 0
 
