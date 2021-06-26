@@ -96,8 +96,8 @@ class OptimalPriceLearner:
 
     @staticmethod
     def count_ragged_matrix(mat):
-        return np.sum(len(r) for r in mat)
+        return np.sum(np.fromiter((len(r) for r in mat), dtype=np.int32))
 
     @staticmethod
     def sum_ragged_matrix(mat: List[List[int]]):
-        return np.sum(np.sum(r) for r in mat)
+        return np.sum(np.fromiter((np.sum(r) for r in mat), dtype=np.float64))
