@@ -3,9 +3,9 @@ from unittest import TestCase
 import numpy as np
 
 from src.Environment import Environment
-from src.TSOptimalPriceLearner import TSOptimalPriceLearner
 from src.algorithms import step1
 from src.bandit.BanditEnvironment import BanditEnvironment
+from src.bandit.TSOptimalPriceLearner import TSOptimalPriceLearner
 
 
 class TestRepeatable(TestCase):
