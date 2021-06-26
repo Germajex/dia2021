@@ -11,6 +11,7 @@ def main():
     bids = np.arange(1, 100)
 
     env = Environment()
+    print(f'Running with seed {env.get_seed()}')
     n_rounds = 365
     future_visits_delay = 30
 
@@ -19,7 +20,7 @@ def main():
     bandit_env = BanditEnvironment(env, prices, opt_bid, future_visits_delay)
 
     ts_learner = TSOptimalPriceLearner(bandit_env)
-    ucb_leaner = UCBOptimalPriceLearner(bandit_env, lambda r: r % 50 == 51)
+    ucb_leaner = UCBOptimalPriceLearner(bandit_env, lambda r: r % 50 == 0)
 
     ucb_leaner.learn(n_rounds)
 

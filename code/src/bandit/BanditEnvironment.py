@@ -10,6 +10,8 @@ from src.CustomerClass import CustomerClass
 class BanditEnvironment:
     def __init__(self, environment: Environment, prices, bid, future_visits_delay: int):
         # Init local vars
+        self.rng = environment.rng
+
         self.n_arms = len(prices)
         self.prices = prices
         self.bid = bid
@@ -22,34 +24,50 @@ class BanditEnvironment:
         self.current_round = 0
 
     def pull_arm_not_discriminating(self, arm: int):
-        new_clicks, purchases, tot_cost_per_clicks, past_future_visits = self._inner_pull_arm(arm)
+        arm_strategy = {comb: arm for comb in self.env.get_features_combinations()}
 
-        return sum(new_clicks), sum(purchases), sum(tot_cost_per_clicks), \
-            (past_future_visits[0], sum(past_future_visits[1]))
+        new_clicks, purchases, tot_cost_per_clicks, \
+            (past_arm_strategy, past_future_visits) = self._inner_pull_arm(arm_strategy)
 
-    def pull_arm_discriminating(self, arm: int):
-        print('')
+        past_pulled_arm = None if past_arm_strategy is None else past_arm_strategy[(False, False)]
 
-    def _inner_pull_arm(self, arm: int):
-        price = self.prices[arm]
+        return sum(new_clicks.values()), sum(purchases.values()), sum(tot_cost_per_clicks.values()), \
+                  (past_pulled_arm, sum(past_future_visits.values()))
 
-        new_clicks = [self.env.distNewClicks.sample(customer_class=c, bid=self.bid)
-                      for c in self.env.classes]
+    def pull_arm_discriminating(self, arm_strategy):
+        new_clicks, purchases, tot_cost_per_clicks, past_future_visits = self._inner_pull_arm(arm_strategy)
 
-        purchases = [self.env.distClickConverted.sample_n(c, price, new_clicks[i])
-                     for i, c in enumerate(self.env.classes)]
+        return new_clicks, purchases, tot_cost_per_clicks, past_future_visits
 
-        tot_future_visits = tuple(
-            [sum(self.env.distFutureVisits.sample_n(c, purchases[i]))
-             for i, c in enumerate(self.env.classes)]
-        )
-        self.future_visits_queue.append((arm,  tot_future_visits))
-
-        tot_cost_per_clicks = [
-            sum(self.env.distCostPerClick.sample_n(c, self.bid, new_clicks[i]))
-            for i, c in enumerate(self.env.classes)
+    def get_users_count(self, new_clicks, c: CustomerClass):
+        features_comb_likelihoods = [
+            self.env.get_features_comb_likelihood(f)
+            for f in c.features
         ]
 
+        features_comb_dist = np.array(features_comb_likelihoods) / sum(features_comb_likelihoods)
+
+        users = self.rng.multinomial(new_clicks, features_comb_dist)
+        return users
+
+    def _inner_pull_arm(self, arm_strategy):
+        new_clicks, purchases, tot_cost_per_clicks, new_future_visits = {}, {}, {}, {}
+
+        class_new_clicks = [
+            self.env.distNewClicks.sample(customer_class=c, bid=self.bid)
+            for c in self.env.classes
+        ]
+
+        for i, c in enumerate(self.env.classes):
+            users = self.get_users_count(class_new_clicks[i], c)
+            for visits, f in zip(users, c.features):
+                arm = arm_strategy[f]
+                new_clicks[f] = visits
+                purchases[f] = self.env.distClickConverted.sample_n(c, self.prices[arm], visits)
+                tot_cost_per_clicks[f] = sum(self.env.distCostPerClick.sample_n(c, self.bid, visits))
+                new_future_visits[f] = sum(self.env.distFutureVisits.sample_n(c, purchases[f]))
+
+        self.future_visits_queue.append((arm_strategy, new_future_visits))
         past_future_visits = self.future_visits_queue.pop(0)
 
         self.current_round += 1
@@ -57,7 +75,11 @@ class BanditEnvironment:
         return new_clicks, purchases, tot_cost_per_clicks, past_future_visits
 
     def reset_state(self):
-        self.future_visits_queue = [(None, (0, 0, 0))] * self.future_visits_delay
+        self.future_visits_queue = [(None, {comb: 0 for comb in
+                                            self.env.get_features_combinations()})] * self.future_visits_delay
 
-    def margin(self, arm:int):
+    def margin(self, arm: int):
         return self.env.margin(self.prices[arm])
+
+    def get_features_combinations(self):
+        return self.env.get_features_combinations()
