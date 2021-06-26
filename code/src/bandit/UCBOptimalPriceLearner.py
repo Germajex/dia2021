@@ -24,9 +24,6 @@ class UCBOptimalPriceLearner(OptimalPriceLearner):
         return np.array([sum(self.purchases_per_arm[arm]) / sum(self.new_clicks_per_arm[arm])
                          for arm in range(self.n_arms)]).flatten()
 
-    def get_average_conversion_rates(self):
-        return self.compute_conversion_rates_averages()
-
     def compute_conversion_rates_radia(self):
         tot_clicks_per_arm = np.array([np.sum(self.new_clicks_per_arm[arm])
                                        for arm in range(self.n_arms)])
@@ -39,6 +36,9 @@ class UCBOptimalPriceLearner(OptimalPriceLearner):
         upper_bounds = averages + radia
 
         return upper_bounds
+
+    def get_average_conversion_rates(self):
+        return self.compute_conversion_rates_averages()
 
     # Method used for debugging mainly. Plots the average reward and the confidence bounds used by the UCB algorithm
     def show_bounds(self):
