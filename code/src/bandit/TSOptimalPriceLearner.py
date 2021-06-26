@@ -1,8 +1,8 @@
 import numpy as np
 
-from src.OptimalPriceLearner import OptimalPriceLearner
+from src.bandit.OptimalPriceLearner import OptimalPriceLearner
 from src.bandit.BanditEnvironment import BanditEnvironment
-from src.utils import Beta
+from src.distributions import Beta
 
 
 class TSOptimalPriceLearner(OptimalPriceLearner):

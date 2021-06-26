@@ -1,8 +1,8 @@
 from src.Environment import Environment
-from src.TSOptimalPriceLearner import TSOptimalPriceLearner
+from src.bandit.TSOptimalPriceLearner import TSOptimalPriceLearner
 from src.algorithms import step1
 from src.bandit.BanditEnvironment import BanditEnvironment
-from src.UCBOptimalPriceLearner import UCBOptimalPriceLearner
+from src.bandit.UCBOptimalPriceLearner import UCBOptimalPriceLearner
 import numpy as np
 
 
@@ -11,7 +11,7 @@ def main():
     bids = np.arange(1, 100)
 
     env = Environment()
-    n_rounds = 100
+    n_rounds = 365
     future_visits_delay = 30
 
     opt_price, opt_bid, profit = step1(env, prices, bids)
