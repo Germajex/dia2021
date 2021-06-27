@@ -24,12 +24,11 @@ class CustomerClass:
         self.backDev = back_dev
 
     def print_summary(self):
-        print("--- ooo ---")
-        print("Class name: {}".format(self.name))
-        print("Binary features: {}".format(self.features))
-        print("New clicks params: range={}".format(self.newClicksR))
-        print("Conversion rate params: center={}, z={}".format(self.crCenter, self.sigmoidZ))
-        print("Client fidelity params: mean={}, variance={}".format(self.backMean, self.backDev))
+        print(f"Class name: {self.name}")
+        print('Binary features: ', *self.features)
+        print(f"Daily auctions: {self.newClicksR}")
+        print(f"Reserve price: {self.crCenter}, z={self.sigmoidZ}")
+        print(f"Average future visits: {self.backMean}")
 
     def get_name(self):
         return self.name
