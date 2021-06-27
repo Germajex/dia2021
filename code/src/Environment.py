@@ -40,6 +40,7 @@ class Environment:
     def print_class_summary(self):
         for c in self.classes:
             c.print_summary()
+            print()
 
     def get_dist_new_clicks(self):
         return self.distNewClicks
