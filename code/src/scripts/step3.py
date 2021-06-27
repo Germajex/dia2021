@@ -30,7 +30,7 @@ def main():
 
     for name, learner in [("UCB", ucb_leaner), ("TS", ts_learner)]:
         print(name)
-        print("Projected profits: " + " ".join(f'{p:10.2f}' for p in learner.compute_projected_profits()))
+        print("Projected profits: " + " ".join(f'{p:10.2f}' for p in learner.compute_projected_profit()))
         print("Expected profits:  " + " ".join(f'{p:10.2f}' for p in learner.compute_expected_profits()))
         print("Averages:          " + " ".join(f'{p:10.2f}' for p in learner.get_average_conversion_rates()))
         print("Number of pulls:   " + " ".join(f'{p:10d}' for p in learner.get_number_of_pulls()))
