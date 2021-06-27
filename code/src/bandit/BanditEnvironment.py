@@ -1,7 +1,6 @@
 import numpy as np
 
 from src.Environment import Environment
-from src.algorithms import optimal_price_for_bid, simple_class_profit
 from src.CustomerClass import CustomerClass
 
 
