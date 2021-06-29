@@ -74,9 +74,15 @@
 
 \section{The setting}
 
-Advertising is used to attract users on an ecommerce website that sells only one type of item. Each user belongs to one of three classes, and the classes are determined by the combination of two binary features. For each class $c \in C$ the following functions are modeled:
+Advertising is used to attract users on an ecommerce website that sells only one type of item. Each day, a stochastic number of auctions $A$ is run by the ad publisher, each auction corresponding to a different user. The users are characterized by two binary features $F_1$ and $F_2$, which are independent and described by their probabilies $\theta_1$ and $\theta_2$ of assuming the value $True$ for a specific user.
+Each user belongs to one of three classes, and the classes are determined by the combination of the two features. 
+For each class $c \in C$ the following functions are modeled:
 \begin{itemize}
-\item A stochastic number of daily clicks of new users (i.e., that have never clicked before on the ads), represented by the discrete random variable $N_{c,b}\sim NewClicks(c,b)$, such that $\EX[N_{c,b}]=n(c,b)$, where $b \in B$ is a bid value. 
+\item A stochastic number of daily clicks of new users (i.e., that have never clicked before on the ads). 
+\newline
+\newline
+which is a function of the 
+represented by the discrete random variable $N_{c,b}\sim NewClicks(c,b)$, such that $\EX[N_{c,b}]=n(c,b)$, where $b \in B$ is a bid value. 
 \item A conversion rate function providing the probability that a user will buy the item at a certain price,  $r(c,p)$, where $p \in P$ is the price. For each user of class $c$ that has clicked on the ad, a Bernoulli random variable $D_{c,p} \sim Bern(r(c,p))$ indicates whether the user bought the product ($D_{c,p}=1$) or not ($D_{c,p}=0$), such that $\EX[D_{c,p}]=r(c,p)$. In the code, such distribution is called $ClickConverted(c,p)$.
 \item A probability distribution $FutureVisits(c)$ over the number of times a user of class $c$ will come back to the ecommerce website to buy that item by 30 days after the first purchase. In other words, when a user makes a purchase, they are somehow likely to make more purchases in the near future, and after that they will leave the website forever. For each user of class $c$, a discrete random variable $F_c \sim FutureVisits(c)$ indicates the number of times that the user came back, and for each class $c$ the function $f(c)$ is defined such that $\EX[F_c] = f(c)$
 \item A probability distribution $CostPerClick(c,b)$. For each click, the random variable $C_{c,b}\sim CostPerClick(c,b)$ represents the amount that is paid to the ad publisher, such that $\EX[C_{c,b}] = k(c,b)$ and $\Prob(C_{c,b} \leq b) = 1$.
@@ -84,28 +90,56 @@ Advertising is used to attract users on an ecommerce website that sells only one
 
 A margin function $m(p)$, where $p \in P$ is a price, is available to indicate how much profit is obtained if the an item is sold at the price $p$. 
 
-
-\subsection{New Daily Clicks $NewClicks(c,b)$}
-The $NewClicks(c,b)$ distribution is used to sample the number of daily clicks from users of class $c$ if the bid $b$ is used.
-\newline
-\newline
-We adopt the following assumption about the distribution: 
-\begin{assumption}[Agnostic Publisher] The mean of $NewClicks(c,b)$, $n(c,b)$, can be expressed as:
+\subsection{Number of daily auctions A}
+The random variable $A$ representing the number of auctions run by the ad publisher is distributed as a Poisson $A\sim Poisson(\lambda_a)$, with the mean $\lambda_a$ being randomly chosen when the environment is generated.
+\subsection {The binary features}
+The features $F_1$ and $F_2$ are independent and are governed by the parameters $\theta_1$ and $\theta_2$. At the generation of the environment, the parameters $\theta_1$ and $\theta_2$ are randomly sampled. They represent the distribution of the feature values. Since the features are independent, for each combination we can compute the likelihood as follows:
 \begin{align*}
-n(c,b)=n(c)v(b)
+\tilde{l}_{TT} &= \theta_1\theta_2\\
+\tilde{l}_{TF} &= \theta_1(1-\theta_2)\\
+\tilde{l}_{FT} &= (1-\theta_1)\theta_2\\
+\tilde{l}_{FF} &= (1-\theta_1)(1-\theta_2)\\
 \end{align*}
-Where $n(c)$ does not depend on $b$ and $v(b)$ does not depend on $c$.
+\subsection{New Daily Clicks $N_{c,b}$}
+The number $N_{c,b}$ of new daily clicks of users belonging to class $c$ is determined as follows: given the number of auctions $A$, the likelihood of each combination of the two binary features is used to sample from a Multinomial distribution:
+\begin{align*}
+(A_{TT},A_{TF},A_{FT},A_{FF}) \sim Multinomial(A, (\tilde{l}_{TT},\tilde{l}_{TF},\tilde{l}_{FT},\tilde{l}_{FF}))
+\end{align*}
+Where $A$ is the number of tries and  $ (\tilde{l}_{TT},\tilde{l}_{TF},\tilde{l}_{FT},\tilde{l}_{FF})$ is the vector of probabilities. This process basically assigns a combination of the features to each user involved in an auction of the ad publisher, according to the likelihood of each feature. The result, $(A_{TT},A_{TF},A_{FT},A_{FF})$, is the number of auctions run by the ad publisher for users of each combination. 
+
+For each $comb \in \{TT,TF,FT,FF\}$ it holds $\EX[A_{comb}] = \lambda_a \tilde{l}_{comb}$ (Appendix \ref{sec.acombproof})
+\newline
+\newline
+For each auction, a Bernoulli random variable is sampled to determine if the owner of the e-commerce has won the auction. We adopt the following assumption about the probability of winning an auction:
+\begin{assumption}[Agnostic Publisher] The probability of winning an auction does not depend on the features that characterize the user, but only depends on the bid value $b$.
 \end{assumption}
-In the assumption above, $v(b)$ represents the fact that higher bids will win more auctions and $n(c)$ represents the fact that, for each class, a different percentage of the users will belong to class $c$ \textit{and} click on the ad. The meaning of the Agnostic Publisher assumption is that a change in the bid will change the number of users seeing the ad but will never change the percentage of users for each class. In other words, an increase in the auctions won will reflect in an increase in the number of clicks with the same proportion on all the classes. The reason behind the name is that in every auction the average competition does not depend on the user class, because the Publisher does not know anything about the class of the user (assuming that the Publisher is choosing every aspect of when and where to display the ad).
+The meaning of the Agnostic Publisher assumption is that a change in the bid will change the number of users seeing the ad but will not change the percentage of users for each class. In other words, an increase in the auctions won will reflect in an increase in the number of clicks with the same proportion on all the classes.
 \newline
 \newline
-In our implementation we defined:
-\begin{itemize}
-\item $n(c)=n_c$, for each class a constant $n_c > 0$ is randomly sampled when the environment is generated.
-\item $v(b)=\frac{1}{1+e^{-\overline z(b-\overline b)}}$, where $\overline z > 0$ and $\overline b > 0$ are randomly sampled when the environment is generated. The function $v(b)$ is the same for all the classes.
-\end{itemize}
-And we defined the distribution as
-{\color{red}Come la abbiamo definita}
+We therefore define the function $v(b)$ representing the probability of winning one auction: it needs to be a monotonically increasing function of the bid ranging from $0$ to $1$. We chose a sigmoidal function for this purpose:
+\begin{align*}
+v(b)=\frac{1}{1+e^{-\overline z(b-\overline b)}}
+\end{align*}
+where $\overline z > 0$ and $\overline b > 0$ are randomly sampled when the environment is generated.
+\newline
+\newline
+Finally, the number of clicks of users described by the combination of features $comb$, which is equivalent to the number of auctions won, is sampled from a Binomial:
+\begin{align*}
+\tilde{N}_{comb,b} \sim Binomial(A_{comb}, v(b))
+\end{align*}
+where $A_{comb}$ is the number of tries and $v(b)$ the probability of success of one try, and assuming that the function $combs(c)$ maps each class $c$ to the set of combinations of features that are covered by that class, we can compute
+\begin{align*}
+N_{c,b} = \sum_{comb \in combs(c)}{\tilde{N}_{comb,b}}
+\end{align*}
+Defining the likelihood $l_c$ of class $c$ as 
+\begin{align*}
+l_c = \sum_{comb \in combs(c)}{\tilde{l}_{comb}}
+\end{align*}
+it holds 
+\begin{align*}
+\EX[N_{c,b}] =\lambda_al_{c}v(b)
+\end{align*}
+ (Appendix \ref{sec.ncbproof})
 \subsection{Conversion Rate $r(c,p)$}
 For each class $c \in C$, the function $r_c(p)$ used to model the conversion rate of users belonging to that class must have the following properties:
 \begin{itemize}
@@ -136,15 +170,17 @@ In our implementation we chose to keep it constant and equal to the bid, that is
 \Prob(C_{c,b} = k(c,b)) = 1\\
 k(c,b) = b
 \end{align*}
+
 \subsection{Margin function $m(p)$}
 {\color{red}Come la abbiamo definita}
+
 \section{Step 1}
 The goal is to maximize the expected profit over a single day, where the future visits of a user are considered to contribute in expected value to the profit of the day of the first visit.
 \newline
 \newline
 For each class $c$, we define:
 \begin{itemize}
-\item The random variable $N_{c,b}$ representing the number of new clicks of users of class $c$, such that $N_{c,b} \sim NewClicks(c,b)$
+\item The random variable $N_{c,b}$ representing the number of new clicks of users of class $c$.
 \item The sequence $(C_{b,i})_{i=1,...,N_{c,b}}$ of random variables representing the cost paid for each click $i$, such that $C_{b,i}\sim CostPerClick(b)$
 \item The sequence $(D_{c,p,i})_{i=1,...,N_{c,b}}$ of random variables representing whether user $i$ of class $c$ purchased the item, such that $D_{c,p,i}\sim Bern(r(c,p))$
 \item The sequence $(F_{c,i})_{i=1,...,N_{c,b}}$ of random variables representing the number of future visits of the user $i$ of class $c$, such that $F_{c,i}\sim FutureVisits(c)$
@@ -161,13 +197,13 @@ And therefore formulate the optimization problem as follows:
 With some manipulations using the properties of the expected value (Appendix \ref{sec.DerExpProf}), the expected profit can be expressed as follows:
 
 \begin{align*}
-ExpectedProfit(p,b)=m(p)\sum_{c \in C}{n(c,b)r(c,p)(1+f(c))}-k(b)\sum_{c \in C}{n(c,b)}
+ExpectedProfit(p,b)=\lambda_av(b)\sum_{c \in C}{l_{c}\Big(m(p)r(c,p)(1+f(c))-k(c,b)\Big)}
 \end{align*}
 
 Obtaining the following formulation, that depends only on the means of the distributions:
 
 \begin{align*}
-\argmax_{p,b}{m(p)\sum_{c \in C}{n(c,b)r(c,p)(1+f(c))}-k(b)\sum_{c \in C}{n(c,b)}}
+\argmax_{p,b}{\ \lambda_av(b)\sum_{c \in C}{l_{c}\Big(m(p)r(c,p)(1+f(c))-k(c,b)\Big)}}
 \end{align*}
 
 Under the Agnostic Publisher assumption, the following interesting result holds:
@@ -204,6 +240,12 @@ The objective function to maximize is the cumulative expected profit over the le
 \end{align*}
 
 \appendix
+\section{Expected Value of $A_{comb}$}\label{sec.acombproof}
+ExpectedProfit(p,b) 
+
+\section{Expected Value of $N_{c,b}$}\label{sec.ncbproof}
+ExpectedProfit(p,b) 
+
 \section{Derivation of ExpectedProfit}\label{sec.DerExpProf}
 \begin{align*}
 ExpectedProfit(p,b) 
