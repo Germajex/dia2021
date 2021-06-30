@@ -14,18 +14,44 @@ class Distribution:
         self.rng = default_rng(seed=rng.integers(0, 2 ** 32))
 
 
+class TotalAuctionsDistribution(Distribution):
+    def __init__(self, rng: Generator, lambda_a):
+        super().__init__(rng=rng)
+        self.lambda_a = lambda_a
+
+    def sample(self):
+        return int(self.rng.poisson(lam=self.lambda_a, size=1)[0])
+
+
+class AuctionsPerCombinationDistribution(Distribution):
+    def __init__(self, rng: Generator, likelihoods_per_comb):
+        super().__init__(rng=rng)
+        self.combs = []
+        self.likelihoods = []
+
+        for comb, likelihood in likelihoods_per_comb.items():
+            self.combs.append(comb)
+            self.likelihoods.append(likelihood)
+
+    def sample(self, tot_auctions):
+        auctions = self.rng.multinomial(tot_auctions, self.likelihoods)
+        res = {c:a for c,a in zip(self.combs, auctions)}
+        return res
+
+
 class NewClicksDistribution(Distribution):
     def __init__(self, rng: Generator, new_clicks_c: float, new_clicks_z: float):
         super().__init__(rng=rng)
         self.new_clicks_c = new_clicks_c
         self.new_clicks_z = new_clicks_z
 
-    def sample(self, customer_class: CustomerClass, bid: float):
-        return int(self.sample_n(customer_class, bid, 1))
+    def sample(self, auctions_per_comb, bid: float):
+        winning_p = self.v(bid)
 
-    def sample_n(self, customer_class: CustomerClass, bid: float, n):
-        mean = self.mean(customer_class=customer_class, bid=bid)
-        return self.rng.poisson(lam=mean, size=n)
+        res = {comb: self.rng.binomial(auctions, winning_p)
+               for comb, auctions in auctions_per_comb.items()}
+
+        return res
 
     def mean(self, customer_class: CustomerClass, bid: float):
         return self.n(customer_class) * self.v(bid)

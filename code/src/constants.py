@@ -26,6 +26,22 @@ class _Const(object):
         return 20
 
     @constant
+    def FEATURE_LIKELIHOOD_MIN()->float:
+        return 0.3
+
+    @constant
+    def FEATURE_LIKELIHOOD_MAX()->float:
+        return 0.7
+
+    @constant
+    def AUCTIONS_MIN():
+        return 50
+
+    @constant
+    def AUCTIONS_MAX():
+        return 150
+
+    @constant
     def NEWCLICKS_MIN_R():
         return 5
 

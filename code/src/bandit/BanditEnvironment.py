@@ -26,12 +26,12 @@ class BanditEnvironment:
         arm_strategy = {comb: arm for comb in self.env.get_features_combinations()}
 
         new_clicks, purchases, tot_cost_per_clicks, \
-            (past_arm_strategy, past_future_visits) = self._inner_pull_arm(arm_strategy)
+        (past_arm_strategy, past_future_visits) = self._inner_pull_arm(arm_strategy)
 
         past_pulled_arm = None if past_arm_strategy is None else past_arm_strategy[(False, False)]
 
         return sum(new_clicks.values()), sum(purchases.values()), sum(tot_cost_per_clicks.values()), \
-                  (past_pulled_arm, sum(past_future_visits.values()))
+               (past_pulled_arm, sum(past_future_visits.values()))
 
     def pull_arm_discriminating(self, arm_strategy):
         new_clicks, purchases, tot_cost_per_clicks, past_future_visits = self._inner_pull_arm(arm_strategy)
@@ -50,21 +50,10 @@ class BanditEnvironment:
         return users
 
     def _inner_pull_arm(self, arm_strategy):
-        new_clicks, purchases, tot_cost_per_clicks, new_future_visits = {}, {}, {}, {}
+        pricing_strategy = {c: self.prices[a] for c, a in arm_strategy.items()}
 
-        class_new_clicks = [
-            self.env.distNewClicks.sample(customer_class=c, bid=self.bid)
-            for c in self.env.classes
-        ]
-
-        for i, c in enumerate(self.env.classes):
-            users = self.get_users_count(class_new_clicks[i], c)
-            for visits, f in zip(users, c.features):
-                arm = arm_strategy[f]
-                new_clicks[f] = visits
-                purchases[f] = self.env.distClickConverted.sample_n(c, self.prices[arm], visits)
-                tot_cost_per_clicks[f] = sum(self.env.distCostPerClick.sample_n(c, self.bid, visits))
-                new_future_visits[f] = sum(self.env.distFutureVisits.sample_n(c, purchases[f]))
+        auctions, new_clicks, purchases, tot_cost_per_clicks, \
+            new_future_visits = self.env.simulate_one_day(pricing_strategy, self.bid)
 
         self.future_visits_queue.append((arm_strategy, new_future_visits))
         past_future_visits = self.future_visits_queue.pop(0)
