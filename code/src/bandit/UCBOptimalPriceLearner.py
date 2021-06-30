@@ -47,22 +47,16 @@ class UCBOptimalPriceLearner(OptimalPriceLearner):
         fig, ax = plt.subplots(1)
 
         ax.set_title(f"Round {self.current_round}")
-
         ax.set_ylabel("expected cr")
-
-        means = self.compute_conversion_rates_averages()
-
         ax.set_xlabel("arms")
-
         ax.set_xticklabels(self.env.prices)
         ax.set_xticks(x)
 
-        ax.scatter(x, means)
+        means = self.compute_conversion_rates_averages()
         radia = self.compute_conversion_rates_radia()
-        y_min = means - radia
-        y_max = means + radia
 
-        ax.vlines(x, y_min, y_max)
+        ax.errorbar(x, means, yerr=radia, color="black", capsize=5, fmt='o', markersize=4)
+
         ax.hlines([0, 1], -1, 11, colors='red')
         ax.set_xlim(-1, 11)
 

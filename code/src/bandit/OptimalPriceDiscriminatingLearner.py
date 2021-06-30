@@ -82,7 +82,7 @@ class OptimalPriceDiscriminatingLearner:
                 if new_structures:
                     incentive, new_structure, feature = max(new_structures, key=lambda x:x[0])
                     self.context_structure = new_structure
-                    done = False
+                    done = True
                     print(f'Split context at round {self.current_round} on feature {feature}')
 
 
