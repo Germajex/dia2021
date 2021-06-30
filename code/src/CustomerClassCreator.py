@@ -10,21 +10,27 @@ class CustomerClassCreator:
         CONST = _Const()
         customer_classes = []
 
-        joint_features = list(itertools.product([True, False], repeat=2))
-        rng_generator.shuffle(joint_features)
-
         n_classes = n_classes
         if n_classes is None:
             n_classes = CONST.N_CUSTOMER_CLASSES
 
+        joint_features = list(itertools.product([True, False], repeat=2))
+        rng_generator.shuffle(joint_features)
+
+        classes = list(range(n_classes))
+        rng_generator.shuffle((classes))
+
+        features_per_class = [[] for i in range(n_classes)]
+
+        for _c in itertools.cycle(classes):
+            if not joint_features:
+                break
+            comb = joint_features.pop()
+            features_per_class[_c].append(comb)
+
         for i in range(n_classes):
             # Give joint features to the class
-            max_features_pop = (len(joint_features) - (n_classes-i-1))
-            n_joints = rng_generator.integers(1, max_features_pop + 1)
-            features = []
-            for j in range(n_joints):
-                features.append(joint_features.pop())
-
+            features = features_per_class[i]
             # Sample random parameters for each class
             new_clicks_r = rng_generator.integers(CONST.NEWCLICKS_MIN_R, CONST.NEWCLICKS_MAX_R)
 
@@ -34,7 +40,8 @@ class CustomerClassCreator:
             back_mean = rng_generator.integers(CONST.BACK_MEAN_MIN, CONST.BACK_MEAN_MAX)
             back_dev = rng_generator.integers(CONST.BACK_DEV_MIN, CONST.BACK_DEV_MAX)
 
-            customer_classes.append(CustomerClass(CONST.NAMES[i], features, new_clicks_r, cr_center, sigmoid_z, back_mean, back_dev))
+            customer_classes.append(
+                CustomerClass(CONST.NAMES[i], features, new_clicks_r, cr_center, sigmoid_z, back_mean, back_dev))
 
         return customer_classes
 
