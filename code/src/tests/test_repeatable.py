@@ -4,7 +4,7 @@ import numpy as np
 
 from src.Environment import Environment
 from src.algorithms import step1
-from src.bandit.BanditEnvironment import BanditEnvironment
+from src.bandit.PriceBanditEnvironment import PriceBanditEnvironment
 from src.bandit.TSOptimalPriceLearner import TSOptimalPriceLearner
 
 
@@ -22,7 +22,7 @@ class TestRepeatable(TestCase):
         seed = env.get_seed()
 
         opt_price, opt_bid, profit = step1(env, prices, bids)
-        bandit_env = BanditEnvironment(env, prices, opt_bid, future_visits_delay)
+        bandit_env = PriceBanditEnvironment(env, prices, opt_bid, future_visits_delay)
         ts_learner = TSOptimalPriceLearner(bandit_env)
 
         ts_learner.learn(n_rounds)
@@ -32,7 +32,7 @@ class TestRepeatable(TestCase):
             env = Environment(random_seed=seed)
 
             opt_price, opt_bid, profit = step1(env, prices, bids)
-            bandit_env = BanditEnvironment(env, prices, opt_bid, future_visits_delay)
+            bandit_env = PriceBanditEnvironment(env, prices, opt_bid, future_visits_delay)
 
             ts_learner = TSOptimalPriceLearner(bandit_env)
 

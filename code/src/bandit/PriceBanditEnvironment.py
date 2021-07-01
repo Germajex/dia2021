@@ -7,7 +7,7 @@ from src.algorithms import optimal_price_for_bid, expected_profit
 
 # This class is the basic environment for a Bandit learning. Provides many black-box functionalities to the learners
 # Allows to set prices, bids, run rounds, get the clairvoyant and compute regret
-class BanditEnvironment:
+class PriceBanditEnvironment:
     def __init__(self, environment: Environment, prices, bid, future_visits_delay: int):
         # Init local vars
         self.rng = environment.rng

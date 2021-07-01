@@ -3,7 +3,7 @@ from src.bandit.LearningStats import plot_results
 from src.bandit.TSOptimalPriceDiscriminatingLearner import TSOptimalPriceDiscriminatingLearner
 from src.bandit.TSOptimalPriceLearner import TSOptimalPriceLearner
 from src.algorithms import step1
-from src.bandit.BanditEnvironment import BanditEnvironment
+from src.bandit.PriceBanditEnvironment import PriceBanditEnvironment
 from src.bandit.UCBOptimalPriceDiscriminatingLearner import UCBOptimalPriceDiscriminatingLearner
 from src.bandit.UCBOptimalPriceLearner import UCBOptimalPriceLearner
 import numpy as np
@@ -33,9 +33,9 @@ def main():
     opt_price_2, opt_bid_2, profit_2 = step1(env2, prices, bids)
     opt_price_3, opt_bid_3, profit_3 = step1(env3, prices, bids)
 
-    bandit_env_1 = BanditEnvironment(env1, prices, opt_bid_1, future_visits_delay)
-    bandit_env_2 = BanditEnvironment(env2, prices, opt_bid_2, future_visits_delay)
-    bandit_env_3 = BanditEnvironment(env3, prices, opt_bid_3, future_visits_delay)
+    bandit_env_1 = PriceBanditEnvironment(env1, prices, opt_bid_1, future_visits_delay)
+    bandit_env_2 = PriceBanditEnvironment(env2, prices, opt_bid_2, future_visits_delay)
+    bandit_env_3 = PriceBanditEnvironment(env3, prices, opt_bid_3, future_visits_delay)
 
     regret_length = n_rounds - future_visits_delay
     clairvoyant_cumulative_profits = bandit_env_1.get_clairvoyant_cumulative_profits_discriminating(regret_length)

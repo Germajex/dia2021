@@ -1,11 +1,11 @@
 from typing import List
 
 import numpy as np
-from src.bandit.BanditEnvironment import BanditEnvironment
+from src.bandit.PriceBanditEnvironment import PriceBanditEnvironment
 
 
 class OptimalPriceLearner:
-    def __init__(self, env: BanditEnvironment):
+    def __init__(self, env: PriceBanditEnvironment):
         self.env = env
         self.n_arms = self.env.n_arms
         self.future_visits_per_arm = [[] for i in range(self.n_arms)]

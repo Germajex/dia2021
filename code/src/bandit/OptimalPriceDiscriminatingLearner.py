@@ -2,12 +2,12 @@ from typing import List
 
 import numpy as np
 
-from src.bandit.BanditEnvironment import BanditEnvironment
+from src.bandit.PriceBanditEnvironment import PriceBanditEnvironment
 from src.bandit.Context import Context
 
 
 class OptimalPriceDiscriminatingLearner:
-    def __init__(self, env: BanditEnvironment, context_creator):
+    def __init__(self, env: PriceBanditEnvironment, context_creator):
         self.env = env
         self.n_arms = self.env.n_arms
         self.context_creator = context_creator

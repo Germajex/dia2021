@@ -1,12 +1,12 @@
 import numpy as np
 
 from src.bandit.OptimalPriceLearner import OptimalPriceLearner
-from src.bandit.BanditEnvironment import BanditEnvironment
+from src.bandit.PriceBanditEnvironment import PriceBanditEnvironment
 from src.distributions import Beta
 
 
 class TSOptimalPriceLearner(OptimalPriceLearner):
-    def __init__(self, env: BanditEnvironment):
+    def __init__(self, env: PriceBanditEnvironment):
         super().__init__(env)
         self.beta_cr_priors = [Beta(1, 1, self.env.env.rng) for i in range(self.n_arms)]
 
