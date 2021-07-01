@@ -69,7 +69,7 @@ class Environment:
         f2 = self.feature_2_likelihood if f[1] else 1 - self.feature_2_likelihood
         return f1 * f2
 
-    def simulate_one_day(self, pricing_strategy, bid):
+    def simulate_one_day_fixed_bid(self, pricing_strategy, bid):
         purchases, tot_cost_per_clicks, new_future_visits = {}, {}, {}
         tot_auctions = self.distTotalAuctions.sample()
         auctions = self.distAuctionsPerCombination.sample(tot_auctions)
@@ -79,6 +79,22 @@ class Environment:
             for comb in c.features:
                 price = pricing_strategy[comb]
                 clicks = new_clicks[comb]
+                purchases[comb] = self.distClickConverted.sample_n(c, price, clicks)
+                tot_cost_per_clicks[comb] = sum(self.distCostPerClick.sample_n(c, bid, clicks))
+                new_future_visits[comb] = sum(self.distFutureVisits.sample_n(c, purchases[comb]))
+
+        return auctions, new_clicks, purchases, tot_cost_per_clicks, new_future_visits
+
+    def simulate_one_day_fixed_price(self, price, bidding_strategy):
+        purchases, tot_cost_per_clicks, new_future_visits, new_clicks = {}, {}, {}, {}
+        tot_auctions = self.distTotalAuctions.sample()
+        auctions = self.distAuctionsPerCombination.sample(tot_auctions)
+
+        for c in self.classes:
+            for comb in c.features:
+                bid = bidding_strategy[comb]
+                clicks = self.distNewClicks.sample(auctions, bid)[comb]
+                new_clicks[comb] = clicks
                 purchases[comb] = self.distClickConverted.sample_n(c, price, clicks)
                 tot_cost_per_clicks[comb] = sum(self.distCostPerClick.sample_n(c, bid, clicks))
                 new_future_visits[comb] = sum(self.distFutureVisits.sample_n(c, purchases[comb]))

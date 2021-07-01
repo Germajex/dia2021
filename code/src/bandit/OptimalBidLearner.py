@@ -1,17 +1,17 @@
-from typing import List
-
 import numpy as np
-from src.bandit.PriceBanditEnvironment import PriceBanditEnvironment
+
+from src.bandit import BidBanditEnvironment
+from src.utils import average_ragged_matrix, sum_ragged_matrix
 
 
-class OptimalPriceLearner:
-    def __init__(self, env: PriceBanditEnvironment):
+class OptimalBidLearner:
+    def __init__(self, env: BidBanditEnvironment):
         self.env = env
         self.n_arms = self.env.n_arms
         self.future_visits_per_arm = [[] for i in range(self.n_arms)]
         self.purchases_per_arm = [[] for i in range(self.n_arms)]
         self.new_clicks_per_arm = [[] for i in range(self.n_arms)]
-        self.tot_cost_per_click = 0
+        self.tot_cost_per_click_per_arm = [0 for i in range(self.n_arms)]
         self.current_round = 0
         self.expected_profits = []
 
@@ -29,31 +29,43 @@ class OptimalPriceLearner:
         return int(np.argmax(self.compute_projected_profits()))
 
     def compute_projected_profits(self):
-        new_clicks = self.compute_new_clicks()
-        margin = np.array([self.env.margin(a) for a in range(self.n_arms)])
-        crs = self.compute_projection_conversion_rates()
+        new_clicks = self.compute_projection_new_clicks()
+        margin = self.env.margin()
+        crs = self.compute_conversion_rates()
         future_visits = self.compute_future_visits()
-        cost_per_click = self.tot_cost_per_click / self.sum_ragged_matrix(self.new_clicks_per_arm)
+        cost_per_click = np.array([self.tot_cost_per_click_per_arm[arm] / np.sum(self.new_clicks_per_arm[arm]) for arm in range(self.n_arms)])
 
         projected_profit = new_clicks * (margin * crs * (1 + future_visits) - cost_per_click)
 
         return projected_profit
 
     def compute_expected_profits(self):
-        new_clicks = self.compute_new_clicks()
-        margin = np.array([self.env.margin(a) for a in range(self.n_arms)])
-        crs = self.get_average_conversion_rates()
+        new_clicks = self.compute_average_new_clicks()
+        margin = self.env.margin()
+        crs = self.compute_conversion_rates()
         future_visits = self.compute_future_visits()
-        cost_per_click = self.tot_cost_per_click / self.sum_ragged_matrix(self.new_clicks_per_arm)
+        cost_per_click = np.array([self.tot_cost_per_click_per_arm[arm] / np.sum(self.new_clicks_per_arm[arm]) for arm in range(self.n_arms)])
 
         expected_profit = new_clicks * (margin * crs * (1 + future_visits) - cost_per_click)
 
         return expected_profit
 
-    def compute_expected_profit_one_round(self, new_clicks, purchases, tot_cost_per_clicks, arm):
-        cr = purchases / new_clicks
+    def compute_projection_new_clicks(self):
+        raise NotImplementedError
+
+    def compute_average_new_clicks(self):
+        raise NotImplementedError
+
+    def compute_conversion_rates(self):
+        return average_ragged_matrix(self.purchases_per_arm) / average_ragged_matrix(self.new_clicks_per_arm)
+
+    def compute_expected_profit_one_round(self, new_clicks, purchases, tot_cost_per_clicks):
+        if new_clicks == 0:
+            cr = 0
+        else:
+            cr = purchases / new_clicks
         future = self.compute_future_visits()
-        margin = self.env.margin(arm)
+        margin = self.env.margin()
 
         expected_profit = new_clicks * (margin * cr * (1 + future)) - tot_cost_per_clicks
         return expected_profit
@@ -68,16 +80,7 @@ class OptimalPriceLearner:
             complete_samples = len(self.future_visits_per_arm[arm])
             successes_sum += np.sum(self.purchases_per_arm[arm][:complete_samples])
 
-        return self.sum_ragged_matrix(self.future_visits_per_arm)/successes_sum
-
-    def compute_new_clicks(self):
-        return self.average_ragged_matrix(self.new_clicks_per_arm)
-
-    def compute_projection_conversion_rates(self):
-        raise NotImplementedError
-
-    def get_average_conversion_rates(self):
-        raise NotImplementedError
+        return sum_ragged_matrix(self.future_visits_per_arm)/successes_sum
 
     def get_number_of_pulls(self):
         return [len(a) for a in self.new_clicks_per_arm]
@@ -93,25 +96,13 @@ class OptimalPriceLearner:
 
         self.new_clicks_per_arm[arm].append(new_clicks)
         self.purchases_per_arm[arm].append(purchases)
-        self.tot_cost_per_click += tot_cost_per_clicks
+        self.tot_cost_per_click_per_arm[arm] += tot_cost_per_clicks
 
         if old_a is not None:
             self.future_visits_per_arm[old_a].append(visits)
             self.expected_profits.append(self.compute_expected_profit_one_round(new_clicks, purchases,
-                                                                                tot_cost_per_clicks, arm))
+                                                                                tot_cost_per_clicks))
 
         self.current_round += 1
 
         return new_clicks, purchases, tot_cost_per_clicks, (old_a, visits)
-
-    @staticmethod
-    def average_ragged_matrix(mat):
-        return OptimalPriceLearner.sum_ragged_matrix(mat) / OptimalPriceLearner.count_ragged_matrix(mat)
-
-    @staticmethod
-    def count_ragged_matrix(mat):
-        return np.sum(np.fromiter((len(r) for r in mat), dtype=np.int32))
-
-    @staticmethod
-    def sum_ragged_matrix(mat: List[List[int]]):
-        return np.sum(np.fromiter((np.sum(r) for r in mat), dtype=np.float64))

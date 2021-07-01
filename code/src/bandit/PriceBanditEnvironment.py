@@ -1,7 +1,6 @@
 import numpy as np
 
 from src.Environment import Environment
-from src.CustomerClass import CustomerClass
 from src.algorithms import optimal_price_for_bid, expected_profit
 
 
@@ -32,29 +31,18 @@ class PriceBanditEnvironment:
         past_pulled_arm = None if past_arm_strategy is None else past_arm_strategy[(False, False)]
 
         return sum(new_clicks.values()), sum(purchases.values()), sum(tot_cost_per_clicks.values()), \
-               (past_pulled_arm, sum(past_future_visits.values()))
+            (past_pulled_arm, sum(past_future_visits.values()))
 
     def pull_arm_discriminating(self, arm_strategy):
         new_clicks, purchases, tot_cost_per_clicks, past_future_visits = self._inner_pull_arm(arm_strategy)
 
         return new_clicks, purchases, tot_cost_per_clicks, past_future_visits
 
-    def get_users_count(self, new_clicks, c: CustomerClass):
-        features_comb_likelihoods = [
-            self.env.get_features_comb_likelihood(f)
-            for f in c.features
-        ]
-
-        features_comb_dist = np.array(features_comb_likelihoods) / sum(features_comb_likelihoods)
-
-        users = self.rng.multinomial(new_clicks, features_comb_dist)
-        return users
-
     def _inner_pull_arm(self, arm_strategy):
         pricing_strategy = {c: self.prices[a] for c, a in arm_strategy.items()}
 
         auctions, new_clicks, purchases, tot_cost_per_clicks, \
-            new_future_visits = self.env.simulate_one_day(pricing_strategy, self.bid)
+            new_future_visits = self.env.simulate_one_day_fixed_bid(pricing_strategy, self.bid)
 
         self.future_visits_queue.append((arm_strategy, new_future_visits))
         past_future_visits = self.future_visits_queue.pop(0)

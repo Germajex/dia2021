@@ -17,3 +17,7 @@ def count_ragged_matrix(mat):
 
 def sum_ragged_matrix(mat):
     return np.sum(np.fromiter((np.sum(r) for r in mat), dtype=np.float64))
+
+
+def max_ragged_matrix(mat):
+    return np.max([np.max(i) for i in mat])
