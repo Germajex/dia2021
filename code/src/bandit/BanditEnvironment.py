@@ -2,6 +2,7 @@ import numpy as np
 
 from src.Environment import Environment
 from src.CustomerClass import CustomerClass
+from src.algorithms import optimal_price_for_bid, expected_profit
 
 
 # This class is the basic environment for a Bandit learning. Provides many black-box functionalities to the learners
@@ -26,7 +27,7 @@ class BanditEnvironment:
         arm_strategy = {comb: arm for comb in self.env.get_features_combinations()}
 
         new_clicks, purchases, tot_cost_per_clicks, \
-        (past_arm_strategy, past_future_visits) = self._inner_pull_arm(arm_strategy)
+            (past_arm_strategy, past_future_visits) = self._inner_pull_arm(arm_strategy)
 
         past_pulled_arm = None if past_arm_strategy is None else past_arm_strategy[(False, False)]
 
@@ -71,3 +72,29 @@ class BanditEnvironment:
 
     def get_features_combinations(self):
         return self.env.get_features_combinations()
+
+    def get_clairvoyant_best_price_not_discriminating(self):
+        optimal_price = optimal_price_for_bid(self.env, self.prices, self.bid)
+        return optimal_price
+
+    def get_clairvoyant_optimal_expected_profit_not_discriminating(self):
+        optimal_price = self.get_clairvoyant_best_price_not_discriminating()
+        round_profit = expected_profit(self.env, optimal_price, self.bid)
+        return round_profit
+
+    def get_clairvoyant_cumulative_profits_not_discriminating(self, n_rounds):
+        round_profit = self.get_clairvoyant_optimal_expected_profit_not_discriminating()
+        return np.cumsum([round_profit] * n_rounds)
+
+    def get_clairvoyant_best_prices_discriminating(self):
+        optimal_prices = [optimal_price_for_bid(self.env, self.prices, self.bid, [c]) for c in self.env.classes]
+        return optimal_prices
+
+    def get_clairvoyant_optimal_expected_profit_discriminating(self):
+        optimal_prices = self.get_clairvoyant_best_prices_discriminating()
+        round_profit = np.sum([expected_profit(self.env, optimal_prices[ndx], self.bid, [c]) for ndx, c in enumerate(self.env.classes)])
+        return round_profit
+
+    def get_clairvoyant_cumulative_profits_discriminating(self, n_rounds):
+        round_profit = self.get_clairvoyant_optimal_expected_profit_discriminating()
+        return np.cumsum([round_profit] * n_rounds)

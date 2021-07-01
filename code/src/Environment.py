@@ -31,7 +31,8 @@ class Environment:
 
         self.distTotalAuctions = TotalAuctionsDistribution(self.rng, self.average_tot_auctions)
         self.distAuctionsPerCombination = AuctionsPerCombinationDistribution(self.rng, likelihood_per_comb)
-        self.distNewClicks = NewClicksDistribution(self.rng, self.newClicksC, self.newClicksZ)
+        self.distNewClicks = NewClicksDistribution(self.rng, self.newClicksC, self.newClicksZ, self.average_tot_auctions,
+                                                   likelihood_per_comb)
         self.distClickConverted = ClickConvertedDistribution(self.rng)
         self.distFutureVisits = FutureVisitsDistribution(self.rng)
         self.distCostPerClick = CostPerClickDistribution(self.rng)

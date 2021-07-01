@@ -8,7 +8,7 @@ def plot_results(names, rewards, clairvoyant, n_rounds, smooth=False):
     ax[0].set_title("Cumulative rewards")
     ax[1].set_title("Regret")
 
-    x = [i for i in range(n_rounds + 1)]
+    x = [i for i in range(n_rounds)]
     ax[0].plot(x, clairvoyant, 'red')
 
     for i in range(len(names)):

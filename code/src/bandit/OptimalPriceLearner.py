@@ -13,6 +13,7 @@ class OptimalPriceLearner:
         self.new_clicks_per_arm = [[] for i in range(self.n_arms)]
         self.tot_cost_per_click = 0
         self.current_round = 0
+        self.expected_profits = []
 
     def learn(self, n_rounds: int):
         self.round_robin()
@@ -49,6 +50,17 @@ class OptimalPriceLearner:
 
         return projected_profit
 
+    def compute_expected_profit_one_round(self, new_clicks, purchases, tot_cost_per_clicks, arm):
+        cr = purchases / new_clicks
+        future = self.compute_future_visits()
+        margin = self.env.margin(arm)
+
+        expected_profit = new_clicks * (margin * cr * (1 + future)) - tot_cost_per_clicks
+        return expected_profit
+
+    def compute_cumulative_profits(self):
+        return np.cumsum(self.expected_profits)
+
     def compute_future_visits(self):
         successes_sum = 0
 
@@ -77,7 +89,7 @@ class OptimalPriceLearner:
 
     def pull_from_env(self, arm: int):
         new_clicks, purchases, tot_cost_per_clicks, \
-        (old_a, visits) = self.env.pull_arm_not_discriminating(arm)
+            (old_a, visits) = self.env.pull_arm_not_discriminating(arm)
 
         self.new_clicks_per_arm[arm].append(new_clicks)
         self.purchases_per_arm[arm].append(purchases)
@@ -85,6 +97,8 @@ class OptimalPriceLearner:
 
         if old_a is not None:
             self.future_visits_per_arm[old_a].append(visits)
+            self.expected_profits.append(self.compute_expected_profit_one_round(new_clicks, purchases,
+                                                                                tot_cost_per_clicks, arm))
 
         self.current_round += 1
 

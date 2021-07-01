@@ -5,24 +5,25 @@ def simple_class_profit(m, n, cr, f, k):
     return n * (m * cr * (1 + f) - k)
 
 
-def expected_profit(env, p, b):
+def expected_profit(env, p, b, classes=None):
     m = env.margin
     n = env.distNewClicks.mean
     r = env.distClickConverted.mean
     f = env.distFutureVisits.mean
     k = env.distCostPerClick.mean
+    C = classes if classes else env.classes
 
     profit = sum(
-        simple_class_profit(m(p), n(c, b), r(c, p), f(c), k(c,b))
-        for c in env.classes
+        simple_class_profit(m(p), n(c, b), r(c, p), f(c), k(c, b))
+        for c in C
     )
 
     return profit
 
 
-def optimal_price_for_bid(env, prices, bid):
+def optimal_price_for_bid(env, prices, bid, classes=None):
     opt_p_index = np.argmax([
-        expected_profit(env, p, bid)
+        expected_profit(env, p, bid, classes)
         for p in prices
     ])
 
