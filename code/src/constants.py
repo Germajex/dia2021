@@ -26,6 +26,14 @@ class _Const(object):
         return 20
 
     @constant
+    def COST_PER_CLICK_PERC_MIN():
+        return 0.7
+
+    @constant
+    def COST_PER_CLICK_PERC_MAX():
+        return 0.97
+
+    @constant
     def FEATURE_LIKELIHOOD_MIN()->float:
         return 0.3
 
