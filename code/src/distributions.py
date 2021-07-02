@@ -61,8 +61,7 @@ class NewClicksDistribution(Distribution):
         return res
 
     def mean(self, customer_class: CustomerClass, bid: float):
-        return np.sum([self.likelihoods_per_comb[comb] for comb in customer_class.features]) * self.tot_auction * \
-               self.v(bid)
+        return customer_class.get_likelihood() * self.tot_auction * self.v(bid)
 
     @staticmethod
     def n(customer_class: CustomerClass):

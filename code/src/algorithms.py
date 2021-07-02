@@ -7,16 +7,16 @@ def simple_class_profit(margin, new_clicks, conversion_rate, future_visits, cost
 
 def expected_profit(env, p, b, classes=None):
     m = env.margin
-    lambda_a = env.distTotalAuctions.mean()
-    v = env.distNewClicks.v
+    n = env.distNewClicks.mean
     r = env.distClickConverted.mean
     f = env.distFutureVisits.mean
     k = env.distCostPerClick.mean
-    C = classes if classes else env.classes
 
-    profit = lambda_a * v(b) * sum(
+    C = classes if classes is not None else env.classes
+
+    profit = sum(
         simple_class_profit(
-            m(p), c.get_likelihood(), r(c, p), f(c), k(c, b))
+            m(p), n(c,b), r(c, p), f(c), k(c, b))
         for c in C
     )
 
