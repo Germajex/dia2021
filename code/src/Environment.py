@@ -19,9 +19,13 @@ class Environment:
         self._seed = random_seed
         self.rng: Generator = default_rng(seed=random_seed)
 
-        self.classes = CustomerClassCreator().get_new_classes(self.rng, CONST.N_CUSTOMER_CLASSES)
         self.feature_1_likelihood = self.rng.uniform(CONST.FEATURE_LIKELIHOOD_MIN, CONST.FEATURE_LIKELIHOOD_MAX)
         self.feature_2_likelihood = self.rng.uniform(CONST.FEATURE_LIKELIHOOD_MIN, CONST.FEATURE_LIKELIHOOD_MAX)
+
+        self.classes = CustomerClassCreator().get_new_classes(self.rng,
+                                                              self.feature_1_likelihood,
+                                                              self.feature_2_likelihood,
+                                                              CONST.N_CUSTOMER_CLASSES)
 
         self.average_tot_auctions = self.rng.uniform(CONST.AUCTIONS_MIN, CONST.AUCTIONS_MAX)
 
