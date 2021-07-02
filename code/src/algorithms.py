@@ -1,19 +1,21 @@
 import numpy as np
 
 
-def simple_class_profit(m, n, cr, f, k):
-    return n * (m * cr * (1 + f) - k)
+def simple_class_profit(margin, new_clicks, conversion_rate, future_visits, cost_per_click):
+    return new_clicks * (margin * conversion_rate * (1 + future_visits) - cost_per_click)
 
 
 def expected_profit(env, p, b):
     m = env.margin
-    n = env.distNewClicks.mean
+    lambda_a = env.distTotalAuctions.mean()
+    v = env.distNewClicks.v
     r = env.distClickConverted.mean
     f = env.distFutureVisits.mean
     k = env.distCostPerClick.mean
 
-    profit = sum(
-        simple_class_profit(m(p), n(c, b), r(c, p), f(c), k(c,b))
+    profit = lambda_a * v(b) * sum(
+        simple_class_profit(
+            m(p), c.get_likelihood(), r(c, p), f(c), k(c, b))
         for c in env.classes
     )
 
