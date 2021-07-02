@@ -21,7 +21,7 @@ def main():
     #      che non viene mai proposto e non il lower confidence bound non si stringe mai
     #      abbastanza per splittare
 
-    env1 = Environment(2737403095)
+    env1 = Environment()
     env2 = Environment(env1.get_seed())
     env3 = Environment(env1.get_seed())
 
