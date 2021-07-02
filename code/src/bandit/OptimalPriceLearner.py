@@ -1,6 +1,8 @@
 from typing import List
 
 import numpy as np
+
+from src.algorithms import simple_class_profit
 from src.bandit.BanditEnvironment import BanditEnvironment
 
 
@@ -34,7 +36,10 @@ class OptimalPriceLearner:
         future_visits = self.compute_future_visits()
         cost_per_click = self.tot_cost_per_click / self.sum_ragged_matrix(self.new_clicks_per_arm)
 
-        projected_profit = new_clicks * (margin * crs * (1 + future_visits) - cost_per_click)
+        projected_profit = simple_class_profit(
+            margin=margin, conversion_rate=crs, new_clicks=new_clicks,
+            future_visits=future_visits, cost_per_click=cost_per_click
+        )
 
         return projected_profit
 
@@ -45,8 +50,10 @@ class OptimalPriceLearner:
         future_visits = self.compute_future_visits()
         cost_per_click = self.tot_cost_per_click / self.sum_ragged_matrix(self.new_clicks_per_arm)
 
-        projected_profit = new_clicks * (margin * crs * (1 + future_visits) - cost_per_click)
-
+        projected_profit = simple_class_profit(
+            margin=margin, conversion_rate=crs, new_clicks=new_clicks,
+            future_visits=future_visits, cost_per_click=cost_per_click
+        )
         return projected_profit
 
     def compute_future_visits(self):
@@ -56,7 +63,7 @@ class OptimalPriceLearner:
             complete_samples = len(self.future_visits_per_arm[arm])
             successes_sum += np.sum(self.purchases_per_arm[arm][:complete_samples])
 
-        return self.sum_ragged_matrix(self.future_visits_per_arm)/successes_sum
+        return self.sum_ragged_matrix(self.future_visits_per_arm) / successes_sum
 
     def compute_new_clicks(self):
         return self.average_ragged_matrix(self.new_clicks_per_arm)
@@ -77,7 +84,7 @@ class OptimalPriceLearner:
 
     def pull_from_env(self, arm: int):
         new_clicks, purchases, tot_cost_per_clicks, \
-        (old_a, visits) = self.env.pull_arm_not_discriminating(arm)
+            (old_a, visits) = self.env.pull_arm_not_discriminating(arm)
 
         self.new_clicks_per_arm[arm].append(new_clicks)
         self.purchases_per_arm[arm].append(purchases)
