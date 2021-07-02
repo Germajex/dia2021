@@ -32,8 +32,9 @@ class CustomerClassCreator:
             # Give joint features to the class
             features = features_per_class[i]
             likelihood = sum(
-                (f1_likelihood if f1 else 1 - f1_likelihood) * (f2_likelihood if f2 else 1 - f2_likelihood) for f1, f2
-                in features)
+                (f1_likelihood if f1 else 1 - f1_likelihood) * (f2_likelihood if f2 else 1 - f2_likelihood)
+                for f1, f2 in features
+            )
             # Sample random parameters for each class
             new_clicks_r = rng_generator.integers(CONST.NEWCLICKS_MIN_R, CONST.NEWCLICKS_MAX_R)
 
