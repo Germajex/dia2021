@@ -50,11 +50,10 @@ class OptimalPriceLearner:
         future_visits = self.compute_future_visits()
         cost_per_click = self.tot_cost_per_click / self.sum_ragged_matrix(self.new_clicks_per_arm)
 
-        projected_profit = simple_class_profit(
+        expected_profit = simple_class_profit(
             margin=margin, conversion_rate=crs, new_clicks=new_clicks,
             future_visits=future_visits, cost_per_click=cost_per_click
         )
-        return projected_profit
 
         return expected_profit
 
