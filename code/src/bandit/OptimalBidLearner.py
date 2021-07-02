@@ -2,6 +2,7 @@ import numpy as np
 
 from src.bandit import BidBanditEnvironment
 from src.utils import average_ragged_matrix, sum_ragged_matrix
+from scipy.stats import norm
 
 
 class OptimalBidLearner:
@@ -14,6 +15,7 @@ class OptimalBidLearner:
         self.tot_cost_per_click_per_arm = [0 for i in range(self.n_arms)]
         self.current_round = 0
         self.expected_profits = []
+        self.security = 0.2
 
     def learn(self, n_rounds: int):
         self.round_robin()
@@ -26,25 +28,39 @@ class OptimalBidLearner:
         self.pull_from_env(arm=arm)
 
     def choose_next_arm(self):
-        return int(np.argmax(self.compute_projected_profits()))
+        # We hope this mask won't ever be all false
+        mask = self.compute_safe_arms()
+        return int(np.argmax(self.compute_projected_profits()[mask]))
+
+    def compute_safe_arms(self):
+        means = [np.mean(new_clicks) for new_clicks in self.new_clicks_per_arm]
+        std_dev = [np.std(new_clicks) for new_clicks in self.new_clicks_per_arm]
+
+        lower_security_value = [norm.ppf(self.security, m, std) for m, std in zip(means, std_dev)]
+        expected_profits = self.compute_expected_profits(nc=lower_security_value)
+        arm_mask = expected_profits > 0
+
+        return arm_mask
 
     def compute_projected_profits(self):
         new_clicks = self.compute_projection_new_clicks()
         margin = self.env.margin()
         crs = self.compute_conversion_rates()
         future_visits = self.compute_future_visits()
-        cost_per_click = np.array([self.tot_cost_per_click_per_arm[arm] / np.sum(self.new_clicks_per_arm[arm]) for arm in range(self.n_arms)])
+        cost_per_click = np.array(
+            [self.tot_cost_per_click_per_arm[arm] / np.sum(self.new_clicks_per_arm[arm]) for arm in range(self.n_arms)])
 
         projected_profit = new_clicks * (margin * crs * (1 + future_visits) - cost_per_click)
 
         return projected_profit
 
-    def compute_expected_profits(self):
-        new_clicks = self.compute_average_new_clicks()
+    def compute_expected_profits(self, nc=None):
+        new_clicks = nc if nc else self.compute_average_new_clicks()
         margin = self.env.margin()
         crs = self.compute_conversion_rates()
         future_visits = self.compute_future_visits()
-        cost_per_click = np.array([self.tot_cost_per_click_per_arm[arm] / np.sum(self.new_clicks_per_arm[arm]) for arm in range(self.n_arms)])
+        cost_per_click = np.array(
+            [self.tot_cost_per_click_per_arm[arm] / np.sum(self.new_clicks_per_arm[arm]) for arm in range(self.n_arms)])
 
         expected_profit = new_clicks * (margin * crs * (1 + future_visits) - cost_per_click)
 
@@ -80,7 +96,7 @@ class OptimalBidLearner:
             complete_samples = len(self.future_visits_per_arm[arm])
             successes_sum += np.sum(self.purchases_per_arm[arm][:complete_samples])
 
-        return sum_ragged_matrix(self.future_visits_per_arm)/successes_sum
+        return sum_ragged_matrix(self.future_visits_per_arm) / successes_sum
 
     def get_number_of_pulls(self):
         return [len(a) for a in self.new_clicks_per_arm]
@@ -92,7 +108,7 @@ class OptimalBidLearner:
 
     def pull_from_env(self, arm: int):
         new_clicks, purchases, tot_cost_per_clicks, \
-            (old_a, visits) = self.env.pull_arm_not_discriminating(arm)
+        (old_a, visits) = self.env.pull_arm_not_discriminating(arm)
 
         self.new_clicks_per_arm[arm].append(new_clicks)
         self.purchases_per_arm[arm].append(purchases)

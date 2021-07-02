@@ -1,8 +1,8 @@
 import numpy as np
 
 
-def simple_class_profit(m, n, cr, f, k):
-    return n * (m * cr * (1 + f) - k)
+def simple_class_profit(margin, new_clicks, conversion_rate, future_visits, cost_per_click):
+    return new_clicks * (margin * conversion_rate * (1 + future_visits) - cost_per_click)
 
 
 def expected_profit(env, p, b, classes=None):
@@ -14,7 +14,8 @@ def expected_profit(env, p, b, classes=None):
     C = classes if classes else env.classes
 
     profit = sum(
-        simple_class_profit(m(p), n(c, b), r(c, p), f(c), k(c, b))
+        simple_class_profit(
+            m(p), n(c, b), r(c, p), f(c), k(c, b))
         for c in C
     )
 
