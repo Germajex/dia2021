@@ -22,6 +22,9 @@ class TotalAuctionsDistribution(Distribution):
     def sample(self):
         return int(self.rng.poisson(lam=self.lambda_a, size=1)[0])
 
+    def mean(self):
+        return self.lambda_a
+
 
 class AuctionsPerCombinationDistribution(Distribution):
     def __init__(self, rng: Generator, likelihoods_per_comb):
@@ -74,11 +77,11 @@ class CostPerClickDistribution(Distribution):
 
     @staticmethod
     def sample_n(customer_class: CustomerClass, bid: float, n: int):
-        return [bid]*n
+        return [CostPerClickDistribution.mean(customer_class, bid)] * n
 
     @staticmethod
     def mean(customer_class: CustomerClass, bid: float):
-        return bid
+        return bid * customer_class.cost_per_click_perc
 
 
 class FutureVisitsDistribution(Distribution):
