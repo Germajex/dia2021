@@ -1,18 +1,17 @@
 import numpy as np
 
 from src.bandit.OptimalPriceLearner import OptimalPriceLearner
-from src.bandit.BanditEnvironment import BanditEnvironment
+from src.bandit.PriceBanditEnvironment import PriceBanditEnvironment
 import matplotlib.pyplot as plt
 
 
 class UCBOptimalPriceLearner(OptimalPriceLearner):
-    def __init__(self, env: BanditEnvironment, show_round=lambda r: False):
+    def __init__(self, env: PriceBanditEnvironment, show_round=lambda r: False):
         super().__init__(env)
         self.show_round = show_round
 
     def learn_one_round(self):
-        arm = self.choose_next_arm()
-        self.pull_from_env(arm=arm)
+        super().learn_one_round()
 
         if self.show_round(self.current_round):
             self.show_bounds()

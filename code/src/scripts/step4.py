@@ -1,8 +1,9 @@
 from src.Environment import Environment
+from src.bandit.LearningStats import plot_results
 from src.bandit.TSOptimalPriceDiscriminatingLearner import TSOptimalPriceDiscriminatingLearner
 from src.bandit.TSOptimalPriceLearner import TSOptimalPriceLearner
 from src.algorithms import step1
-from src.bandit.BanditEnvironment import BanditEnvironment
+from src.bandit.PriceBanditEnvironment import PriceBanditEnvironment
 from src.bandit.UCBOptimalPriceDiscriminatingLearner import UCBOptimalPriceDiscriminatingLearner
 from src.bandit.UCBOptimalPriceLearner import UCBOptimalPriceLearner
 import numpy as np
@@ -20,21 +21,27 @@ def main():
     #      che non viene mai proposto e non il lower confidence bound non si stringe mai
     #      abbastanza per splittare
 
-    env1 = Environment(1793910819)
+    env1 = Environment(2737403095)
     env2 = Environment(env1.get_seed())
     env3 = Environment(env1.get_seed())
 
     print(f'Running with seed {env1.get_seed()}')
-    n_rounds = 365
+    n_rounds = 800
     future_visits_delay = 30
 
     opt_price_1, opt_bid_1, profit_1 = step1(env1, prices, bids)
     opt_price_2, opt_bid_2, profit_2 = step1(env2, prices, bids)
     opt_price_3, opt_bid_3, profit_3 = step1(env3, prices, bids)
 
-    bandit_env_1 = BanditEnvironment(env1, prices, opt_bid_1, future_visits_delay)
-    bandit_env_2 = BanditEnvironment(env2, prices, opt_bid_2, future_visits_delay)
-    bandit_env_3 = BanditEnvironment(env3, prices, opt_bid_3, future_visits_delay)
+    bandit_env_1 = PriceBanditEnvironment(env1, prices, opt_bid_1, future_visits_delay)
+    bandit_env_2 = PriceBanditEnvironment(env2, prices, opt_bid_2, future_visits_delay)
+    bandit_env_3 = PriceBanditEnvironment(env3, prices, opt_bid_3, future_visits_delay)
+
+    regret_length = n_rounds - future_visits_delay
+    clairvoyant_cumulative_profits = bandit_env_1.get_clairvoyant_cumulative_profits_discriminating(regret_length)
+
+    optimal_price = bandit_env_1.get_clairvoyant_optimal_expected_profit_discriminating()
+    print(f'Optimal price is {opt_price_1} with expected profit {optimal_price:.2f}')
 
     ucb_learner = UCBOptimalPriceLearner(bandit_env_1)
     ucb_learner.learn(n_rounds)
@@ -50,11 +57,13 @@ def main():
     print("Learning UCBDisc")
     ucb_disc_learner = UCBOptimalPriceDiscriminatingLearner(bandit_env_2)
     ucb_disc_learner.learn(n_rounds)
+    ucb_profits = ucb_disc_learner.compute_cumulative_profits()
     bandit_env_2.reset_state()
 
     print("\nLearning TSDisc")
     ts_disc_learner = TSOptimalPriceDiscriminatingLearner(bandit_env_3)
     ts_disc_learner.learn(n_rounds)
+    ts_profits = ts_disc_learner.compute_cumulative_profits()
     bandit_env_3.reset_state()
 
     for name, learner in [("UCB with discrimination", ucb_disc_learner), ("TS with discrimination", ts_disc_learner)]:
@@ -68,6 +77,8 @@ def main():
             print()
 
     env1.print_class_summary()
+
+    plot_results(["UCB", "TS"], [ucb_profits, ts_profits], clairvoyant_cumulative_profits, regret_length)
 
 
 if __name__ == "__main__":

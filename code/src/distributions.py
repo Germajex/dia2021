@@ -1,3 +1,4 @@
+import numpy as np
 from numpy.random import Generator, default_rng
 
 from src.CustomerClass import CustomerClass
@@ -38,15 +39,18 @@ class AuctionsPerCombinationDistribution(Distribution):
 
     def sample(self, tot_auctions):
         auctions = self.rng.multinomial(tot_auctions, self.likelihoods)
-        res = {c:a for c,a in zip(self.combs, auctions)}
+        res = {c: a for c, a in zip(self.combs, auctions)}
         return res
 
 
 class NewClicksDistribution(Distribution):
-    def __init__(self, rng: Generator, new_clicks_c: float, new_clicks_z: float):
+    def __init__(self, rng: Generator, new_clicks_c: float, new_clicks_z: float, tot_auctions: int,
+                 likelihoods_per_comb):
         super().__init__(rng=rng)
         self.new_clicks_c = new_clicks_c
         self.new_clicks_z = new_clicks_z
+        self.tot_auction = tot_auctions
+        self.likelihoods_per_comb = likelihoods_per_comb
 
     def sample(self, auctions_per_comb, bid: float):
         winning_p = self.v(bid)
@@ -57,7 +61,8 @@ class NewClicksDistribution(Distribution):
         return res
 
     def mean(self, customer_class: CustomerClass, bid: float):
-        return self.n(customer_class) * self.v(bid)
+        return np.sum([self.likelihoods_per_comb[comb] for comb in customer_class.features]) * self.tot_auction * \
+               self.v(bid)
 
     @staticmethod
     def n(customer_class: CustomerClass):
