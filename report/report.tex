@@ -78,29 +78,25 @@ Advertising is used to attract users on an ecommerce website that sells only one
 Each user belongs to one of three classes, and the classes are determined by the combination of the two features. 
 For each class $c \in C$ the following functions are modeled:
 \begin{itemize}
-\item A stochastic number of daily clicks of new users (i.e., that have never clicked before on the ads). 
-\newline
-\newline
-which is a function of the 
-represented by the discrete random variable $N_{c,b}\sim NewClicks(c,b)$, such that $\EX[N_{c,b}]=n(c,b)$, where $b \in B$ is a bid value. 
-\item A conversion rate function providing the probability that a user will buy the item at a certain price,  $r(c,p)$, where $p \in P$ is the price. For each user of class $c$ that has clicked on the ad, a Bernoulli random variable $D_{c,p} \sim Bern(r(c,p))$ indicates whether the user bought the product ($D_{c,p}=1$) or not ($D_{c,p}=0$), such that $\EX[D_{c,p}]=r(c,p)$. In the code, such distribution is called $ClickConverted(c,p)$.
+\item A stochastic number of daily clicks of new users (i.e., that have never clicked before on the ads), represented by the discrete random variable $N_{c,b}$, where $b \in B$ is a bid value. 
+\item A conversion rate function providing the probability that a user will buy the item at a certain price,  $r(c,p)$, where $p \in P$ is the price. For each user of class $c$ that has clicked on the ad, a Bernoulli random variable $D_{c,p} \sim Bern(r(c,p))$ indicates whether the user bought the product ($D_{c,p}=1$) or not ($D_{c,p}=0$), such that $\EX[D_{c,p}]=r(c,p)$. We call this distribution $ClickConverted(c,p)$ and therefore $D_{c,p} \sim ClickConverted(c,p)$.
 \item A probability distribution $FutureVisits(c)$ over the number of times a user of class $c$ will come back to the ecommerce website to buy that item by 30 days after the first purchase. In other words, when a user makes a purchase, they are somehow likely to make more purchases in the near future, and after that they will leave the website forever. For each user of class $c$, a discrete random variable $F_c \sim FutureVisits(c)$ indicates the number of times that the user came back, and for each class $c$ the function $f(c)$ is defined such that $\EX[F_c] = f(c)$
 \item A probability distribution $CostPerClick(c,b)$. For each click, the random variable $C_{c,b}\sim CostPerClick(c,b)$ represents the amount that is paid to the ad publisher, such that $\EX[C_{c,b}] = k(c,b)$ and $\Prob(C_{c,b} \leq b) = 1$.
 \end{itemize}
 
 A margin function $m(p)$, where $p \in P$ is a price, is available to indicate how much profit is obtained if the an item is sold at the price $p$. 
 
-\subsection{Number of daily auctions A}
+\subsection{The number of daily auctions $A$}
 The random variable $A$ representing the number of auctions run by the ad publisher is distributed as a Poisson $A\sim Poisson(\lambda_a)$, with the mean $\lambda_a$ being randomly chosen when the environment is generated.
 \subsection {The binary features}
-The features $F_1$ and $F_2$ are independent and are governed by the parameters $\theta_1$ and $\theta_2$. At the generation of the environment, the parameters $\theta_1$ and $\theta_2$ are randomly sampled. They represent the distribution of the feature values. Since the features are independent, for each combination we can compute the likelihood as follows:
+The features $F_1$ and $F_2$ are independent and are governed by the parameters $\theta_1$ and $\theta_2$. At the generation of the environment, the parameters $\theta_1$ and $\theta_2$ are randomly sampled, which represent the distribution of the feature values. Since the features are independent, for each combination we can compute the likelihood as follows:
 \begin{align*}
 \tilde{l}_{TT} &= \theta_1\theta_2\\
 \tilde{l}_{TF} &= \theta_1(1-\theta_2)\\
 \tilde{l}_{FT} &= (1-\theta_1)\theta_2\\
 \tilde{l}_{FF} &= (1-\theta_1)(1-\theta_2)\\
 \end{align*}
-\subsection{New Daily Clicks $N_{c,b}$}
+\subsection{The number of new daily clicks $N_{c,b}$}
 The number $N_{c,b}$ of new daily clicks of users belonging to class $c$ is determined as follows: given the number of auctions $A$, the likelihood of each combination of the two binary features is used to sample from a Multinomial distribution:
 \begin{align*}
 (A_{TT},A_{TF},A_{FT},A_{FF}) \sim Multinomial(A, (\tilde{l}_{TT},\tilde{l}_{TF},\tilde{l}_{FT},\tilde{l}_{FF}))
@@ -123,6 +119,9 @@ v(b)=\frac{1}{1+e^{-\overline z(b-\overline b)}}
 where $\overline z > 0$ and $\overline b > 0$ are randomly sampled when the environment is generated.
 \newline
 \newline
+For simplicity we will assume that all the users that are displayed the ad will also click on it, therefore in our model the number of auctions won and the number of daily clicks coincide.
+\newline
+\newline
 Finally, the number of clicks of users described by the combination of features $comb$, which is equivalent to the number of auctions won, is sampled from a Binomial:
 \begin{align*}
 \tilde{N}_{comb,b} \sim Binomial(A_{comb}, v(b))
@@ -140,7 +139,8 @@ it holds
 \EX[N_{c,b}] =\lambda_al_{c}v(b)
 \end{align*}
  (Appendix \ref{sec.ncbproof})
-\subsection{Conversion Rate $r(c,p)$}
+
+\subsection{The conversion rate $r(c,p)$}
 For each class $c \in C$, the function $r_c(p)$ used to model the conversion rate of users belonging to that class must have the following properties:
 \begin{itemize}
 \item $r_c(0) \approx 1$: The user will be very likely to buy the product if it comes for free.
@@ -153,23 +153,19 @@ Despite the fact that the functions $r_c(p)$ could be in principle defined in co
 r_c(p) = \frac{1}{1+e^{-z_c(P_c-p)}}
 \end{align*}
 Where $P_c$, the inflection point of the sigmoid, can be seen as the average reserve price of the users of the class and $z_c$ can be seen as the concentration of the reserve prices of the users around the average: if $z_c$ is small the reserve prices of the many users will be more distributed across the domain and the function will be more flat, while as $z_c$ grows the reserve prices of the many users will be more concentrated around the average and at the point $P_c$ there will be a rapid transition from "buy" to "don't buy".
-\subsection{Future Visits $FutureVisits(c)$}
-{\color{red}Descrizione di come la abbiamo implementata.}
 
-\subsection{Cost per click $CostPerClick(c,b)$}
-The $CostPerClick$ distribution is used to sample the cost that is paid to the ad publisher whenever a user clicks on the ad. Because of the  auction mechanism and the unknown bids and budget constraints of the competitors, it could be smaller than the bid by a stochastic amount.
-We adopt the following assumption: 
-\begin{assumption}[Class-independent cost per click] The probability distribution $CostPerClick(c,b)$ does not depend on c, that is:
+\subsection{The future visits $F_c$}
+We modeled the future visits with a Poisson random variable, such that $F_c \sim Poisson(f(c))$ and the mean $f(c)$ is constant and randomly sampled for each class when the environment is generated. We call the resulting distribution $FutureVisits(c)$, therefore $F_c \sim FutureVisits(c)$.
+
+\subsection{The cost per click $C_{c,b}$}
+The price paid for each click is in principle a stochastic function of the bid and of the user class. To limit the complexity of the model, we chose to model it such that the mean $k(c,b)$ is a percentage of the bid and the variable is always equal to its mean.
+
 \begin{align*}
-CostPerClick(c,b)=CostPerClick(b)\\
-k(c,b) = k(b)
+k(c,b) = u_c\  b\\
+\Prob(C_{c,b} = k(c,b)) = 1
 \end{align*}
-\end{assumption}
-In our implementation we chose to keep it constant and equal to the bid, that is:
-\begin{align*}
-\Prob(C_{c,b} = k(c,b)) = 1\\
-k(c,b) = b
-\end{align*}
+With the percentage $0 < u_c < 1$ being randomly sampled for each class when the environment is generated.
+We call this distribution $CostPerClick(c,b)$, therefore $C_{c,b}\sim CostPerClick(c,b)$.
 
 \subsection{Margin function $m(p)$}
 {\color{red}Come la abbiamo definita}
@@ -178,20 +174,20 @@ k(c,b) = b
 The goal is to maximize the expected profit over a single day, where the future visits of a user are considered to contribute in expected value to the profit of the day of the first visit.
 \newline
 \newline
-For each class $c$, we define:
+For each class $c$, we consider:
 \begin{itemize}
 \item The random variable $N_{c,b}$ representing the number of new clicks of users of class $c$.
-\item The sequence $(C_{b,i})_{i=1,...,N_{c,b}}$ of random variables representing the cost paid for each click $i$, such that $C_{b,i}\sim CostPerClick(b)$
-\item The sequence $(D_{c,p,i})_{i=1,...,N_{c,b}}$ of random variables representing whether user $i$ of class $c$ purchased the item, such that $D_{c,p,i}\sim Bern(r(c,p))$
+\item The sequence $(C_{c,b,i})_{i=1,...,N_{c,b}}$ of random variables representing the cost paid for each click $i$, such that $C_{c,b,i}\sim CostPerClick(c,b)$
+\item The sequence $(D_{c,p,i})_{i=1,...,N_{c,b}}$ of random variables representing whether user $i$ of class $c$ purchased the item, such that $D_{c,p,i}\sim ClickConverted(c,p)$
 \item The sequence $(F_{c,i})_{i=1,...,N_{c,b}}$ of random variables representing the number of future visits of the user $i$ of class $c$, such that $F_{c,i}\sim FutureVisits(c)$
 \end{itemize}
-We can express the expected profit as follows:
+With these variables we can express the expected profit as follows:
 \begin{align*}
-ExpectedProfit(p,b) = \EX\left[\sum_{c \in C}{\sum_{i =1}^{N_{c,b}}{\bigg( D_{c,p,i}(1+F_{c,i})m(p)-C_{b,i}\bigg)}}\right]
+ExpectedProfit(p,b) = \EX\left[\sum_{c \in C}{\sum_{i =1}^{N_{c,b}}{\bigg( D_{c,p,i}(1+F_{c,i})m(p)-C_{c,b,i}\bigg)}}\right]
 \end{align*}
 And therefore formulate the optimization problem as follows:
 \begin{align*}
-\argmax_{p,b}{ExpectedProfit(p,b)}
+\argmax_{p,b}{\ ExpectedProfit(p,b)}
 \end{align*}
 
 With some manipulations using the properties of the expected value (Appendix \ref{sec.DerExpProf}), the expected profit can be expressed as follows:
@@ -209,7 +205,7 @@ Obtaining the following formulation, that depends only on the means of the distr
 Under the Agnostic Publisher assumption, the following interesting result holds:
 
 \begin{lemma}[Bid Independent Price Hierarchy]
-If $ExpectedProfit(p_1,\overline b) \ge ExpectedProfit(p_2,\overline b)$ for some bid value $\overline b$,  then $ExpectedProfit(p_1,\overline b) \ge ExpectedProfit(p_2,\overline b)$  for every possible bid value $b'$.
+If $ExpectedProfit(p_1,\overline b) \ge ExpectedProfit(p_2,\overline b)$ for some bid value $\overline b$,  then $ExpectedProfit(p_1, b') \ge ExpectedProfit(p_2, b')$  for every possible bid value $b'$.
 \end{lemma}
 \begin{proof}
 see Appendix \ref{sec.BIPHLProof}.
@@ -218,59 +214,96 @@ see Appendix \ref{sec.BIPHLProof}.
 As a consequence of this result, we developed an algorithm that:
 \begin{itemize}
 \item Finds the optimal price $p^*\in P$ that maximizes $ExpectedProfit(p,\overline b)$ for a fixed bid value $\overline b$ (We take the median of the set of possible values). The time complexity of this step is $O(|P|)$
-\item Finds the optimal bid value $b^* \in B$ that maximizes $ExpectedProfit(p^*, b)$, using the optimal price $p^*$ found at step 1. The time complexity of this step is $O(|B|)$
+\item Finds the optimal bid value $b^* \in B$ that maximizes $ExpectedProfit(p^*, b)$, using the optimal price $p^*$ found at step 1, which is still optimal thanks to the above lemma. The time complexity of this step is $O(|B|)$
 \item The solution is $(p^*, b^*)$.
 \end{itemize}
+And computes the optimal solution with a time complexity of $O(|P|+|B|)$.
 
 \section{Step 2}
-We model the online learning problem as follows:
-\begin{itemize}
-\item The time steps are the single days. We consider the days as numbered from 1 to the learning horizon $H$.
-\item The learning horizon $H$ is 365.
-\item The learner will try a sequence of prices $(p_1, ..., p_H)$, $p_i \in P$.
-\item The learner will try a sequence of bids $(b_1, ..., b_H)$, $b_i \in B$.
-\item The full feedback of time step $t$ (the total profit generated from the users that clicked on the ad for the first time on time step $t$) is received after a delay of 30 time steps. The full feedback of time step $t$ is the sum of different profits that can come with different delays with respect to $t$.
-\item Until time step 30, the learner will use all the partial feedbacks of the previous time steps as if they were complete. After that, the feedbacks will always be complete.
-\end{itemize}
+{\color{red}da scrivere}
 
-The objective function to maximize is the cumulative expected profit over the learning horizon $H$:
+\section{Step 3}
+{\color{red}da scrivere}
 
-\begin{align*}
-\EX\left[\sum_{t=1}^H{\sum_{c \in C}{n(c,b_t)r(c,p_t)m(p_t)(1+\EX[f(c)])-n(c,b_t)cost}}\right]
-\end{align*}
+\section{Step 4}
+{\color{red}da scrivere}
+
+\section{Step 5}
+{\color{red}da scrivere}
+
+\section{Step 6}
+{\color{red}da scrivere}
+
+\section{Step 7}
+{\color{red}da scrivere}
+
 
 \appendix
+
 \section{Expected Value of $A_{comb}$}\label{sec.acombproof}
-ExpectedProfit(p,b) 
+For each $comb \in \{TT,TF,FT,FF\}$ it holds $\EX[A_{comb}] = \lambda_a \tilde{l}_{comb}$
+\newline
+\newline
+Consider the daily number of auctions A.
+\begin{align*}
+\EX\left[A_{comb}\right] = \EX\left[\EX\left[A_{comb}|A\right]\right]
+\end{align*}
+Since $A_{comb}$ is sampled from a multinomial with $A$ tries and with associated probability $\tilde{l}_{comb}$, it holds
+\begin{align*}
+\EX\left[A_{comb}\right] &= \EX\left[A\tilde{l}_{comb}\right]\\
+&= \EX\left[A\right]\tilde{l}_{comb}\\
+&= \lambda_a\tilde{l}_{comb}
+\end{align*}
 
 \section{Expected Value of $N_{c,b}$}\label{sec.ncbproof}
-ExpectedProfit(p,b) 
-
+Since $\tilde{N}_{comb,b} \sim Binomial(A_{comb}, v(b))$, it holds
+\begin{align*}
+\EX\left[\tilde{N}_{comb,b}\right] &= \EX\left[\EX\left[\tilde{N}_{comb,b}| A_{comb}\right]\right]\\
+ &= \EX\left[A_{comb}v(b)\right]\\
+ &= \EX\left[A_{comb}\right]v(b)\\
+&= \lambda_a\tilde{l}_{comb}v(b)
+\end{align*}
+therefore
+\begin{align*}
+\EX\left[N_{c,b}\right] &= \sum_{comb \in combs(c)}{\EX\left[\tilde{N}_{comb,b}\right]}\\
+&= \sum_{comb \in combs(c)}{\lambda_a\tilde{l}_{comb}v(b)}\\
+&= \lambda_av(b)\sum_{comb \in combs(c)}{\tilde{l}_{comb}}
+\end{align*}
+And by definition of the likelihood $l_c$ of a class:
+\begin{align*}
+\EX\left[N_{c,b}\right]&= \lambda_av(b)l_c
+\end{align*}
 \section{Derivation of ExpectedProfit}\label{sec.DerExpProf}
 \begin{align*}
 ExpectedProfit(p,b) 
-&= \EX\left[\sum_{c \in C}{\sum_{i =1}^{N_{c,b}}{\bigg( D_{c,p,i}(1+F_{c,i})m(p)-C_{b,i}\bigg)}}\right]\\
-&= \EX_{n_{c,b}\sim NewClicks(c,b)}\left[\EX\left[\sum_{c \in C}{\sum_{i =1}^{N_{c,b}}{\bigg( D_{c,p,i}(1+F_{c,i})m(p)-C_{b,i}\bigg)}}\bigg|N_{c,b}=n_{c,b}\right]\right]\\
-&= \EX_{n_{c,b}\sim NewClicks(c,b)}\left[\sum_{c \in C}{\sum_{i =1}^{n_{c,b}}{\bigg(\EX\bigg[D_{c,p,i}(1+F_{c,i})m(p)-C_{b,i}\bigg|N_{c,b}=n_{c,b}\bigg]\bigg)}}\right]\\
-&= \EX_{n_{c,b}\sim NewClicks(c,b)}\left[\sum_{c \in C}{\sum_{i =1}^{n_{c,b}}{\bigg(\EX\bigg[D_{c,p,i}(1+F_{c,i})m(p)\bigg|N_{c,b}=n_{c,b}\bigg]-k(b)\bigg)}}\right]\\
-&= \EX_{n_{c,b}\sim NewClicks(c,b)}\left[\sum_{c \in C}{\sum_{i =1}^{n_{c,b}}{\bigg(r(c,p)(1+f(c))m(p)-k(b)\bigg)}}\right]\\
-&= \EX_{n_{c,b}\sim NewClicks(c,b)}\left[\sum_{c \in C}{n_{c,b}\bigg(r(c,p)(1+f(c))m(p)-k(b)\bigg)}\right]\\
-&=\sum_{c \in C}{ \EX_{n_{c,b}\sim NewClicks(c,b)}\left[n_{c,b}\bigg(r(c,p)(1+f(c))m(p)-k(b)\bigg)\right]}\\
-&=\sum_{c \in C}{ \EX_{n_{c,b}\sim NewClicks(c,b)}\left[n_{c,b}\right]\bigg(r(c,p)(1+f(c))m(p)-k(b)\bigg)}\\
-&=\sum_{c \in C}{ n(c,b)\bigg(r(c,p)(1+f(c))m(p)-k(b)\bigg)}\\
-&=m(p)\sum_{c \in C}{ n(c,b)r(c,p)(1+f(c))}-k(b)\sum_{c \in C}{ n(c,b)}\\
+&= \EX\left[\sum_{c \in C}{\sum_{i =1}^{N_{c,b}}{\bigg( D_{c,p,i}(1+F_{c,i})m(p)-C_{c,b,i}\bigg)}}\right]\\
+&= \EX_{n_{c,b}}\left[\EX\left[\sum_{c \in C}{\sum_{i =1}^{N_{c,b}}{\bigg( D_{c,p,i}(1+F_{c,i})m(p)-C_{c,b,i}\bigg)}}\bigg|N_{c,b}=n_{c,b}\right]\right]\\
+&= \EX_{n_{c,b}}\left[\sum_{c \in C}{\sum_{i =1}^{n_{c,b}}{\bigg(\EX\bigg[D_{c,p,i}(1+F_{c,i})m(p)-C_{c,b,i}\bigg|N_{c,b}=n_{c,b}\bigg]\bigg)}}\right]\\
+&= \EX_{n_{c,b}}\left[\sum_{c \in C}{\sum_{i =1}^{n_{c,b}}{\bigg(\EX\bigg[D_{c,p,i}(1+F_{c,i})m(p)\bigg|N_{c,b}=n_{c,b}\bigg]-k(c,b)\bigg)}}\right]\\
+&= \EX_{n_{c,b}}\left[\sum_{c \in C}{\sum_{i =1}^{n_{c,b}}{\bigg(r(c,p)(1+f(c))m(p)-k(c,b)\bigg)}}\right]\\
+&= \EX_{n_{c,b}}\left[\sum_{c \in C}{n_{c,b}\bigg(r(c,p)(1+f(c))m(p)-k(c,b)\bigg)}\right]\\
+&=\sum_{c \in C}{ \EX_{n_{c,b}}\left[n_{c,b}\bigg(r(c,p)(1+f(c))m(p)-k(c,b)\bigg)\right]}\\
+&=\sum_{c \in C}{ \EX_{n_{c,b}}\left[n_{c,b}\right]\bigg(r(c,p)(1+f(c))m(p)-k(c,b)\bigg)}\\
+&=\sum_{c \in C}{ \EX\left[N_{c,b}\right]\bigg(r(c,p)(1+f(c))m(p)-k(c,b)\bigg)}\\
+&=\sum_{c \in C}{ \lambda_a l_c v(b)\bigg(r(c,p)(1+f(c))m(p)-k(c,b)\bigg)}\\
+&=\lambda_av(b)\sum_{c \in C}{l_{c}\Big(r(c,p)(1+f(c))m(p)-k(c,b)\Big)}\\
 \end{align*}
 
 \section{Proof of the Bid Independent Price Hierarchy lemma}\label{sec.BIPHLProof}
 \begin{align*}
-ExpectedProfit(p,b)=\sum_{c \in C}{n(c,b)r(c,p)m(p)(1+f(c))}-k(b)\sum_{c \in C}{n(c,b)}
+ExpectedProfit(p,b)=\lambda_av(b)\sum_{c \in C}{l_{c}\Big(r(c,p)(1+f(c))m(p)-k(c,b)\Big)}\\
 \end{align*}
 \begin{align*}
-\sum_{c \in C}{n(c,b)r(c,p_1)m(p_1)(1+f(c))}-k(b)\sum_{c \in C}{n(c,b)}  &\ge \sum_{c \in C}{n(c,b)r(c,p_2)m(p_2)(1+f(c))}-k(b)\sum_{c \in C}{n(c,b)}\\
-\sum_{c \in C}{n(c,b)r(c,p_1)m(p_1)(1+f(c))}  &\ge \sum_{c \in C}{n(c,b)r(c,p_2)m(p_2)(1+f(c))}\\
-\sum_{c \in C}{n(c)v(b)r(c,p_1)m(p_1)(1+f(c))}  &\ge \sum_{c \in C}{n(c)v(b)r(c,p_2)m(p_2)(1+f(c))}\\
-v(b)m(p_1)\sum_{c \in C}{n(c)r(c,p_1)(1+f(c))}  &\ge v(b)m(p_2)\sum_{c \in C}{n(c)r(c,p_2)(1+f(c))}\\
-m(p_1)\sum_{c \in C}{n(c)r(c,p_1)(1+f(c))}  &\ge m(p_2)\sum_{c \in C}{n(c)r(c,p_2)(1+f(c))}
+\lambda_av(b)\sum_{c \in C}{l_{c}\Big(r(c,p_1)(1+f(c))m(p_1)-k(c,b)\Big)} &\ge \lambda_av(b)\sum_{c \in C}{l_{c}\Big(r(c,p_2)(1+f(c))m(p_2)-k(c,b)\Big)}
 \end{align*}
-Therefore the relation holds for every possible value of the bid.
+Since $\lambda_a>0$ and $v(b)>0$:
+\begin{align*}
+\sum_{c \in C}{l_{c}\Big(r(c,p_1)(1+f(c))m(p_1)-k(c,b)\Big)} &\ge \sum_{c \in C}{l_{c}\Big(r(c,p_2)(1+f(c))m(p_2)-k(c,b)\Big)}\\
+\sum_{c \in C}{l_{c}r(c,p_1)(1+f(c))m(p_1)}-\sum_{c \in C}{l_{c}k(c,b)} &\ge \sum_{c \in C}{l_{c}r(c,p_2)(1+f(c))m(p_2)}-\sum_{c \in C}{l_{c}k(c,b)}
+\end{align*}
+Since the term $\sum_{c \in C}{l_{c}k(c,b)}$ appears on both sides:
+\begin{align*}
+\sum_{c \in C}{l_{c}r(c,p_1)(1+f(c))m(p_1)} &\ge \sum_{c \in C}{l_{c}r(c,p_2)(1+f(c))m(p_2)}
+\end{align*}
+Since all the steps can be reversed with an arbitrary bid $b'$, the relation holds for every possible value of the bid.
 \end{document}
