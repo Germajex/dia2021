@@ -20,7 +20,7 @@ def main():
     bandit_env = BanditEnvironment(env, prices, opt_bid, future_visits_delay)
 
     ts_learner = TSOptimalPriceLearner(bandit_env)
-    ucb_leaner = UCBOptimalPriceLearner(bandit_env, lambda r: r % 50 == 0)
+    ucb_leaner = UCBOptimalPriceLearner(bandit_env)#, lambda r: r % 50 == 0)
 
     ucb_leaner.learn(n_rounds)
 
@@ -30,7 +30,7 @@ def main():
 
     for name, learner in [("UCB", ucb_leaner), ("TS", ts_learner)]:
         print(name)
-        print("Projected profits: " + " ".join(f'{p:10.2f}' for p in learner.compute_projected_profit()))
+        print("Projected profits: " + " ".join(f'{p:10.2f}' for p in learner.compute_projected_profits()))
         print("Expected profits:  " + " ".join(f'{p:10.2f}' for p in learner.compute_expected_profits()))
         print("Averages:          " + " ".join(f'{p:10.2f}' for p in learner.get_average_conversion_rates()))
         print("Number of pulls:   " + " ".join(f'{p:10d}' for p in learner.get_number_of_pulls()))
