@@ -16,6 +16,8 @@ class OptimalPriceLearner:
         self.current_round = 0
         self.expected_profits = []
 
+        self.pulled_arms = []
+
     def learn(self, n_rounds: int):
         self.round_robin()
 
@@ -108,6 +110,7 @@ class OptimalPriceLearner:
                                                                                 tot_cost_per_clicks, arm))
 
         self.current_round += 1
+        self.pulled_arms.append(arm)
 
         return new_clicks, purchases, tot_cost_per_clicks, (old_a, visits)
 
@@ -122,3 +125,9 @@ class OptimalPriceLearner:
     @staticmethod
     def sum_ragged_matrix(mat: List[List[int]]):
         return np.sum(np.fromiter((np.sum(r) for r in mat), dtype=np.float64))
+
+    def compute_cumulative_regr(self, suboptimality_gaps):
+        return np.cumsum([suboptimality_gaps[a] for a in self.pulled_arms])
+
+    def compute_cumulative_exp_profits(self, expected_profits):
+        return np.cumsum([expected_profits[a] for a in self.pulled_arms])
