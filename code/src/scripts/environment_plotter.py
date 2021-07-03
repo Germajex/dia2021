@@ -64,13 +64,17 @@ def plot_everything(environment: Environment, path=None):
     bids = np.linspace(1, 100, 101)
     x_future_visits = np.linspace(1, 100, 1000)
     prices = np.linspace(1, 100, 1000)
+    theta1 = environment.feature_1_likelihood
+    theta2 = environment.feature_2_likelihood
 
-    fig, axs = plt.subplots(3)
+    fig, axs = plt.subplots(2, 2)
     fig.set_size_inches(18.5, 10.5)
     fig.tight_layout(pad=5.0)
     fig.suptitle(f"Seed: {environment.get_seed()}")
+    colors = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#8c564b']
+    fontsize = 12
 
-    for c in environment.get_classes():
+    for color, c in zip(colors, environment.get_classes()):
         new_clicks = [environment.get_dist_new_clicks().mean(c, bid)
                       for bid in bids]
         future_visits = [environment.get_dist_future_visits().mean(c)] * len(x_future_visits)  # mean è uno scalare
@@ -78,20 +82,45 @@ def plot_everything(environment: Environment, path=None):
         clicks_converted = [environment.get_dist_click_converted().mean(c, price)
                             for price in prices]
 
-        axs[0].plot(bids, new_clicks, label=c.get_name())
-        axs[0].legend()
-        axs[1].plot(x_future_visits, future_visits, label=c.get_name())
-        axs[1].legend()
-        axs[2].plot(prices, clicks_converted, label=c.get_name())
-        axs[2].legend()
+        axs[0][0].plot(bids, new_clicks, label=c.get_name(), color=color)
+        axs[0][0].legend()
+        axs[0][1].plot(x_future_visits, future_visits, label=c.get_name(), color=color)
+        axs[0][1].legend()
+        axs[1][0].plot(prices, clicks_converted, label=c.get_name(), color=color)
+        axs[1][0].legend()
 
-    x_labels = ["Bid", "", "Price"]
-    y_labels = ["NEW CLICKS", "FUTURE VISITS", "CLICKS CONVERTED"]
-    i = 0
-    for ax in axs.flat:
-        ax.set_xlabel(f'{x_labels[i]}', fontsize=12)
-        ax.set_ylabel(f'{y_labels[i]}', fontsize=12)
-        i += 1
+        for f1, f2 in c.features:
+            f1_l, f1_h = (1 - theta1, 1) if f1 else (0, 1 - theta1)
+            f2_l, f2_h = (1 - theta2, 1) if f2 else (0, 1 - theta2)
+            x = [f1_l, f1_l, f1_h, f1_h]
+            y = [f2_l, f2_h, f2_h, f2_l]
+            cx = (f1_l + f1_h) / 2
+            cy = (f2_l + f2_h) / 2
+            axs[1][1].fill(x, y, color=color)
+            axs[1][1].text(cx, cy, c.name, color='k', fontsize=fontsize, ha='center', va='center')
+
+    axs[1][1].vlines(x=0, color='k', ymin=0.0, ymax=1.0)
+    axs[1][1].hlines(y=0, color='k', xmin=0, xmax=1)
+    axs[1][1].vlines(x=1, color='k', ymin=0.0, ymax=1.0)
+    axs[1][1].hlines(y=1, color='k', xmin=0, xmax=1)
+    axs[1][1].vlines(x=1 - theta1, color='k', ymin=0.0, ymax=1.0)
+    axs[1][1].hlines(y=1 - theta2, color='k', xmin=0, xmax=1)
+    axs[1][1].set_xlabel("Feature 1", fontsize=fontsize)
+    axs[1][1].set_ylabel("Feature 2", fontsize=fontsize)
+
+    axs[1][1].set_xticks([(1 - theta1) / 2, 1 - theta1 / 2])
+    axs[1][1].set_xticklabels(['False', 'True'])
+    axs[1][1].set_yticks([(1 - theta2) / 2, 1 - theta2 / 2])
+    axs[1][1].set_yticklabels(['False', 'True'])
+
+    axs[0][0].set_xlabel("Bid", fontsize=fontsize)
+    axs[0][0].set_ylabel("E[NEW CLICKS]", fontsize=fontsize)
+
+    axs[0][1].set_xlabel("")
+    axs[0][1].set_ylabel("E[FUTURE VISITS]", fontsize=fontsize)
+
+    axs[1][0].set_xlabel("Price", fontsize=fontsize)
+    axs[1][0].set_ylabel("E[CLICK CONVERTED]", fontsize=fontsize)
 
     if path is not None:
         plt.savefig(path)
@@ -99,8 +128,11 @@ def plot_everything(environment: Environment, path=None):
     plt.show()
 
 
-test_environment = Environment()
-# plot_new_clicks(test_environment)
-# plot_future_visits(test_environment)
-# plot_clicks_converted(test_environment)
-#plot_everything(test_environment)
+if __name__ == "__main__":
+    test_environment = Environment(3626227578)
+
+    # plot_new_clicks(test_environment)
+    # plot_future_visits(test_environment)
+    # plot_clicks_converted(test_environment)
+    test_environment.print_summary()
+    plot_everything(test_environment)
