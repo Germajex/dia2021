@@ -48,6 +48,16 @@ class Environment:
     def margin(price: float):
         return price
 
+    def print_summary(self):
+        print(f'Theta 1: {self.feature_1_likelihood:.2f}')
+        print(f'Theta 2: {self.feature_2_likelihood:.2f}')
+        print(f'Average daily auctions: {self.average_tot_auctions:.2f}')
+        print(f'50% winrate bid: {self.newClicksC:.2f}')
+        print(f'Bid concentration: {self.newClicksZ:.2f}')
+        print()
+        print()
+        self.print_class_summary()
+
     def print_class_summary(self):
         for c in self.classes:
             c.print_summary()
