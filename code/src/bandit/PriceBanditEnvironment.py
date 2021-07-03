@@ -42,7 +42,7 @@ class PriceBanditEnvironment:
         pricing_strategy = {c: self.prices[a] for c, a in arm_strategy.items()}
 
         auctions, new_clicks, purchases, tot_cost_per_clicks, \
-            new_future_visits = self.env.simulate_one_day_fixed_bid(pricing_strategy, self.bid)
+            new_future_visits, profit = self.env.simulate_one_day_fixed_bid(pricing_strategy, self.bid)
 
         self.future_visits_queue.append((arm_strategy, new_future_visits))
         past_future_visits = self.future_visits_queue.pop(0)

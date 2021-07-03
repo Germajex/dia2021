@@ -88,6 +88,7 @@ class Environment:
         tot_auctions = self.distTotalAuctions.sample()
         auctions = self.distAuctionsPerCombination.sample(tot_auctions)
         new_clicks = self.distNewClicks.sample(auctions, bid)
+        profit = 0
 
         for c in self.classes:
             for comb in c.features:
@@ -96,8 +97,9 @@ class Environment:
                 purchases[comb] = self.distClickConverted.sample_n(c, price, clicks)
                 tot_cost_per_clicks[comb] = sum(self.distCostPerClick.sample_n(c, bid, clicks))
                 new_future_visits[comb] = sum(self.distFutureVisits.sample_n(c, purchases[comb]))
+                profit += self.margin(price)*(purchases[comb]+new_future_visits[comb])-tot_cost_per_clicks[comb]
 
-        return auctions, new_clicks, purchases, tot_cost_per_clicks, new_future_visits
+        return auctions, new_clicks, purchases, tot_cost_per_clicks, new_future_visits, profit
 
     def simulate_one_day_fixed_price(self, price, bidding_strategy):
         purchases, tot_cost_per_clicks, new_future_visits, new_clicks = {}, {}, {}, {}
