@@ -28,9 +28,9 @@ class CustomerClass:
         print(f"Class name: {self.name}")
         print('Binary features: ', *self.features)
         print(f'Likelihood: {self.likelihood:.2f}')
-        print(f"Daily auctions: {self.newClicksR}")
         print(f"Reserve price: {self.crCenter}, z={self.sigmoidZ}")
         print(f"Average future visits: {self.backMean}")
+        print(f"Cost per click percentage: {self.cost_per_click_perc:.2f}")
 
     def get_name(self):
         return self.name
