@@ -35,7 +35,7 @@ class OptimalPriceLearner:
         new_clicks = self.compute_new_clicks()
         margin = np.array([self.env.margin(a) for a in range(self.n_arms)])
         crs = self.compute_projection_conversion_rates()
-        future_visits = self.compute_future_visits()
+        future_visits = self.compute_future_visits_per_arm()
         cost_per_click = self.tot_cost_per_click / self.sum_ragged_matrix(self.new_clicks_per_arm)
 
         projected_profit = simple_class_profit(
@@ -49,7 +49,7 @@ class OptimalPriceLearner:
         new_clicks = self.compute_new_clicks()
         margin = np.array([self.env.margin(a) for a in range(self.n_arms)])
         crs = self.get_average_conversion_rates()
-        future_visits = self.compute_future_visits()
+        future_visits = self.compute_future_visits_per_arm()
         cost_per_click = self.tot_cost_per_click / self.sum_ragged_matrix(self.new_clicks_per_arm)
 
         expected_profit = simple_class_profit(
@@ -78,6 +78,17 @@ class OptimalPriceLearner:
             successes_sum += np.sum(self.purchases_per_arm[arm][:complete_samples])
 
         return self.sum_ragged_matrix(self.future_visits_per_arm) / successes_sum
+
+    def compute_future_visits_per_arm(self):
+        res = []
+        for arm in range(self.n_arms):
+            complete_samples = len(self.future_visits_per_arm[arm])
+            future_visits = np.sum(self.future_visits_per_arm[arm])
+            purchases = np.sum(self.purchases_per_arm[arm][:complete_samples])
+            future_visits_per_purchase = future_visits / purchases
+            res.append(future_visits_per_purchase)
+
+        return np.array(res)
 
     def compute_new_clicks(self):
         return self.average_ragged_matrix(self.new_clicks_per_arm)
