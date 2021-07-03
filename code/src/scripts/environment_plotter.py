@@ -89,7 +89,8 @@ def plot_everything(environment: Environment, path=None):
         axs[1][0].plot(prices, clicks_converted, label=c.get_name(), color=color)
         axs[1][0].legend()
 
-        for f1, f2 in c.features:
+        for comb in c.features:
+            f1, f2 = comb
             f1_l, f1_h = (1 - theta1, 1) if f1 else (0, 1 - theta1)
             f2_l, f2_h = (1 - theta2, 1) if f2 else (0, 1 - theta2)
             x = [f1_l, f1_l, f1_h, f1_h]
@@ -98,6 +99,7 @@ def plot_everything(environment: Environment, path=None):
             cy = (f2_l + f2_h) / 2
             axs[1][1].fill(x, y, color=color)
             axs[1][1].text(cx, cy, c.name, color='k', fontsize=fontsize, ha='center', va='center')
+            axs[1][1].text(cx, cy-0.1, f'l={environment.get_features_comb_likelihood(comb):.2f}', color='k', fontsize=fontsize, ha='center', va='center')
 
     axs[1][1].vlines(x=0, color='k', ymin=0.0, ymax=1.0)
     axs[1][1].hlines(y=0, color='k', xmin=0, xmax=1)
@@ -114,13 +116,13 @@ def plot_everything(environment: Environment, path=None):
     axs[1][1].set_yticklabels(['False', 'True'])
 
     axs[0][0].set_xlabel("Bid", fontsize=fontsize)
-    axs[0][0].set_ylabel("E[NEW CLICKS]", fontsize=fontsize)
+    axs[0][0].set_ylabel("E[ New clicks ]", fontsize=fontsize)
 
     axs[0][1].set_xlabel("")
-    axs[0][1].set_ylabel("E[FUTURE VISITS]", fontsize=fontsize)
+    axs[0][1].set_ylabel("E[ Future visits ]", fontsize=fontsize)
 
     axs[1][0].set_xlabel("Price", fontsize=fontsize)
-    axs[1][0].set_ylabel("E[CLICK CONVERTED]", fontsize=fontsize)
+    axs[1][0].set_ylabel("E[ Click converted ]", fontsize=fontsize)
 
     if path is not None:
         plt.savefig(path)
