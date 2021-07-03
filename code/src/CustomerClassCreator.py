@@ -6,7 +6,7 @@ import numpy as np
 
 
 class CustomerClassCreator:
-    def get_new_classes(self, rng_generator: Generator, f1_likelihood, f2_likelihood, n_classes=None):
+    def get_new_classes(self, rng_generator: Generator, combinations, likelihoods, n_classes=None):
         CONST = _Const()
         customer_classes = []
 
@@ -14,7 +14,7 @@ class CustomerClassCreator:
         if n_classes is None:
             n_classes = CONST.N_CUSTOMER_CLASSES
 
-        joint_features = list(itertools.product([True, False], repeat=2))
+        joint_features = list(combinations)
         rng_generator.shuffle(joint_features)
 
         shuffled_classes = list(range(n_classes))
@@ -32,8 +32,8 @@ class CustomerClassCreator:
             # Give joint features to the class
             features = features_per_class[i]
             likelihood = sum(
-                (f1_likelihood if f1 else 1 - f1_likelihood) * (f2_likelihood if f2 else 1 - f2_likelihood)
-                for f1, f2 in features
+                likelihoods[comb]
+                for comb in features
             )
             # Sample random parameters for each class
             new_clicks_r = rng_generator.integers(CONST.NEWCLICKS_MIN_R, CONST.NEWCLICKS_MAX_R)
