@@ -1,11 +1,6 @@
-import numpy.random.mtrand
-
-from src.utils import sigmoid
-
-
 class CustomerClass:
     def __init__(self, name, features, new_clicks_r, cr_center, sigmoid_z, back_dev,
-                 back_mean):
+                 back_mean, cost_per_click_perc, likelihood):
         # Name
         self.name = name
 
@@ -22,13 +17,20 @@ class CustomerClass:
         # Number of times the user will come back (normal distribution)
         self.backMean = back_mean
         self.backDev = back_dev
+        self.cost_per_click_perc = cost_per_click_perc
+
+        self.likelihood = likelihood
+
+    def get_likelihood(self):
+        return self.likelihood
 
     def print_summary(self):
         print(f"Class name: {self.name}")
         print('Binary features: ', *self.features)
-        print(f"Daily auctions: {self.newClicksR}")
+        print(f'Likelihood: {self.likelihood:.2f}')
         print(f"Reserve price: {self.crCenter}, z={self.sigmoidZ}")
         print(f"Average future visits: {self.backMean}")
+        print(f"Cost per click percentage: {self.cost_per_click_perc:.2f}")
 
     def get_name(self):
         return self.name

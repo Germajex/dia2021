@@ -11,11 +11,11 @@ def expected_profit(env, p, b, classes=None):
     r = env.distClickConverted.mean
     f = env.distFutureVisits.mean
     k = env.distCostPerClick.mean
-    C = classes if classes else env.classes
+
+    C = classes if classes is not None else env.classes
 
     profit = sum(
-        simple_class_profit(
-            m(p), n(c, b), r(c, p), f(c), k(c, b))
+        simple_class_profit(m(p), n(c,b), r(c, p), f(c), k(c, b))
         for c in C
     )
 

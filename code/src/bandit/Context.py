@@ -1,5 +1,6 @@
 import numpy as np
 
+from src.algorithms import simple_class_profit
 from src.utils import sum_ragged_matrix, average_ragged_matrix
 
 
@@ -59,7 +60,10 @@ class Context:
         future_visits_per_purchase = self.compute_future_visits_per_purchase(future_visits_per_arm, purchases_per_arm)
         cost_per_click = tot_cost_per_click / sum_ragged_matrix(new_clicks_per_arm)
 
-        profits = average_new_clicks * (margin * crs * (1 + future_visits_per_purchase) - cost_per_click)
+        profits = simple_class_profit(
+            margin=margin, new_clicks=average_new_clicks, conversion_rate=crs,
+            future_visits=future_visits_per_purchase, cost_per_click=cost_per_click
+        )
 
         return profits
 
@@ -83,7 +87,10 @@ class Context:
                                                                              purchases_per_arm)
         cost_per_click = tot_cost_per_click / sum_ragged_matrix(new_clicks_per_arm)
 
-        profit = average_new_clicks * (margin * cr * (1 + future_visits_per_purchase) - cost_per_click)
+        profit = simple_class_profit(
+            margin=margin, new_clicks=average_new_clicks, conversion_rate=cr,
+            future_visits=future_visits_per_purchase, cost_per_click=cost_per_click
+        )
 
         return profit
 
@@ -104,7 +111,10 @@ class Context:
         future_visits_per_purchase = self.compute_future_visits_per_purchase(future_visits_per_arm, purchases_per_arm)
         cost_per_click = tot_cost_per_click / sum_ragged_matrix(new_clicks_per_arm)
 
-        profits = average_new_clicks * (margin * crs * (1 + future_visits_per_purchase) - cost_per_click)
+        profits = simple_class_profit(
+            margin=margin, new_clicks=average_new_clicks, conversion_rate=crs,
+            future_visits=future_visits_per_purchase, cost_per_click=cost_per_click
+        )
 
         return profits
 
