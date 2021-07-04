@@ -1,8 +1,8 @@
-from typing import List
-
 import numpy as np
+
 from src.algorithms import simple_class_profit
 from src.bandit.PriceBanditEnvironment import PriceBanditEnvironment
+from src.utils import sum_ragged_matrix, average_ragged_matrix
 
 
 class OptimalPriceLearner:
@@ -36,7 +36,7 @@ class OptimalPriceLearner:
         margin = np.array([self.env.margin(a) for a in range(self.n_arms)])
         crs = self.compute_projection_conversion_rates()
         future_visits = self.compute_future_visits_per_arm()
-        cost_per_click = self.tot_cost_per_click / self.sum_ragged_matrix(self.new_clicks_per_arm)
+        cost_per_click = self.tot_cost_per_click / sum_ragged_matrix(self.new_clicks_per_arm)
 
         projected_profit = simple_class_profit(
             margin=margin, conversion_rate=crs, new_clicks=new_clicks,
@@ -50,7 +50,7 @@ class OptimalPriceLearner:
         margin = np.array([self.env.margin(a) for a in range(self.n_arms)])
         crs = self.get_average_conversion_rates()
         future_visits = self.compute_future_visits_per_arm()
-        cost_per_click = self.tot_cost_per_click / self.sum_ragged_matrix(self.new_clicks_per_arm)
+        cost_per_click = self.tot_cost_per_click / sum_ragged_matrix(self.new_clicks_per_arm)
 
         expected_profit = simple_class_profit(
             margin=margin, conversion_rate=crs, new_clicks=new_clicks,
@@ -77,7 +77,7 @@ class OptimalPriceLearner:
             complete_samples = len(self.future_visits_per_arm[arm])
             successes_sum += np.sum(self.purchases_per_arm[arm][:complete_samples])
 
-        return self.sum_ragged_matrix(self.future_visits_per_arm) / successes_sum
+        return sum_ragged_matrix(self.future_visits_per_arm) / successes_sum
 
     def compute_future_visits_per_arm(self):
         res = []
@@ -91,7 +91,7 @@ class OptimalPriceLearner:
         return np.array(res)
 
     def compute_new_clicks(self):
-        return self.average_ragged_matrix(self.new_clicks_per_arm)
+        return average_ragged_matrix(self.new_clicks_per_arm)
 
     def compute_projection_conversion_rates(self):
         raise NotImplementedError
@@ -124,18 +124,6 @@ class OptimalPriceLearner:
         self.pulled_arms.append(arm)
 
         return new_clicks, purchases, tot_cost_per_clicks, (old_a, visits)
-
-    @staticmethod
-    def average_ragged_matrix(mat):
-        return OptimalPriceLearner.sum_ragged_matrix(mat) / OptimalPriceLearner.count_ragged_matrix(mat)
-
-    @staticmethod
-    def count_ragged_matrix(mat):
-        return np.sum(np.fromiter((len(r) for r in mat), dtype=np.int32))
-
-    @staticmethod
-    def sum_ragged_matrix(mat: List[List[int]]):
-        return np.sum(np.fromiter((np.sum(r) for r in mat), dtype=np.float64))
 
     def compute_cumulative_regr(self, suboptimality_gaps):
         return np.cumsum([suboptimality_gaps[a] for a in self.pulled_arms])
