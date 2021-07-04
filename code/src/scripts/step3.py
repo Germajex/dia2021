@@ -74,6 +74,15 @@ def main():
     ts_best = prices[np.argmax(ts_learner.compute_expected_profits())]
     target_prices = list({opt_price, ucb_best, ts_best})
 
+    if ucb_best != opt_price:
+        print('UCB Learned the wrong price!')
+
+    if ts_best != opt_price:
+        print('TS Learned the wrong price!')
+
+    if len(target_prices) == 1:
+        print('All the learners learned the right price')
+
     for target_price in target_prices:
         pricing_strategy = {c: target_price for c in env.get_features_combinations()}
         cum_profit = 0
