@@ -85,7 +85,7 @@ class OptimalPriceLearner:
             complete_samples = len(self.future_visits_per_arm[arm])
             future_visits = np.sum(self.future_visits_per_arm[arm])
             purchases = np.sum(self.purchases_per_arm[arm][:complete_samples])
-            future_visits_per_purchase = future_visits / purchases
+            future_visits_per_purchase = future_visits / purchases if purchases else 0
             res.append(future_visits_per_purchase)
 
         return np.array(res)
