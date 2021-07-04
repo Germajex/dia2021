@@ -78,7 +78,7 @@ class OptimalPriceDiscriminatingLearner:
                         new_structure.append(context_false)
 
                         print(
-                            f'Found feasible split at round {self.current_round} on feature {i}, incentive = {incentive}')
+                            f'Found feasible split at round {self.current_round} on feature {i}, incentive = {incentive:.2f}')
                         new_structures.append((incentive, new_structure, i))
 
             if new_structures:
