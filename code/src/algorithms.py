@@ -5,6 +5,24 @@ def simple_class_profit(margin, new_clicks, conversion_rate, future_visits, cost
     return new_clicks * (margin * conversion_rate * (1 + future_visits) - cost_per_click)
 
 
+def expected_profit_of_pricing_strategy(env, pricing_strategy, b):
+    return sum(expected_profit_for_comb(env, p, b, comb)
+               for comb, p in pricing_strategy.items())
+
+
+def expected_profit_for_comb(env, p, b, comb):
+    c = env.class_of_comb[comb]
+    margin = env.margin(p)
+    new_click = env.distNewClicks.mean_per_comb(b)[comb]
+    conversion_rate = env.distClickConverted.mean(c, p)
+    future_visits = env.distFutureVisits.mean(c)
+    cost_per_click = env.distCostPerClick.mean(c, b)
+
+    profit = simple_class_profit(margin, new_click, conversion_rate, future_visits, cost_per_click)
+
+    return profit
+
+
 def expected_profit(env, p, b, classes=None):
     m = env.margin
     n = env.distNewClicks.mean
@@ -15,11 +33,21 @@ def expected_profit(env, p, b, classes=None):
     C = classes if classes is not None else env.classes
 
     profit = sum(
-        simple_class_profit(m(p), n(c,b), r(c, p), f(c), k(c, b))
+        simple_class_profit(m(p), n(c, b), r(c, p), f(c), k(c, b))
         for c in C
     )
 
     return profit
+
+
+def optimal_pricing_strategy_for_bid(env, prices, bid):
+    strategy = {}
+    for c in env.classes:
+        opt_p = optimal_price_for_bid(env, prices, bid, [c])
+        for comb in c.features:
+            strategy[comb] = opt_p
+
+    return strategy
 
 
 def optimal_price_for_bid(env, prices, bid, classes=None):

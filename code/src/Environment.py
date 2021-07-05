@@ -46,6 +46,11 @@ class Environment:
         self.distFutureVisits = FutureVisitsDistribution(self.rng)
         self.distCostPerClick = CostPerClickDistribution(self.rng)
 
+        self.class_of_comb = {}
+        for c in self.classes:
+            for comb in c.features:
+                self.class_of_comb[comb] = c
+
     def get_seed(self):
         return self._seed
 
