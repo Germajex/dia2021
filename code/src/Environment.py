@@ -5,7 +5,7 @@ from numpy.random import default_rng, Generator
 from src.constants import _Const
 from src.CustomerClassCreator import CustomerClassCreator
 from src.distributions import NewClicksDistribution, ClickConvertedDistribution, FutureVisitsDistribution, \
-    CostPerClickDistribution, TotalAuctionsDistribution, AuctionsPerCombinationDistribution
+    CostPerClickDistribution
 
 
 class Environment:
@@ -39,10 +39,8 @@ class Environment:
 
         self.newClicksC, self.newClicksZ = CustomerClassCreator().get_new_clicks_v_parameters(self.rng)
 
-
-        self.distTotalAuctions = TotalAuctionsDistribution(self.rng, self.average_tot_auctions)
-        self.distAuctionsPerCombination = AuctionsPerCombinationDistribution(self.rng, self.likelihoods)
-        self.distNewClicks = NewClicksDistribution(self.rng, self.newClicksC, self.newClicksZ, self.average_tot_auctions,
+        self.distNewClicks = NewClicksDistribution(self.rng, self.newClicksC, self.newClicksZ,
+                                                   self.average_tot_auctions,
                                                    self.likelihoods)
         self.distClickConverted = ClickConvertedDistribution(self.rng)
         self.distFutureVisits = FutureVisitsDistribution(self.rng)
@@ -90,11 +88,10 @@ class Environment:
 
     def simulate_one_day_fixed_bid(self, pricing_strategy, bid):
         purchases, tot_cost_per_clicks, new_future_visits = {}, {}, {}
-        tot_auctions = self.distTotalAuctions.sample()
-        auctions = self.distAuctionsPerCombination.sample(tot_auctions)
-        new_clicks = self.distNewClicks.sample(auctions, bid)
-        profit = 0
 
+        auctions, new_clicks = self.distNewClicks.sample(bid)
+
+        profit = 0
         for c in self.classes:
             for comb in c.features:
                 price = pricing_strategy[comb]
@@ -108,16 +105,14 @@ class Environment:
 
     def simulate_one_day_fixed_price(self, price, bidding_strategy):
         purchases, tot_cost_per_clicks, new_future_visits, new_clicks = {}, {}, {}, {}
-        tot_auctions = self.distTotalAuctions.sample()
-        auctions = self.distAuctionsPerCombination.sample(tot_auctions)
+
+        auctions, new_clicks = self.distNewClicks.sample_bidding_strategy(bidding_strategy)
 
         for c in self.classes:
             for comb in c.features:
                 bid = bidding_strategy[comb]
-                clicks = self.distNewClicks.sample(auctions, bid)[comb]
-                new_clicks[comb] = clicks
-                purchases[comb] = self.distClickConverted.sample_n(c, price, clicks)
-                tot_cost_per_clicks[comb] = sum(self.distCostPerClick.sample_n(c, bid, clicks))
+                purchases[comb] = self.distClickConverted.sample_n(c, price, new_clicks[comb])
+                tot_cost_per_clicks[comb] = sum(self.distCostPerClick.sample_n(c, bid, new_clicks[comb]))
                 new_future_visits[comb] = sum(self.distFutureVisits.sample_n(c, purchases[comb]))
 
         return auctions, new_clicks, purchases, tot_cost_per_clicks, new_future_visits

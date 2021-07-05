@@ -1,3 +1,5 @@
+from collections import defaultdict
+
 import numpy as np
 from numpy.random import Generator, default_rng
 
@@ -15,21 +17,13 @@ class Distribution:
         self.rng = default_rng(seed=rng.integers(0, 2 ** 32))
 
 
-class TotalAuctionsDistribution(Distribution):
-    def __init__(self, rng: Generator, lambda_a):
+class NewClicksDistribution(Distribution):
+    def __init__(self, rng: Generator, new_clicks_c: float, new_clicks_z: float, average_tot_auctions: int,
+                 likelihoods_per_comb):
         super().__init__(rng=rng)
-        self.lambda_a = lambda_a
-
-    def sample(self):
-        return int(self.rng.poisson(lam=self.lambda_a, size=1)[0])
-
-    def mean(self):
-        return self.lambda_a
-
-
-class AuctionsPerCombinationDistribution(Distribution):
-    def __init__(self, rng: Generator, likelihoods_per_comb):
-        super().__init__(rng=rng)
+        self.new_clicks_c = new_clicks_c
+        self.new_clicks_z = new_clicks_z
+        self.average_tot_auctions = average_tot_auctions
         self.combs = []
         self.likelihoods = []
 
@@ -37,32 +31,29 @@ class AuctionsPerCombinationDistribution(Distribution):
             self.combs.append(comb)
             self.likelihoods.append(likelihood)
 
-    def sample(self, tot_auctions):
+    def sample(self, bid: float):
+        strategy = defaultdict(lambda: bid)
+        return self.sample_bidding_strategy(strategy)
+
+    def sample_bidding_strategy(self, strategy):
+        tot_auctions = int(self.rng.poisson(lam=self.average_tot_auctions, size=1)[0])
         auctions = self.rng.multinomial(tot_auctions, self.likelihoods)
-        res = {c: a for c, a in zip(self.combs, auctions)}
-        return res
 
+        res_auctions = {c: a for c, a in zip(self.combs, auctions)}
 
-class NewClicksDistribution(Distribution):
-    def __init__(self, rng: Generator, new_clicks_c: float, new_clicks_z: float, tot_auctions: int,
-                 likelihoods_per_comb):
-        super().__init__(rng=rng)
-        self.new_clicks_c = new_clicks_c
-        self.new_clicks_z = new_clicks_z
-        self.tot_auction = tot_auctions
-        self.likelihoods_per_comb = likelihoods_per_comb
+        res_new_clicks = {comb: self.rng.binomial(n_auctions, self.v(strategy[comb]))
+                          for comb, n_auctions in res_auctions.items()}
 
-    def sample(self, auctions_per_comb, bid: float):
-        winning_p = self.v(bid)
-
-        res = {comb: self.rng.binomial(auctions, winning_p)
-               for comb, auctions in auctions_per_comb.items()}
-
-        return res
+        return res_auctions, res_new_clicks
 
     def mean(self, customer_class: CustomerClass, bid: float):
-        return customer_class.get_likelihood() * self.tot_auction * self.v(bid)
+        return customer_class.get_likelihood() * self.average_tot_auctions * self.v(bid)
 
+    def mean_per_comb(self, bid: float):
+        prob = self.v(bid)
+        res = {comb: l * self.average_tot_auctions * prob
+               for comb, l in zip(self.combs, self.likelihoods)}
+        return res
 
     def v(self, bid: float):
         return sigmoid(bid, self.new_clicks_c, self.new_clicks_z)
