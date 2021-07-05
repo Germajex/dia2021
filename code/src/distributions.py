@@ -63,9 +63,6 @@ class NewClicksDistribution(Distribution):
     def mean(self, customer_class: CustomerClass, bid: float):
         return customer_class.get_likelihood() * self.tot_auction * self.v(bid)
 
-    @staticmethod
-    def n(customer_class: CustomerClass):
-        return customer_class.newClicksR
 
     def v(self, bid: float):
         return sigmoid(bid, self.new_clicks_c, self.new_clicks_z)
