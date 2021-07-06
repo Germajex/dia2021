@@ -7,10 +7,11 @@ from src.bandit.Context import Context
 
 
 class OptimalPriceDiscriminatingLearner:
-    def __init__(self, env: PriceBanditEnvironment, context_creator):
+    def __init__(self, env: PriceBanditEnvironment, context_creator, round_robins_per_cycle=1):
         self.env = env
         self.n_arms = self.env.n_arms
         self.context_creator = context_creator
+        self.round_robins_per_cycle = round_robins_per_cycle
 
         combs = self.env.get_features_combinations()
         self.future_visits_per_comb_per_arm = {c: [[] for i in range(self.n_arms)] for c in combs}
@@ -32,14 +33,24 @@ class OptimalPriceDiscriminatingLearner:
 
         self.current_round = 0
 
+        self.next_round_robin_arm = 0
+        self.state_is_round_robin = True
+        self.remaining_round_robins = 0
+        self.remaining_normal_rounds = 0
+        self.performed_round_robins = 0
+
     def learn(self, n_rounds: int):
-        self.round_robin()
+        self.initial_round_robin()
 
         while self.current_round < n_rounds:
             self.learn_one_round()
 
     def learn_one_round(self):
-        strategy = self.choose_next_strategy()
+        if self.state_is_round_robin:
+            strategy = self.choose_next_strategy_round_robin()
+        else:
+            strategy = self.choose_next_strategy_normal()
+
         self.pull_from_env(strategy=strategy)
 
         if self.current_round - self.latest_split >= 0:
@@ -87,7 +98,26 @@ class OptimalPriceDiscriminatingLearner:
                 print(f'Split context at round {self.current_round} on feature {feature}')
                 self.latest_split = self.current_round
 
-    def choose_next_strategy(self):
+    def choose_next_strategy_round_robin(self):
+        strategy = {}
+        for context in self.context_structure:
+            could_be_split = len(context.features) > 1
+
+            if could_be_split:
+                #print(f'Round {self.current_round}, performed round_robin, remaining {self.remaining_round_robins}')
+                arm = self.next_round_robin_arm
+            else:
+                arm = context.choose_next_arm(self.new_clicks_per_comb_per_arm,
+                                              self.purchases_per_comb_per_arm,
+                                              self.tot_cost_per_click_per_comb,
+                                              self.future_visits_per_comb_per_arm,
+                                              self.current_round)
+            for comb in context.features:
+                strategy[comb] = arm
+
+        return strategy
+
+    def choose_next_strategy_normal(self):
         strategy = {}
         for context in self.context_structure:
             arm = context.choose_next_arm(self.new_clicks_per_comb_per_arm,
@@ -100,11 +130,15 @@ class OptimalPriceDiscriminatingLearner:
 
         return strategy
 
-    def round_robin(self):
+    def initial_round_robin(self):
         while not all(self.future_visits_per_comb_per_arm[(False, False)]):
             arm = self.current_round % self.n_arms
             strategy = {comb: arm for comb in self.env.get_features_combinations()}
             self.pull_from_env(strategy)
+
+        self.performed_round_robins = 4
+        self.state_is_round_robin = False
+        self.remaining_normal_rounds = 2**self.performed_round_robins
 
     def pull_from_env(self, strategy):
         new_clicks, purchases, tot_cost_per_clicks, \
@@ -120,7 +154,27 @@ class OptimalPriceDiscriminatingLearner:
                 self.future_visits_per_comb_per_arm[comb][chosen_arm].append(past_future_visits[comb])
             self.expected_profits.append(self.compute_expected_profit_last_round(strategy))
 
+        self.update_round_count()
+
+    def update_round_count(self):
         self.current_round += 1
+
+        if self.state_is_round_robin:
+            self.next_round_robin_arm = (self.next_round_robin_arm + 1) % self.n_arms
+
+            if not self.next_round_robin_arm:# one complete round robin has just ended
+                self.remaining_round_robins -= 1
+
+            if not self.remaining_round_robins:
+                self.performed_round_robins += 1
+                self.state_is_round_robin = False
+                self.remaining_normal_rounds = 2**self.performed_round_robins
+        else:
+            self.remaining_normal_rounds -= 1
+            if not self.remaining_normal_rounds:
+                self.state_is_round_robin = True
+                self.remaining_round_robins = self.round_robins_per_cycle
+                self.next_round_robin_arm = 0
 
     def get_contexts(self):
         return self.context_structure
