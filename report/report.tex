@@ -78,7 +78,7 @@ Advertising is used to attract users on an ecommerce website that sells only one
 Each user belongs to one of three classes, and the classes are determined by the combination of the two features. 
 For each class $c \in C$ the following functions are modeled:
 \begin{itemize}
-\item A stochastic number of daily clicks of new users (i.e., that have never clicked before on the ads), represented by the discrete random variable $N_{c,b}$, where $b \in B$ is a bid value. 
+\item A stochastic number of daily clicks of new users (i.e., that have never clicked before on the ads), represented by the discrete random variable $N_{c,b}$ such that $\EX[N_{c,b}] = n(c,b)$, where $b \in B$ is a bid value.
 \item A conversion rate function providing the probability that a user will buy the item at a certain price,  $r(c,p)$, where $p \in P$ is the price. For each user of class $c$ that has clicked on the ad, a Bernoulli random variable $D_{c,p} \sim Bern(r(c,p))$ indicates whether the user bought the product ($D_{c,p}=1$) or not ($D_{c,p}=0$), such that $\EX[D_{c,p}]=r(c,p)$. We call this distribution $ClickConverted(c,p)$ and therefore $D_{c,p} \sim ClickConverted(c,p)$.
 \item A probability distribution $FutureVisits(c)$ over the number of times a user of class $c$ will come back to the ecommerce website to buy that item by 30 days after the first purchase. In other words, when a user makes a purchase, they are somehow likely to make more purchases in the near future, and after that they will leave the website forever. For each user of class $c$, a discrete random variable $F_c \sim FutureVisits(c)$ indicates the number of times that the user came back, and for each class $c$ the function $f(c)$ is defined such that $\EX[F_c] = f(c)$
 \item A probability distribution $CostPerClick(c,b)$. For each click, the random variable $C_{c,b}\sim CostPerClick(c,b)$ represents the amount that is paid to the ad publisher, such that $\EX[C_{c,b}] = k(c,b)$ and $\Prob(C_{c,b} \leq b) = 1$.
@@ -134,9 +134,9 @@ Defining the likelihood $l_c$ of class $c$ as
 \begin{align*}
 l_c = \sum_{comb \in combs(c)}{\tilde{l}_{comb}}
 \end{align*}
-it holds 
+we obtain the expression of the expected value of $N_{c,b}$ 
 \begin{align*}
-\EX[N_{c,b}] =\lambda_al_{c}v(b)
+n(c,b) = \EX[N_{c,b}] =\lambda_al_{c}v(b)
 \end{align*}
  (Appendix \ref{sec.ncbproof})
 
@@ -161,8 +161,8 @@ We modeled the future visits with a Poisson random variable, such that $F_c \sim
 The price paid for each click is in principle a stochastic function of the bid and of the user class. To limit the complexity of the model, we chose to model it such that the mean $k(c,b)$ is a percentage of the bid and the variable is always equal to its mean.
 
 \begin{align*}
-k(c,b) = u_c\  b\\
-\Prob(C_{c,b} = k(c,b)) = 1
+k(c,b) &= u_c\  b\\
+\Prob(C_{c,b} = k(c,b)) &= 1
 \end{align*}
 With the percentage $0 < u_c < 1$ being randomly sampled for each class when the environment is generated.
 We call this distribution $CostPerClick(c,b)$, therefore $C_{c,b}\sim CostPerClick(c,b)$.
@@ -193,13 +193,13 @@ And therefore formulate the optimization problem as follows:
 With some manipulations using the properties of the expected value (Appendix \ref{sec.DerExpProf}), the expected profit can be expressed as follows:
 
 \begin{align*}
-ExpectedProfit(p,b)=\lambda_av(b)\sum_{c \in C}{l_{c}\Big(m(p)r(c,p)(1+f(c))-k(c,b)\Big)}
+ExpectedProfit(p,b)=\sum_{c \in C}{n(c,b)\Big(m(p)r(c,p)(1+f(c))-k(c,b)\Big)}
 \end{align*}
 
-Obtaining the following formulation, that depends only on the means of the distributions:
+Obtaining the following formulation of the optimization problem which depends only on the means of the distributions:
 
 \begin{align*}
-\argmax_{p,b}{\ \lambda_av(b)\sum_{c \in C}{l_{c}\Big(m(p)r(c,p)(1+f(c))-k(c,b)\Big)}}
+\argmax_{p,b}{\ \sum_{c \in C}{n(c,b)\Big(m(p)r(c,p)(1+f(c))-k(c,b)\Big)}}
 \end{align*}
 
 Under the Agnostic Publisher assumption, the following interesting result holds:
@@ -220,7 +220,30 @@ As a consequence of this result, we developed an algorithm that:
 And computes the optimal solution with a time complexity of $O(|P|+|B|)$.
 
 \section{Step 2}
-{\color{red}da scrivere}
+We can model the online version of the above optimization problem as follows: each day corresponds to a round, and the learning horizon is $H=365$ rounds. Before each round the learner specifies the price $p$ and the bid $b$ that will be used, while at the end of the round $j$ the learner will receive the following information:
+\begin{itemize}
+\item The number of auctions $a_j$ that were run by the ad publisher during that round
+\item The number of new clicks  $n_j$ received during that round
+\item The number of purchases of new users $s_j$ that happened during that round 
+\item The total cost per click that was paid to the ad publisher $c_j$
+\item The total number $f_{j-30}$ of subsequent purchases done by users that did the first purchase on round $j-30$. (If $j < 30$, this information will be omitted).
+\end{itemize}
+It can be noticed that there is a partially delayed feedback: in fact, the future visits of the users are defined as the number of subsequent purchases in the next 30 days and the learner will need to wait as many rounds to know the number of future visits that was realized, while they will be immediately aware of the realization of the other values.\\
+
+The learner's goal should be to estimate the expected profit of all the pricing/bidding strategies $(p,b)$, in order to employ the most profitable one. At round $i>30+|P|$, this estimation can be obtained by computing the expected value according to the formula defined in step 1, estimating:
+\begin{itemize}
+\item The average number of daily auctions $\overline a$ as the sample mean of the previously observed $a_js$: \[\overline a_i=\frac{1}{i}\sum_{j=0}^{i-1}{a_j}\]
+\item For each bid value $b$, the average number of new clicks  $\overline{n_b}$ as the mean of the observed $n_j$, considering only the rounds where the bid $b$ was employed: \[\overline{n_b}_i=\frac{1}{|\{j: b_j=b\}|}\sum_{j\in\{j: b_j=b\}}{n_j}\]
+\item For each price $p$, the conversion rate $\overline{r_p}$ as the ratio between the number of purchases and that of new clicks, considering only the rounds where the price $p$ was employed: \[\overline{r_p}_i=\frac{\sum_{j\in\{j:p_j=p\}}{s_j}}{\sum_{j\in\{j:p_j=p\}}{n_j}}\]
+\item For each bid value $b$, the average cost per click $\overline{c_b}$ that was paid to the ad publisher $c_j$ as the ratio between the total cost paid and the total number of clicks,  considering only the rounds where the bid $b$ was employed:  \[\overline{c_b}_i=\frac{\sum_{j\in\{j:b_j=b\}}{c_j}}{\sum_{j\in\{j:b_j=b\}}{n_j}}\]
+\item For each price $p$, the average number $\overline{f_p}$ of subsequent purchases done by users as the ratio between the total number of subsequent purchases of users of round $j$ and the number of purchases of round $j$, considering only the rounds where the price $p$ was employed and for which the delayed feedback has been received: \[\overline{f_p}_i=\frac{\sum_{j\in\{j:p_j=p, j\le i-30\}}{f_j}}{\sum_{j\in\{j:p_j=p, j\le i-30\}}{s_j}}\]
+\item For each bid value $b$, the probability $\overline{w_b}$ of winning the auction as the ratio between the number of new clicks and the number of auctions (recall that we are assuming that every user which is displayed the ad will also click on it), considering only the rounds where the bid $b$ was employed:  \[\overline{w_b}_i=\frac{\sum_{j\in\{j:b_j=b\}}{n_j}}{\sum_{j\in\{j:b_j=b\}}{a_j}}\]
+\end{itemize}
+After all these estimates have been computed, the learner can make a projecton of the expected profit $\widehat{exp(p,b)}_i$ of the strategy $(p,b)$ as: \[\widehat{exp(p,b)}_i=\overline{a}_i\overline{w_b}_i\bigg(m(p)\overline{r_p}_i(1+\overline{f_p}_i) -\overline{c_b} \bigg) \]
+The estimation can be done easily because none of the quantities to estimate depends both on $p$ and $b$, therefore the data can be used more efficiently.  Using the estimation the learner will choose $(p_i,b_i)$ and the learning process will move one round forward.
+Since the learner is optimizing on $p$ and $b$, they should not use the expected profit but rather an optimistic estimate of the expected profit, which can be obtained by applying to the conversion rate $\overline{r_p}_i$ and to the winning probability $\overline{w_b}_i$ optimistic exploration techniques such as upper confidence bounds or Thompson sampling and using such optimistic values instead of the sample means.\\
+
+\textbf{Note:} \textit{The number of rounds $30+P$ after which the learner begins to compute the estimates is to ensure that all the prices have received at least one delayed feedback in the case the learner performs round robins for the first $P$ rounds}
 
 \section{Step 3}
 {\color{red}da scrivere}
@@ -285,13 +308,13 @@ ExpectedProfit(p,b)
 &=\sum_{c \in C}{ \EX_{n_{c,b}}\left[n_{c,b}\bigg(r(c,p)(1+f(c))m(p)-k(c,b)\bigg)\right]}\\
 &=\sum_{c \in C}{ \EX_{n_{c,b}}\left[n_{c,b}\right]\bigg(r(c,p)(1+f(c))m(p)-k(c,b)\bigg)}\\
 &=\sum_{c \in C}{ \EX\left[N_{c,b}\right]\bigg(r(c,p)(1+f(c))m(p)-k(c,b)\bigg)}\\
-&=\sum_{c \in C}{ \lambda_a l_c v(b)\bigg(r(c,p)(1+f(c))m(p)-k(c,b)\bigg)}\\
-&=\lambda_av(b)\sum_{c \in C}{l_{c}\Big(r(c,p)(1+f(c))m(p)-k(c,b)\Big)}\\
+&=\sum_{c \in C}{ n(c,b)\bigg(r(c,p)(1+f(c))m(p)-k(c,b)\bigg)}\\
 \end{align*}
 
 \section{Proof of the Bid Independent Price Hierarchy lemma}\label{sec.BIPHLProof}
 \begin{align*}
-ExpectedProfit(p,b)=\lambda_av(b)\sum_{c \in C}{l_{c}\Big(r(c,p)(1+f(c))m(p)-k(c,b)\Big)}\\
+ExpectedProfit(p,b)&=\sum_{c \in C}{ n(c,b)\bigg(r(c,p)(1+f(c))m(p)-k(c,b)\bigg)}\\
+&=\lambda_av(b)\sum_{c \in C}{l_{c}\Big(r(c,p)(1+f(c))m(p)-k(c,b)\Big)}
 \end{align*}
 \begin{align*}
 \lambda_av(b)\sum_{c \in C}{l_{c}\Big(r(c,p_1)(1+f(c))m(p_1)-k(c,b)\Big)} &\ge \lambda_av(b)\sum_{c \in C}{l_{c}\Big(r(c,p_2)(1+f(c))m(p_2)-k(c,b)\Big)}
