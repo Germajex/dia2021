@@ -125,8 +125,5 @@ class OptimalPriceLearner:
 
         return new_clicks, purchases, tot_cost_per_clicks, (old_a, visits)
 
-    def compute_cumulative_regr(self, suboptimality_gaps):
-        return np.cumsum([suboptimality_gaps[a] for a in self.pulled_arms])
-
     def compute_cumulative_exp_profits(self, expected_profits):
         return np.cumsum([expected_profits[a] for a in self.pulled_arms])
