@@ -21,6 +21,7 @@ class OptimalPriceDiscriminatingLearner:
 
         self.latest_split = 0
         self.expected_profits = []
+        self.strategies = []
 
         self.context_structure: List[Context] = [
             self.context_creator(
@@ -154,6 +155,7 @@ class OptimalPriceDiscriminatingLearner:
                 self.future_visits_per_comb_per_arm[comb][chosen_arm].append(past_future_visits[comb])
             self.expected_profits.append(self.compute_expected_profit_last_round(strategy))
 
+        self.strategies.append(strategy)
         self.update_round_count()
 
     def update_round_count(self):
@@ -198,6 +200,12 @@ class OptimalPriceDiscriminatingLearner:
                                                            self.tot_cost_per_click_per_comb,
                                                            self.future_visits_per_comb_per_arm,
                                                            self.current_round)
+
+    def compute_cumulative_exp_profits(self, expected_profits):
+        return np.cumsum([
+            sum(expected_profits[comb][arm] for comb, arm in s.items())
+            for s in self.strategies]
+        )
 
     def compute_expected_profit_last_round(self, strategy):
         profit = np.sum(context.compute_expected_profit_last_round(self.new_clicks_per_comb_per_arm,
