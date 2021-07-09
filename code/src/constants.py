@@ -50,14 +50,6 @@ class _Const(object):
         return 150
 
     @constant
-    def NEWCLICKS_MIN_R():
-        return 5
-
-    @constant
-    def NEWCLICKS_MAX_R():
-        return 50
-
-    @constant
     def SIGMOID_Z_VALUES_NC():
         return [0.05, 0.1, 0.15, 0.2, 0.25, 0.3]
 
@@ -81,10 +73,3 @@ class _Const(object):
     def BACK_MEAN_MAX():
         return 10
 
-    @constant
-    def BACK_DEV_MIN():
-        return 1
-
-    @constant
-    def BACK_DEV_MAX():
-        return 5

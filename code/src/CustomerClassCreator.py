@@ -35,22 +35,20 @@ class CustomerClassCreator:
                 likelihoods[comb]
                 for comb in features
             )
+
             # Sample random parameters for each class
-            new_clicks_r = rng_generator.integers(CONST.NEWCLICKS_MIN_R, CONST.NEWCLICKS_MAX_R)
 
             sigmoid_z = rng_generator.choice(CONST.SIGMOID_Z_VALUES_CR)
             cr_center = rng_generator.integers(CONST.CR_CENTER_MIN, CONST.CR_CENTER_MAX)
 
             back_mean = rng_generator.integers(CONST.BACK_MEAN_MIN, CONST.BACK_MEAN_MAX)
-            back_dev = rng_generator.integers(CONST.BACK_DEV_MIN, CONST.BACK_DEV_MAX)
 
             cost_per_click_perc = rng_generator.uniform(CONST.COST_PER_CLICK_PERC_MIN, CONST.COST_PER_CLICK_PERC_MAX)
 
             customer_classes.append(
-                CustomerClass(name=CONST.NAMES[i], features=features, new_clicks_r=new_clicks_r,
+                CustomerClass(name=CONST.NAMES[i], features=features,
                               cr_center=cr_center, sigmoid_z=sigmoid_z, back_mean=back_mean,
-                              back_dev=back_dev, cost_per_click_perc=cost_per_click_perc,
-                              likelihood=likelihood))
+                              cost_per_click_perc=cost_per_click_perc, likelihood=likelihood))
 
         return customer_classes
 

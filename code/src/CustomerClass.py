@@ -1,5 +1,5 @@
 class CustomerClass:
-    def __init__(self, name, features, new_clicks_r, cr_center, sigmoid_z, back_dev,
+    def __init__(self, name, features, cr_center, sigmoid_z,
                  back_mean, cost_per_click_perc, likelihood):
         # Name
         self.name = name
@@ -7,16 +7,12 @@ class CustomerClass:
         # Binary Features
         self.features = features
 
-        # New user click
-        self.newClicksR = new_clicks_r
-
         # Conversion rate (specular sigmoid function, centered in an arbitrary point
         self.crCenter = cr_center
         self.sigmoidZ = sigmoid_z
 
         # Number of times the user will come back (normal distribution)
         self.backMean = back_mean
-        self.backDev = back_dev
         self.cost_per_click_perc = cost_per_click_perc
 
         self.likelihood = likelihood
