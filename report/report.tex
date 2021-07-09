@@ -51,6 +51,9 @@
 
  \setlength{\parindent}{0pt}
 
+\usepackage{minted}
+\usemintedstyle{borland}
+
 \usepackage{amsmath, amssymb, amsthm}
 \DeclareMathOperator{\EX}{\mathbb{E}}
 \DeclareMathOperator{\Prob}{\mathbb{P}}
@@ -60,6 +63,7 @@
 
 \newtheorem*{assumption}{Assumption}
 \newtheorem*{lemma}{Lemma}
+\hyphenation{PriceBanditEnvironment}
 %%% END Article customizations
 
 %%% The "real" document content comes below...
@@ -250,6 +254,27 @@ Since the learner is optimizing on $p$ and $b$, they should not use the expected
 \textbf{Note:} \textit{The number of rounds $30+P$ after which the learner begins to compute the estimates is to ensure that all the prices have received at least one delayed feedback in the case the learner performs round robins for the first $P$ rounds}
 
 \section{Step 3}
+In order to learn in an online fashion the best pricing strategy for a fixed bid value, we have implemented a python object called \textit{OptimalPriceLearner} and one called\\ \textit{PriceBanditEnvironment}, which has internally an instance of the \textit{Environment} object. 
+
+Upon the creation of an instance of a \textit{PriceBanditEnvironment}, the underlying\\ \textit{Environment}, the set of possible prices and the fixed bid value must be supplied as arguments. The bandit environment hides the actual prices $P$ from the learner, and instead it shows a bandit-like set of integers numbered from $0$ to $|P|-1$.\\
+
+The \textit{PriceBanditEnvironment} exposes the method \mbox{\textit{pull\_arm\_not\_discriminating(arm: int)}}, which returns the aggregated data:\\
+\mbox{\textit{new\_clicks, purchases, tot\_cost\_per\_clicks, (past\_arm, past\_future\_visits)}}.\\
+
+These data implement the round output specified at step 2, with the exception of \textit{past\_arm} which is just a reminder of the arm that was chosen at the round in which the delayed feedback started. 
+
+The learning loop is as follows:
+\inputminted{python}{code/step3_learning_loop.py}
+It is clear that the learner chooses to pull the arm that has the highest projected profit, which is, for each arm, the profit computed with an optimistic estimate of the conversion rate associated to the arm itself.
+
+Let's see how the learner computes the projected profits:
+\inputminted{python}{code/step3_projected_profits.py}
+Note that since the conversion rates are numpy arrays, the result is a numpy array with one entry for each arm.
+
+The function \textit{simple\_class\_profit} is defined as follows:
+\inputminted{python}{code/step3_simple_class_profit.py}
+And the estimators $\overline{f_p}$ of the average future visits associated with a price and $\overline{n}$ of the average number of new clicks are computed as follows:
+\inputminted{python}{code/step3_estimates.py}
 {\color{red}da scrivere}
 
 \section{Step 4}

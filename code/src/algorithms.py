@@ -1,9 +1,14 @@
 import numpy as np
 
 
-def simple_class_profit(margin, new_clicks, conversion_rate, future_visits, cost_per_click):
-    return new_clicks * (margin * conversion_rate * (1 + future_visits) - cost_per_click)
+# start simple class profit
+def simple_class_profit(margin, new_clicks, conversion_rate,
+                        future_visits, cost_per_click):
+    return new_clicks * (margin * conversion_rate * (1 + future_visits)
+                         - cost_per_click)
 
+
+# end simple class profit
 
 def expected_profit_of_pricing_strategy(env, pricing_strategy, b):
     return sum(expected_profit_for_comb(env, p, b, comb)
