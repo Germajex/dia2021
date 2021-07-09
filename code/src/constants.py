@@ -79,5 +79,4 @@ class _Const(object):
 
     @constant
     def BACK_MEAN_MAX():
-        return 10
-
+        return 8
