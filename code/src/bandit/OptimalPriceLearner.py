@@ -127,3 +127,6 @@ class OptimalPriceLearner:
 
     def compute_cumulative_exp_profits(self, expected_profits):
         return np.cumsum([expected_profits[a] for a in self.pulled_arms])
+
+    def compute_cumulative_regr_from_gaps(self, gaps):
+        return np.cumsum([gaps[a] for a in self.pulled_arms])
