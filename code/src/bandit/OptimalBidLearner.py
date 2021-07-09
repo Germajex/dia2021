@@ -73,7 +73,7 @@ class OptimalBidLearner:
         raise NotImplementedError
 
     def compute_conversion_rates(self):
-        return average_ragged_matrix(self.purchases_per_arm) / average_ragged_matrix(self.new_clicks_per_arm)
+        return sum_ragged_matrix(self.purchases_per_arm) / sum_ragged_matrix(self.new_clicks_per_arm)
 
     def compute_expected_profit_one_round(self, new_clicks, purchases, tot_cost_per_clicks):
         if new_clicks == 0:

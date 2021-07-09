@@ -54,6 +54,7 @@ class PriceBanditEnvironment:
     def reset_state(self):
         self.future_visits_queue = [(None, {comb: 0 for comb in
                                             self.env.get_features_combinations()})] * self.future_visits_delay
+        self.current_round = 0
 
     def margin(self, arm: int):
         return self.env.margin(self.prices[arm])

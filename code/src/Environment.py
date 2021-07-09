@@ -1,4 +1,5 @@
 import itertools
+from collections import defaultdict
 
 from numpy.random import default_rng, Generator
 
@@ -91,32 +92,26 @@ class Environment:
         return self.likelihoods[f]
 
     def simulate_one_day_fixed_bid(self, pricing_strategy, bid):
-        purchases, tot_cost_per_clicks, new_future_visits = {}, {}, {}
-
-        auctions, new_clicks = self.distNewClicks.sample(bid)
-
-        profit = 0
-        for c in self.classes:
-            for comb in c.features:
-                price = pricing_strategy[comb]
-                clicks = new_clicks[comb]
-                purchases[comb] = self.distClickConverted.sample_n(c, price, clicks)
-                tot_cost_per_clicks[comb] = sum(self.distCostPerClick.sample_n(c, bid, clicks))
-                new_future_visits[comb] = sum(self.distFutureVisits.sample_n(c, purchases[comb]))
-                profit += self.margin(price) * (purchases[comb] + new_future_visits[comb]) - tot_cost_per_clicks[comb]
-
-        return auctions, new_clicks, purchases, tot_cost_per_clicks, new_future_visits, profit
+        bidding_strategy = defaultdict(lambda: bid)
+        return self.simulate_one_day(pricing_strategy, bidding_strategy)
 
     def simulate_one_day_fixed_price(self, price, bidding_strategy):
+        pricing_strategy = defaultdict(lambda: price)
+        return self.simulate_one_day(pricing_strategy, bidding_strategy)
+
+    def simulate_one_day(self, pricing_strategy, bidding_strategy):
         purchases, tot_cost_per_clicks, new_future_visits, new_clicks = {}, {}, {}, {}
 
         auctions, new_clicks = self.distNewClicks.sample_bidding_strategy(bidding_strategy)
+        profit = 0
 
         for c in self.classes:
             for comb in c.features:
+                price = pricing_strategy[comb]
                 bid = bidding_strategy[comb]
                 purchases[comb] = self.distClickConverted.sample_n(c, price, new_clicks[comb])
                 tot_cost_per_clicks[comb] = sum(self.distCostPerClick.sample_n(c, bid, new_clicks[comb]))
                 new_future_visits[comb] = sum(self.distFutureVisits.sample_n(c, purchases[comb]))
+                profit += self.margin(price) * (purchases[comb] + new_future_visits[comb]) - tot_cost_per_clicks[comb]
 
-        return auctions, new_clicks, purchases, tot_cost_per_clicks, new_future_visits
+        return auctions, new_clicks, purchases, tot_cost_per_clicks, new_future_visits, profit
