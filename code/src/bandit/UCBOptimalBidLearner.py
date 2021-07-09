@@ -21,8 +21,7 @@ class UCBOptimalBidLearner(OptimalBidLearner):
         return self.compute_average_new_clicks() + self.compute_new_clicks_radia()
 
     def compute_new_clicks_radia(self):
-        # b = max_ragged_matrix(self.new_clicks_per_arm)
-        b = [np.max(self.new_clicks_per_arm[arm]) for arm in range(self.n_arms)]
+        b = np.array([np.max(self.new_clicks_per_arm[arm]) for arm in range(self.n_arms)])
 
         return b * np.sqrt(2 * np.log(self.current_round) / self.get_number_of_pulls())
 

@@ -17,7 +17,7 @@ def plot_results(names, rewards, clairvoyant, n_rounds, smooth=False):
 
         if smooth:
             # Smooth
-            x_pre_smooth = np.linspace(0, n_rounds, n_rounds//30)
+            x_pre_smooth = np.linspace(0, n_rounds, n_rounds//100)
             bspline = interpolate.make_interp_spline(x, regret)
             regret_pre_smooth = bspline(x_pre_smooth)
 
