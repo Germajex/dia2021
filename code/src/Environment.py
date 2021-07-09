@@ -26,8 +26,8 @@ class Environment:
         self.likelihoods = {}
         for c in self.combinations:
             f1, f2 = c
-            p1 = self.feature_1_likelihood if f1 else (1-self.feature_1_likelihood)
-            p2 = self.feature_2_likelihood if f2 else (1-self.feature_2_likelihood)
+            p1 = self.feature_1_likelihood if f1 else (1 - self.feature_1_likelihood)
+            p2 = self.feature_2_likelihood if f2 else (1 - self.feature_2_likelihood)
             self.likelihoods[c] = p1 * p2
 
         self.classes = CustomerClassCreator().get_new_classes(self.rng,
@@ -103,7 +103,7 @@ class Environment:
                 purchases[comb] = self.distClickConverted.sample_n(c, price, clicks)
                 tot_cost_per_clicks[comb] = sum(self.distCostPerClick.sample_n(c, bid, clicks))
                 new_future_visits[comb] = sum(self.distFutureVisits.sample_n(c, purchases[comb]))
-                profit += self.margin(price)*(purchases[comb]+new_future_visits[comb])-tot_cost_per_clicks[comb]
+                profit += self.margin(price) * (purchases[comb] + new_future_visits[comb]) - tot_cost_per_clicks[comb]
 
         return auctions, new_clicks, purchases, tot_cost_per_clicks, new_future_visits, profit
 
