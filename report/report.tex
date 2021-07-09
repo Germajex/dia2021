@@ -232,7 +232,7 @@ We can model the online version of the above optimization problem as follows: ea
 \item The total cost per click that was paid to the ad publisher $c_j$
 \item The total number $f_{j-30}$ of subsequent purchases done by users that did the first purchase on round $j-30$. (If $j < 30$, this information will be omitted).
 \end{itemize}
-It can be noticed that there is a partially delayed feedback: in fact, the future visits of the users are defined as the number of subsequent purchases in the next 30 days and the learner will need to wait as many rounds to know the number of future visits that was realized, while they will be immediately aware of the realization of the other values.\\
+It must be noticed that there is a partially delayed feedback: in fact, the future visits of the users are defined as the number of subsequent purchases in the next 30 days and the learner will need to wait as many rounds to know the number of future visits that was realized, while they will be immediately aware of the realization of the other values.\\
 
 The learner's goal should be to estimate the expected profit of all the pricing/bidding strategies $(p,b)$, in order to employ the most profitable one. At round $i>30+|P|$, this estimation can be obtained by computing the expected value according to the formula defined in step 1, estimating:
 \begin{itemize}
