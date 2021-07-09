@@ -36,7 +36,7 @@ class Environment:
                                                               CONST.N_CUSTOMER_CLASSES)
 
         self.average_tot_auctions = self.rng.uniform(CONST.AUCTIONS_MIN, CONST.AUCTIONS_MAX)
-
+        self.item_base_price = self.rng.integers(CONST.BASE_PRICE_MIN, CONST.BASE_PRICE_MAX)
         self.newClicksC, self.newClicksZ = CustomerClassCreator().get_new_clicks_v_parameters(self.rng)
 
         self.distNewClicks = NewClicksDistribution(self.rng, self.newClicksC, self.newClicksZ,
@@ -54,9 +54,8 @@ class Environment:
     def get_seed(self):
         return self._seed
 
-    @staticmethod
-    def margin(price: float):
-        return price
+    def margin(self, price: float):
+        return price-self.item_base_price
 
     def print_summary(self):
         print(f'Theta 1: {self.feature_1_likelihood:.2f}')

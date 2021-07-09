@@ -26,6 +26,14 @@ class _Const(object):
         return 20
 
     @constant
+    def BASE_PRICE_MIN():
+        return 10
+
+    @constant
+    def BASE_PRICE_MAX():
+        return 30
+
+    @constant
     def COST_PER_CLICK_PERC_MIN():
         return 0.7
 
