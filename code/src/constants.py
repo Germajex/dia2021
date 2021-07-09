@@ -42,11 +42,11 @@ class _Const(object):
         return 0.97
 
     @constant
-    def FEATURE_LIKELIHOOD_MIN()->float:
+    def FEATURE_LIKELIHOOD_MIN():
         return 0.3
 
     @constant
-    def FEATURE_LIKELIHOOD_MAX()->float:
+    def FEATURE_LIKELIHOOD_MAX():
         return 0.7
 
     @constant
