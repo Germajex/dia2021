@@ -169,8 +169,11 @@ With the percentage $0 < u_c < 1$ being randomly sampled for each class when the
 We call this distribution $CostPerClick(c,b)$, therefore $C_{c,b}\sim CostPerClick(c,b)$.
 
 \subsection{Margin function $m(p)$}
-{\color{red}Come la abbiamo definita}
-
+At the generation of the environment, the base price $p_{base}$ of the item is randomly sampled. This is the price that the seller has paid to produce the item, therefore the margin function $m(p)$ is defined as follows:
+\begin{align*}
+m(p)=p-p_{base}
+\end{align*}
+And it represents the profit that the seller makes by selling one item at price $p$.
 \section{Step 1}
 The goal is to maximize the expected profit over a single day, where the future visits of a user are considered to contribute in expected value to the profit of the day of the first visit.
 \newline
