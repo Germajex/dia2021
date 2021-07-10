@@ -81,12 +81,14 @@ class OptimalPriceLearner:
         return average_ragged_matrix(self.new_clicks_per_arm)
 
     # end compute estimates
-
+    # start conversion rates
     def compute_projection_conversion_rates(self):
         raise NotImplementedError
 
     def get_average_conversion_rates(self):
         raise NotImplementedError
+
+    # end conversion rates
 
     def get_number_of_pulls(self):
         return [len(a) for a in self.new_clicks_per_arm]
