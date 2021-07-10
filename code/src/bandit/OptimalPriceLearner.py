@@ -14,7 +14,6 @@ class OptimalPriceLearner:
         self.new_clicks_per_arm = [[] for i in range(self.n_arms)]
         self.tot_cost_per_click = 0
         self.current_round = 0
-        self.expected_profits = []
 
         self.pulled_arms = []
 
@@ -108,8 +107,6 @@ class OptimalPriceLearner:
 
         if old_a is not None:
             self.future_visits_per_arm[old_a].append(visits)
-            self.expected_profits.append(self.compute_expected_profit_one_round(new_clicks, purchases,
-                                                                                tot_cost_per_clicks, arm))
 
         self.current_round += 1
         self.pulled_arms.append(arm)
@@ -121,23 +118,6 @@ class OptimalPriceLearner:
 
     def compute_cumulative_regr_from_gaps(self, gaps):
         return np.cumsum([gaps[a] for a in self.pulled_arms])
-
-    def compute_expected_profit_one_round(self, new_clicks, purchases, tot_cost_per_clicks, arm):
-        cr = purchases / new_clicks
-        future = self.compute_future_visits()
-        margin = self.env.margin(arm)
-
-        expected_profit = new_clicks * (margin * cr * (1 + future)) - tot_cost_per_clicks
-        return expected_profit
-
-    def compute_future_visits(self):
-        successes_sum = 0
-
-        for arm in range(self.n_arms):
-            complete_samples = len(self.future_visits_per_arm[arm])
-            successes_sum += np.sum(self.purchases_per_arm[arm][:complete_samples])
-
-        return sum_ragged_matrix(self.future_visits_per_arm) / successes_sum
 
     def compute_cumulative_profits(self):
         return np.cumsum(self.expected_profits)
