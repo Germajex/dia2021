@@ -126,12 +126,12 @@ def plot_everything(environment: Environment, path=None):
 
     if path is not None:
         plt.savefig(path)
-
-    plt.show()
+    else:
+        plt.show()
 
 
 if __name__ == "__main__":
-    test_environment = Environment(3626227578)
+    test_environment = Environment(2530307612)
 
     # plot_new_clicks(test_environment)
     # plot_future_visits(test_environment)
