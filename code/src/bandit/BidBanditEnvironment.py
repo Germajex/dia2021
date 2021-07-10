@@ -27,12 +27,12 @@ class BidBanditEnvironment:
     def pull_arm_not_discriminating(self, arm: int):
         arm_strategy = {comb: arm for comb in self.env.get_features_combinations()}
 
-        new_clicks, purchases, tot_cost_per_clicks, \
+        auctions, new_clicks, purchases, tot_cost_per_clicks, \
             (past_arm_strategy, past_future_visits) = self._inner_pull_arm(arm_strategy)
 
         past_pulled_arm = None if past_arm_strategy is None else past_arm_strategy[(False, False)]
 
-        return sum(new_clicks.values()), sum(purchases.values()), sum(tot_cost_per_clicks.values()), \
+        return sum(auctions.values()), sum(new_clicks.values()), sum(purchases.values()), sum(tot_cost_per_clicks.values()), \
             (past_pulled_arm, sum(past_future_visits.values()))
 
     def _inner_pull_arm(self, arm_strategy):
@@ -46,7 +46,7 @@ class BidBanditEnvironment:
 
         self.current_round += 1
 
-        return new_clicks, purchases, tot_cost_per_clicks, past_future_visits
+        return auctions, new_clicks, purchases, tot_cost_per_clicks, past_future_visits
 
     def margin(self):
         return self.env.margin(self.price)
@@ -66,3 +66,9 @@ class BidBanditEnvironment:
     def get_clairvoyant_cumulative_profits_not_discriminating(self, n_rounds):
         round_profit = self.get_clairvoyant_optimal_expected_profit_not_discriminating()
         return np.cumsum([round_profit] * n_rounds)
+
+    def get_learner_cumulative_profit_not_discriminating(self, pulled_arms):
+        pulled_bids = [self.bids[i] for i in pulled_arms[:-self.future_visits_delay]]
+        profits = [expected_profit(self.env, self.price, bid) for bid in pulled_bids]
+
+        return np.cumsum(profits)
