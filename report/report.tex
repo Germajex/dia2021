@@ -298,21 +298,18 @@ The parent's \textit{pull\_from\_env(arm)} method is overridden to update the be
 It should be noticed that since each click is treated as a separate try of a Bernoulli random variable, the updates to the parameters $\alpha$ and $\beta$ happen in batches, that is after one round we do not see the realization of one additional try but rather that of $new\_clicks$ additional tries of the same arm.
 
 \clearpage
-\subsection{Benchmarks}
-\begin{figure}[h]
-  \noindent\makebox[\textwidth]{%
-  \includegraphics[width=1.4\textwidth]{figures/step3/env0.png}}
-	\includegraphics[scale=0.8] {figures/step3/plot0.png}
-\end{figure}
+\subsection{Experiment 1}
+\makebox[\linewidth]{\includegraphics[scale=0.4]{figures/step3/env0.png}}
+\makebox[\linewidth]{\includegraphics[scale=0.7] {figures/step3/plot0.png}}
+
 \clearpage
 \verbatiminput{figures/step3/output0.txt}
 
 \clearpage
-\begin{figure}[h]
-  \noindent\makebox[\textwidth]{%
-  \includegraphics[width=1.4\textwidth]{figures/step3/env1.png}}
-	\includegraphics[scale=0.8] {figures/step3/plot1.png}
-\end{figure}
+\subsection{Experiment 2}
+\makebox[\linewidth]{\includegraphics[scale=0.4]{figures/step3/env1.png}}
+\makebox[\linewidth]{\includegraphics[scale=0.7] {figures/step3/plot1.png}}
+
 \clearpage
 \verbatiminput{figures/step3/output1.txt}
 
