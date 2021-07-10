@@ -17,19 +17,14 @@ class UCBOptimalBidLearner(OptimalBidLearner):
         if self.show_round(self.current_round):
             self.show_bounds()
 
-    def compute_projection_new_clicks(self):
-        return self.compute_average_new_clicks() + self.compute_new_clicks_radia()
+    def compute_projection_auction_winning_probability_per_arm(self):
+        avg = self.compute_average_auction_winning_probability_per_arm()
+        radia = self.compute_auction_winning_probability_radia()
 
-    def compute_new_clicks_radia(self):
-        b = np.array([np.max(self.new_clicks_per_arm[arm]) for arm in range(self.n_arms)])
+        return avg + radia
 
-        return b * np.sqrt(2 * np.log(self.current_round) / self.get_number_of_pulls())
-
-    def compute_average_new_clicks(self):
-        average_clicks_per_arm = np.array([np.sum(np.array(self.new_clicks_per_arm[arm]) / len(self.new_clicks_per_arm[arm]))
-                                           for arm in range(self.n_arms)])
-
-        return average_clicks_per_arm
+    def compute_auction_winning_probability_radia(self):
+        return np.sqrt(2 * np.log(self.current_round) / self.get_number_of_pulls())
 
     # Method used for debugging mainly. Plots the average reward and the confidence bounds used by the UCB algorithm
     def show_bounds(self):
@@ -43,19 +38,18 @@ class UCBOptimalBidLearner(OptimalBidLearner):
         ax.set_xticklabels(self.env.bids)
         ax.set_xticks(x)
 
-        means = self.compute_average_new_clicks()
-        radia = self.compute_new_clicks_radia()
+        means = self.compute_average_auction_winning_probability_per_arm()
+        radia = self.compute_auction_winning_probability_radia()
 
         ax.errorbar(x, means, yerr=radia, color="black", capsize=5, fmt='o', markersize=4)
 
-        b = max_ragged_matrix(self.new_clicks_per_arm)
-        ax.hlines([0, b], -1, 11, colors='red')
+        ax.hlines([0, 1], -1, 11, colors='red')
         ax.set_xlim(-1, 11)
 
         print("Arm:             " + " ".join(f'{p:10d}' for p in range(self.n_arms)))
         print("Projected profits: " + " ".join(f'{p:10.2f}' for p in self.compute_projected_profits()))
         print("Expected profits:  " + " ".join(f'{p:10.2f}' for p in self.compute_expected_profits()))
-        print("Averages:          " + " ".join(f'{p:10.2f}' for p in self.compute_average_new_clicks()))
+        print("Averages:          " + " ".join(f'{p:10.2f}' for p in self.compute_average_new_clicks_per_arm()))
         print("Number of pulls:   " + " ".join(f'{p:10d}' for p in self.get_number_of_pulls()))
         print()
 
