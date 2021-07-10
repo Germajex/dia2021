@@ -18,7 +18,7 @@ def main():
     bids = np.arange(1, 101)
     interactive=False
 
-    for envN, seedV in enumerate([3144548588, None]):
+    for envN, seedV in enumerate([3144548588, 1873674269]):
 
         env = Environment(random_seed=seedV) if seedV is not None else Environment()
         print(f'Running with seed {env.get_seed()}')
