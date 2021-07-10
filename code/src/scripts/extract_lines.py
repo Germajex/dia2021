@@ -22,6 +22,26 @@ def main(destination_dir):
                   start_delimiter='    # start compute estimates\n',
                   end_delimiter='    # end compute estimates')
 
+    extract_lines(in_file='../bandit/OptimalPriceLearner.py',
+                  out_file=destination_dir + '/step3_conversion_rates.py',
+                  start_delimiter='    # start conversion rates\n',
+                  end_delimiter='    # end conversion rates')
+
+    extract_lines(in_file='../bandit/UCBOptimalPriceLearner.py',
+                  out_file=destination_dir + '/step3_ucb.py',
+                  start_delimiter='    # start conv rate\n',
+                  end_delimiter='    # end conv rate')
+
+    extract_lines(in_file='../bandit/TSOptimalPriceLearner.py',
+                  out_file=destination_dir + '/step3_ts_cr.py',
+                  start_delimiter='    # start conversion rate\n',
+                  end_delimiter='    # end conversion rate')
+
+    extract_lines(in_file='../bandit/TSOptimalPriceLearner.py',
+                  out_file=destination_dir + '/step3_ts_betas.py',
+                  start_delimiter='    # start update betas\n',
+                  end_delimiter='    # end update betas')
+
 
 def extract_lines(in_file, out_file, start_delimiter, end_delimiter):
     with open(in_file, 'r', encoding='utf8') as inf:

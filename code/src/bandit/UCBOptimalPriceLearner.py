@@ -16,25 +16,30 @@ class UCBOptimalPriceLearner(OptimalPriceLearner):
         if self.show_round(self.current_round):
             self.show_bounds()
 
+    # start conv rate
     def compute_projection_conversion_rates(self):
         return self.compute_conversion_rates_upper_bounds()
 
-    def compute_conversion_rates_averages(self):
-        return np.array([sum(self.purchases_per_arm[arm]) / sum(self.new_clicks_per_arm[arm])
-                         for arm in range(self.n_arms)]).flatten()
+    def compute_conversion_rates_upper_bounds(self):
+        averages = self.compute_conversion_rates_averages()
+        radii = self.compute_conversion_rates_radii()
+        upper_bounds = averages + radii
 
-    def compute_conversion_rates_radia(self):
+        return upper_bounds
+
+    def compute_conversion_rates_averages(self):
+        return np.array([
+            sum(self.purchases_per_arm[arm]) / sum(self.new_clicks_per_arm[arm])
+            for arm in range(self.n_arms)
+        ]).flatten()
+
+    def compute_conversion_rates_radii(self):
         tot_clicks_per_arm = np.array([np.sum(self.new_clicks_per_arm[arm])
                                        for arm in range(self.n_arms)])
 
         return np.sqrt(2 * np.log(self.current_round) / tot_clicks_per_arm)
 
-    def compute_conversion_rates_upper_bounds(self):
-        averages = self.compute_conversion_rates_averages()
-        radia = self.compute_conversion_rates_radia()
-        upper_bounds = averages + radia
-
-        return upper_bounds
+    # end conv rate
 
     def get_average_conversion_rates(self):
         return self.compute_conversion_rates_averages()
@@ -52,7 +57,7 @@ class UCBOptimalPriceLearner(OptimalPriceLearner):
         ax.set_xticks(x)
 
         means = self.compute_conversion_rates_averages()
-        radia = self.compute_conversion_rates_radia()
+        radia = self.compute_conversion_rates_radii()
 
         ax.errorbar(x, means, yerr=radia, color="black", capsize=5, fmt='o', markersize=4)
 
