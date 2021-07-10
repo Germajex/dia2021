@@ -3,7 +3,7 @@ import numpy as np
 from scipy import interpolate
 
 
-def plot_results(names, rewards, clairvoyant, n_rounds, smooth=False):
+def plot_results(names, rewards, clairvoyant, n_rounds, smooth=False, dest_file_path=None):
     fig, ax = plt.subplots(2, 1, constrained_layout=True)
     ax[0].set_title("Cumulative rewards")
     ax[1].set_title("Regret")
@@ -17,7 +17,7 @@ def plot_results(names, rewards, clairvoyant, n_rounds, smooth=False):
 
         if smooth:
             # Smooth
-            x_pre_smooth = np.linspace(0, n_rounds, n_rounds//100)
+            x_pre_smooth = np.linspace(0, n_rounds, n_rounds // 100)
             bspline = interpolate.make_interp_spline(x, regret)
             regret_pre_smooth = bspline(x_pre_smooth)
 
@@ -34,4 +34,8 @@ def plot_results(names, rewards, clairvoyant, n_rounds, smooth=False):
     ax[1].legend(names)
     names.insert(0, "clairvoyant")
     ax[0].legend(names)
-    plt.show()
+
+    if dest_file_path is None:
+        plt.show()
+    else:
+        plt.savefig(dest_file_path)
