@@ -28,13 +28,17 @@ class UCBOptimalJointLearner(OptimalJointLearner):
                                        for p in range(self.n_arms_price)])
         return np.sqrt(2 * np.log(self.current_round) / tot_clicks_per_arm)
 
-    def compute_projection_auction_winning_probability(self, arm_price):
-        averages = self.compute_auction_winning_probability_averages(self, arm_price)
+    def compute_projection_auction_winning_probability(self):
+        averages = self.compute_auction_winning_probability_averages()
         radia = self.compute_auction_winning_probability_radia()
         return averages + radia
 
-    def compute_auction_winning_probability_averages(self, arm_price):
-        return np.array([sum(self.new_clicks[arm_price][b]) / self.tot_auctions_per_bid[b] for b in range(self.n_arms_bid)])
+    def compute_auction_winning_probability_averages(self):
+        new_c = [[] for b in range(self.n_arms_bid)]
+        for b in range(self.n_arms_bid):
+            for p in range(self.n_arms_price):
+                new_c[b].extend(self.new_clicks[p][b])
+        return np.array([sum(new_c[b]) / self.tot_auctions_per_bid[b] for b in range(self.n_arms_bid)]).flatten()
 
     def compute_auction_winning_probability_radia(self):
-        return np.sqrt(2 * np.log(self.current_round) / self.tot_auctions_per_bid)
+        return (np.sqrt(2 * np.log(self.current_round) / self.tot_auctions_per_bid)).flatten()

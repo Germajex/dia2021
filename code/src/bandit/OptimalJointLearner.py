@@ -19,7 +19,7 @@ class OptimalJointLearner:
         self.new_clicks = [[[] for i in range(self.n_arms_bid)]
                            for j in range(self.n_arms_price)]
         self.tot_cost_per_click_per_bid = [0 for i in range(self.n_arms_bid)]
-        self.tot_auctions_per_bid = [[] for i in range(self.n_arms_bid)]
+        self.tot_auctions_per_bid = [[0] for i in range(self.n_arms_bid)]
         self.current_round = 0
         self.security = 0.2
 
@@ -37,17 +37,24 @@ class OptimalJointLearner:
 
     def choose_next_arm(self):
         median_bid = self.n_arms_bid // 2
-        arm_price = np.amax(self.compute_projected_profits_fixed_bid(median_bid))
+        arm_price = np.argmax(self.compute_projected_profits_fixed_bid(median_bid))
         mask = self.compute_safe_arms(arm_price)
         arms_bid_safe = self.compute_projected_profits_fixed_price(arm_price)[mask]
-        arm_bid = np.amax(arms_bid_safe)
+        arm_bid = np.argmax(arms_bid_safe)
         return arm_price, arm_bid
 
     def compute_safe_arms(self, arm_price):
-        means = [np.mean(new_c) for new_c in self.new_clicks[arm_price]]
-        std_dev = [np.std(new_c) for new_c in self.new_clicks[arm_price]]
 
-        lower_security_value = [norm.ppf(self.security, m, std) for m, std in zip(means, std_dev)]
+        new_c = [[] for b in range(self.n_arms_bid)]
+        for b in range(self.n_arms_bid):
+            for p in range(self.n_arms_price):
+                new_c[b].extend(self.new_clicks[p][b])
+
+        means = [np.mean(new_c[b]) for b in range(self.n_arms_bid)]
+        std_devs = [np.std(new_c[b]) for b in range(self.n_arms_bid)]
+
+        lower_security_value = [norm.ppf(self.security, m, std) for m, std in zip(means, std_devs)]
+
         expected_profits = self.compute_expected_profits_fixed_price(arm_price, nc=lower_security_value)
         arm_mask = expected_profits > 0
 
@@ -68,7 +75,7 @@ class OptimalJointLearner:
         return projected_profit
 
     def compute_projected_profits_fixed_price(self, arm_price):
-        new_clicks = self.compute_projection_new_clicks(arm_price)
+        new_clicks = self.compute_projection_new_clicks()
         margin = self.env.margin(arm_price)
         crs = self.compute_conversion_rates(arm_price)
         future_visits = self.compute_future_visits(arm_price)
@@ -86,10 +93,10 @@ class OptimalJointLearner:
         margin = self.env.margin(arm_price)
         crs = self.compute_conversion_rates(arm_price)
         future_visits = self.compute_future_visits(arm_price)
-        cost_per_click = self.compute_cost_per_click(arm_price)
+        cost_per_click = self.compute_cost_per_click_per_arm()
 
         expected_profit = simple_class_profit(
-            margin = margin, conversion_rate=crs, new_clicks=new_clicks,
+            margin=margin, conversion_rate=crs, new_clicks=new_clicks,
             future_visits=future_visits, cost_per_click=cost_per_click
         )
 
@@ -119,13 +126,13 @@ class OptimalJointLearner:
     def compute_projection_conversion_rates(self):
         raise NotImplementedError
 
-    def compute_projection_new_clicks(self, arm_price):
-        auction_win_probability = self.compute_projection_auction_winning_probability(arm_price)
+    def compute_projection_new_clicks(self):
+        auction_win_probability = self.compute_projection_auction_winning_probability()
         average_auctions = np.sum(self.tot_auctions_per_bid) / self.current_round
 
         return auction_win_probability * average_auctions
 
-    def compute_projection_auction_winning_probability(self, arm_price):
+    def compute_projection_auction_winning_probability(self):
         raise NotImplementedError
 
     def compute_cost_per_click_per_arm(self):
