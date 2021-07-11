@@ -170,3 +170,21 @@ class OptimalJointLearner:
         self.pulled_arms.append((arm_price, arm_bid))
 
         return new_clicks, purchases, tot_cost_per_clicks, (old_a, visits)
+
+    def pulled_arm_count(self, arm_p, arm_b):
+        i = 0
+        for arm_price, arm_bid in self.pulled_arms:
+            if arm_price == arm_p and arm_bid == arm_b:
+                i += 1
+
+        return i
+
+    def get_pulled_arms_recap(self):
+        recap = []
+        for arm_p in range(self.n_arms_price):
+            bid_recap = []
+            for arm_b in range(self.n_arms_bid):
+                bid_recap.append(self.pulled_arm_count(arm_p, arm_b))
+            recap.append(bid_recap)
+
+        return recap
