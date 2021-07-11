@@ -252,7 +252,7 @@ The learner's goal should be to estimate the expected profit of all the pricing/
 \item For each bid value $b$, the probability $\overline{w_b}$ of winning the auction as the ratio between the number of new clicks and the number of auctions {\color{red}(recall that we are assuming that every user which is displayed the ad will also click on it)}, considering only the rounds where the bid $b$ was employed:  \[\overline{w_b}_i=\frac{\sum_{j\in\{j:b_j=b\}}{n_j}}{\sum_{j\in\{j:b_j=b\}}{a_j}}\]
 \end{itemize}
 After all these estimates have been computed, the learner can make a projecton of the expected profit $\widehat{exp(p,b)}_i$ of the strategy $(p,b)$ as: \[\widehat{exp(p,b)}_i=\overline{a}_i\overline{w_b}_i\bigg(m(p)\overline{r_p}_i(1+\overline{f_p}_i) -\overline{c_b} \bigg) \]
-The estimation can be done efficiently because none of the quantities to estimate depends both on $p$ and $b$.  Using the estimation the learner will choose $(p_i,b_i)$ and the learning process will move one round forward.
+The estimation can be done efficiently because none of the quantities to estimate depends both on $p$ and $b$. {\color{red}It may be non trivial to notice that the estimate of $\overline{f_p}$ can be computed summing the sample that come from rounds where different bids were used, we show this in Appendix \ref{sec.futureVisitsOk}}. Using the estimation the learner will choose $(p_i,b_i)$ and the learning process will move one round forward.
 Since the learner is optimizing on $p$ and $b$, they should not use the expected profit but rather an optimistic estimate of the expected profit, which can be obtained by applying to the conversion rate $\overline{r_p}_i$ and to the winning probability $\overline{w_b}_i$ optimistic exploration techniques such as upper confidence bounds or Thompson sampling and using such optimistic values instead of the sample means.\\
 
 \textbf{Note:} \textit{The number of rounds $30+P$ after which the learner begins to compute the estimates is to ensure that all the prices have received at least one delayed feedback in the case the learner performs round robins for the first $P$ rounds}
@@ -401,4 +401,32 @@ Since the term $\sum_{c \in C}{l_{c}k(c,b)}$ appears on both sides:
 \sum_{c \in C}{l_{c}r(c,p_1)(1+f(c))m(p_1)} &\ge \sum_{c \in C}{l_{c}r(c,p_2)(1+f(c))m(p_2)}
 \end{align*}
 Since all the steps can be reversed with an arbitrary bid $b'$, the relation holds for every possible value of the bid.
+
+{\color{red}
+\section{Estimating the future visits per purchase $\overline{f_p}$}\label{sec.futureVisitsOk}
+Consider the estimation of $\overline{f_{p,b}}$ for a specific pair $(p,b)$ computed before choosing the strategy for round $i$:
+\begin{align*}
+R&=\{j:p_j=p,b_j=b, j\le i-30\}\\
+\overline{f_{p,b,i}}&=\frac{\sum_{j\in R}{f_j}}{\sum_{j\in R}{s_j}}
+\end{align*}
+Recall that $f_j$ and $s_j$ are the result of a the random experiment of the round $j$:
+\begin{align*}
+f_j&=\sum_{c \in C}{\sum_{k =1}^{N_{c,b_j}}{D_{c,p_j,k}F_{c,k}}}\\
+\EX[f_j]&=\sum_{c \in C}{n(c,b_j)r(c,p_j)f(c)}=\lambda_av(b_j)\sum_{c \in C}{l_cr(c,p_j)f(c)}\\
+s_j&=\sum_{c \in C}{\sum_{k =1}^{N_{c,b_j}}{D_{c,p_j,k}}}\\
+\EX[s_j]&=\sum_{c \in C}{n(c,b_j)r(c,p_j)}=\lambda_av(b_j)\sum_{c \in C}{l_cr(c,p_j)}
+\end{align*}
+Given that the learner only sees for each combination $(p,b)$ the total purchases $P_{p,b}$ and the total future visits of people who purchased $F_{p,b}$, the estimator simply computes the empiric mean of $F_{p,b}$ considering each purchase a different sample, that is:
+\begin{align*}
+\overline{f_{p,b,i}}&=\overline{F_{p,b}}_{P_{p,b}}\\
+\EX[\overline{f_{p,b,i}}]&=\EX[F_{p,b}]
+\end{align*}
+
+Considering only one round, the estimator computes the empiric average of $F$
+Therefore at round $i$:
+\begin{align*}
+\overline{f_{p,b,i}}&=\frac{\sum_{j\in R}{\sum_{c \in C}{\sum_{k =1}^{N_{c,b,j}}{D_{c,p,j,k}F_{c,k}}}}}{\sum_{j\in R}{\sum_{c \in C}{\sum_{k =1}^{N_{c,b,j}}{D_{c,p,j,k}}}}}
+\end{align*}
+This estimates $\EX[F_p | D_p = 1]$
+}
 \end{document}
