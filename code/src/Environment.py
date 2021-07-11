@@ -99,6 +99,11 @@ class Environment:
         pricing_strategy = defaultdict(lambda: price)
         return self.simulate_one_day(pricing_strategy, bidding_strategy)
 
+    def simulate_one_day_fixed_both(self, price, bid):
+        pricing_strategy = defaultdict(lambda: price)
+        bidding_strategy = defaultdict(lambda: bid)
+        return self.simulate_one_day(pricing_strategy, bidding_strategy)
+
     def simulate_one_day(self, pricing_strategy, bidding_strategy):
         purchases, tot_cost_per_clicks, new_future_visits, new_clicks = {}, {}, {}, {}
 
