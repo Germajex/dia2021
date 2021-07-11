@@ -9,7 +9,7 @@ from src.bandit.UCBOptimalBidLearner import UCBOptimalBidLearner
 
 def main():
     prices = np.arange(10, 101, 10)
-    bids = np.linspace(1, 50, num=10, dtype=np.int64)
+    bids = np.linspace(1, 80, num=10, dtype=np.int64)
 
     env = Environment()
     print(f'Running with seed {env.get_seed()}')

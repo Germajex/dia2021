@@ -65,3 +65,9 @@ class JointBanditEnvironment:
     def get_clairvoyant_cumulative_profits_not_discriminating(self, n_rounds):
         round_profit = self.get_clairvoyant_optimal_expected_profit_not_discriminating()
         return np.cumsum([round_profit] * n_rounds)
+
+    def get_learner_cumulative_profit_not_discriminating(self, pulled_arms):
+        pulled_values = [(self.prices[p], self.bids[b]) for p, b in pulled_arms[:-self.future_visits_delay]]
+        profits = [expected_profit(self.env, price, bid) for price, bid in pulled_values]
+        
+        return np.cumsum(profits)
