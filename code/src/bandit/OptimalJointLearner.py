@@ -39,7 +39,7 @@ class OptimalJointLearner:
         median_bid = self.n_arms_bid // 2
         arm_price = np.argmax(self.compute_projected_profits_fixed_bid(median_bid))
         mask = self.compute_safe_arms(arm_price)
-        arms_bid_safe = self.compute_projected_profits_fixed_price(arm_price)[mask]
+        arms_bid_safe = np.where(mask, self.compute_projected_profits_fixed_price(arm_price), 0)
         arm_bid = np.argmax(arms_bid_safe)
         return arm_price, arm_bid
 

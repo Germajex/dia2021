@@ -32,7 +32,8 @@ class OptimalBidLearner:
     def choose_next_arm(self):
         # We hope this mask won't ever be all false
         mask = self.compute_safe_arms()
-        return int(np.argmax(self.compute_projected_profits()[mask]))
+        arms_bid_safe = np.where(mask, self.compute_projected_profits(), 0)
+        return int(np.argmax(arms_bid_safe))
 
     def compute_safe_arms(self):
         means = [np.mean(new_clicks) for new_clicks in self.new_clicks_per_arm]
