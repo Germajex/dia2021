@@ -11,17 +11,19 @@ class Context:
         self.n_arms = n_arms
         self.rng = rng
 
-        # caso problematico: context che gestisce combinazioni A, B riceve il feedback di un pull
-        # fatto quando A e B erano splittati, e per i due sono stati pullati arm diversi.
-        # come piazzare le future visits? quindi abbiamo diviso tutto per comb
-        # e dato che l'environment ha già tutto diviso per comb semplicemente le passa come parametri
-        # e il context se li calcola aggregati
-
-    def choose_next_arm(self, new_clicks_per_comb_per_arm, purchases_per_comb_per_arm, cost_per_click_per_comb,
+    # start context next arm
+    def choose_next_arm(self, new_clicks_per_comb_per_arm,
+                        purchases_per_comb_per_arm, cost_per_click_per_comb,
                         future_visits_per_comb_per_arm, current_round):
-        return int(np.argmax(self.compute_projected_profit(new_clicks_per_comb_per_arm, purchases_per_comb_per_arm,
-                                                           cost_per_click_per_comb, future_visits_per_comb_per_arm,
-                                                           current_round)))
+        return int(np.argmax(self.compute_projected_profit(
+            new_clicks_per_comb_per_arm,
+            purchases_per_comb_per_arm,
+            cost_per_click_per_comb,
+            future_visits_per_comb_per_arm,
+            current_round)
+        ))
+
+    # end context next arm
 
     def merge_cost_per_click(self, cost_per_click_per_comb):
         cost_per_click = sum(cost_per_click_per_comb[comb] for comb in self.features)
@@ -48,15 +50,11 @@ class Context:
         new_clicks_per_arm = self.merge(new_clicks_per_comb_per_arm)
         purchases_per_arm = self.merge(purchases_per_comb_per_arm)
         tot_cost_per_click = self.merge_cost_per_click(cost_per_click_per_comb)
-
         future_visits_per_arm = self.merge(future_visits_per_comb_per_arm)
 
         average_new_clicks = self.compute_average_new_clicks(new_clicks_per_arm)
-
         margin = np.array([self.margin(a) for a in range(self.n_arms)])
-
         crs = self.compute_projection_conversion_rate(new_clicks_per_arm, purchases_per_arm, current_round)
-
         future_visits_per_purchase_per_arm = self.compute_future_visits_per_purchase_per_arm(future_visits_per_arm,
                                                                                              purchases_per_arm)
         cost_per_click = tot_cost_per_click / sum_ragged_matrix(new_clicks_per_arm)
@@ -85,7 +83,8 @@ class Context:
             optimal_arm]
 
         future_visits_per_purchase_per_arm = self.compute_future_visits_per_purchase_per_arm(future_visits_per_arm,
-                                                                                             purchases_per_arm)[optimal_arm]
+                                                                                             purchases_per_arm)[
+            optimal_arm]
         cost_per_click = tot_cost_per_click / sum_ragged_matrix(new_clicks_per_arm)
 
         profit = simple_class_profit(

@@ -42,6 +42,61 @@ def main(destination_dir):
                   start_delimiter='    # start update betas\n',
                   end_delimiter='    # end update betas')
 
+    extract_lines(in_file='../bandit/OptimalPriceDiscriminatingLearner.py',
+                  out_file=destination_dir + '/step4_learning_loop.py',
+                  start_delimiter='    # start learning loop\n',
+                  end_delimiter='    # end learning loop')
+
+    extract_lines(in_file='../bandit/OptimalPriceDiscriminatingLearner.py',
+                  out_file=destination_dir + '/step4_choose_next_strategy.py',
+                  start_delimiter='    # start choose next strategy\n',
+                  end_delimiter='    # end choose next strategy')
+
+    extract_lines(in_file='../bandit/OptimalPriceDiscriminatingLearner.py',
+                  out_file=destination_dir + '/step4_choose_next_strategy_explorative.py',
+                  start_delimiter='    # start choose next explorative\n',
+                  end_delimiter='    # end choose next explorative')
+
+    extract_lines(in_file='../bandit/OptimalPriceDiscriminatingLearner.py',
+                  out_file=destination_dir + '/step4_update_contexts.py',
+                  start_delimiter='    # start update contexts\n',
+                  end_delimiter='    # end update contexts')
+
+    extract_lines(in_file='../bandit/OptimalPriceDiscriminatingLearner.py',
+                  out_file=destination_dir + '/step4_convenient_split.py',
+                  start_delimiter='    # start convenient splits\n',
+                  end_delimiter='    # end convenient splits')
+
+    extract_lines(in_file='../bandit/OptimalPriceDiscriminatingLearner.py',
+                  out_file=destination_dir + '/step4_possible_split.py',
+                  start_delimiter='    # start possible splits\n',
+                  end_delimiter='    # end possible splits')
+
+    extract_lines(in_file='../bandit/Context.py',
+                  out_file=destination_dir + '/step4_context_next_arm.py',
+                  start_delimiter='    # start context next arm\n',
+                  end_delimiter='    # end context next arm')
+
+    extract_lines(in_file='../bandit/UCBOptimalPriceDiscriminatingLearner.py',
+                  out_file=destination_dir + '/step4_ucb_disc.py',
+                  start_delimiter='# start ucbdisc\n',
+                  end_delimiter='# end ucbdisc')
+
+    extract_lines(in_file='../bandit/UCBContext.py',
+                  out_file=destination_dir + '/step4_ucbcontext_projection.py',
+                  start_delimiter='    # start projection\n',
+                  end_delimiter='    # end projection')
+
+    extract_lines(in_file='../bandit/TSOptimalPriceDiscriminatingLearner.py',
+                  out_file=destination_dir + '/step4_ts_disc.py',
+                  start_delimiter='# start ts disc\n',
+                  end_delimiter='# end ts disc')
+
+    extract_lines(in_file='../bandit/TSContext.py',
+                  out_file=destination_dir + '/step4_tscontext_projection.py',
+                  start_delimiter='    # start projection\n',
+                  end_delimiter='    # end projection')
+
 
 def extract_lines(in_file, out_file, start_delimiter, end_delimiter):
     with open(in_file, 'r', encoding='utf8') as inf:

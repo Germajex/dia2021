@@ -3,6 +3,11 @@ from src.bandit.OptimalPriceDiscriminatingLearner import OptimalPriceDiscriminat
 from src.bandit.TSContext import TSContext
 
 
+# start ts disc
 class TSOptimalPriceDiscriminatingLearner(OptimalPriceDiscriminatingLearner):
     def __init__(self, env: PriceBanditEnvironment):
-        super().__init__(env, context_creator=lambda *args, **kwargs: TSContext(*args, **kwargs))
+        super().__init__(env,
+                         context_creator=lambda *args,
+                                                **kwargs:
+                         TSContext(*args, **kwargs))
+# end ts disc

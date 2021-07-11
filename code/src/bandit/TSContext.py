@@ -8,17 +8,22 @@ class TSContext(Context):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-    def compute_projection_conversion_rate(self, new_clicks_per_arm, purchases_per_arm, current_round):
-
+    # start projection
+    def compute_projection_conversion_rate(self, new_clicks_per_arm,
+                                           purchases_per_arm, current_round):
         tot_new_clicks_per_arm = [sum(r) for r in new_clicks_per_arm]
         successes_per_arm = [sum(r) for r in purchases_per_arm]
-        failures_per_arm = [tot_new_clicks_per_arm[a] - successes_per_arm[a] for a in range(self.n_arms)]
+        failures_per_arm = [tot_new_clicks_per_arm[a] - successes_per_arm[a]
+                            for a in range(self.n_arms)]
 
-        betas = [Beta(1 + successes_per_arm[a], 1 + failures_per_arm[a], self.rng) for a in range(self.n_arms)]
+        betas = [Beta(1 + successes_per_arm[a], 1 + failures_per_arm[a], self.rng)
+                 for a in range(self.n_arms)]
 
         crs = np.array([b.sample() for b in betas]).flatten()
 
         return crs
+
+    # end projection
 
     def compute_conversion_rate_lower_bounds(self, new_clicks_per_arm, purchases_per_arm, current_round):
         return self._compute_cr_lower_bounds(new_clicks_per_arm, purchases_per_arm, current_round)

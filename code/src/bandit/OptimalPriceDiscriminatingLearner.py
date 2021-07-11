@@ -19,8 +19,6 @@ class OptimalPriceDiscriminatingLearner:
         self.new_clicks_per_comb_per_arm = {c: [[] for i in range(self.n_arms)] for c in combs}
         self.tot_cost_per_click_per_comb = {c: 0 for c in combs}
 
-        self.latest_split = 0
-        self.expected_profits = []
         self.strategies = []
 
         self.context_structure: List[Context] = [
@@ -35,11 +33,12 @@ class OptimalPriceDiscriminatingLearner:
         self.current_round = 0
 
         self.next_round_robin_arm = 0
-        self.state_is_round_robin = True
+        self.state_is_explorative_rounds = True
         self.remaining_round_robins = 0
         self.remaining_normal_rounds = 0
         self.performed_round_robins = 0
 
+    # start learning loop
     def learn(self, n_rounds: int):
         self.initial_round_robin()
 
@@ -47,65 +46,86 @@ class OptimalPriceDiscriminatingLearner:
             self.learn_one_round()
 
     def learn_one_round(self):
-        if self.state_is_round_robin:
-            strategy = self.choose_next_strategy_round_robin()
-        else:
-            strategy = self.choose_next_strategy_normal()
-
+        strategy = self.choose_next_strategy()
         self.pull_from_env(strategy=strategy)
 
-        if self.current_round - self.latest_split >= 0:
-            self.update_contexts()
-        # print(f'Learned round {self.current_round+1}')
+        self.update_contexts()
 
+    # end learning loop
+
+    # start update contexts
     def update_contexts(self):
-        n_features = len(self.context_structure[0].features[0])
-
         for context in self.context_structure:
-            current_lower = self.compute_context_expected_profit_lower_bound(context)
-            new_structures = []
-            for i in range(n_features):
-                features_where_i_is_true = [f for f in context.features if f[i]]
-                features_where_i_is_false = [f for f in context.features if not f[i]]
-
-                # a valid split generates two non-empty contexts
-                if features_where_i_is_false and features_where_i_is_true:
-                    context_true = self.context_creator(features=features_where_i_is_true,
-                                                        arm_margin_function=self.env.margin,
-                                                        n_arms=self.n_arms,
-                                                        rng=self.env.rng)
-
-                    context_false = self.context_creator(features=features_where_i_is_false,
-                                                         arm_margin_function=self.env.margin,
-                                                         n_arms=self.n_arms,
-                                                         rng=self.env.rng)
-                    true_lower = self.compute_context_expected_profit_lower_bound(context_true)
-                    false_lower = self.compute_context_expected_profit_lower_bound(context_false)
-
-                    incentive = true_lower + false_lower - current_lower
-                    if incentive > 0:
-                        new_structure = list(self.context_structure)
-                        new_structure.remove(context)
-                        new_structure.append(context_true)
-                        new_structure.append(context_false)
-
-                        print(
-                            f'Found feasible split at round {self.current_round} on feature {i}, incentive = {incentive:.2f}')
-                        new_structures.append((incentive, new_structure, i))
-
-            if new_structures:
-                incentive, new_structure, feature = max(new_structures, key=lambda x: x[0])
+            possible_splits = self.compute_convenient_splits(context)
+            if possible_splits:
+                incentive, new_structure, feature = min(possible_splits,
+                                                        key=lambda x: x[0])
                 self.context_structure = new_structure
-                print(f'Split context at round {self.current_round} on feature {feature}')
-                self.latest_split = self.current_round
+                print(f'Split context at round {self.current_round} '
+                      f'on feature {feature}')
 
-    def choose_next_strategy_round_robin(self):
+    # end update contexts
+
+    # start convenient splits
+    def compute_convenient_splits(self, context):
+        current_lower = self.compute_context_expected_profit_lower_bound(context)
+        new_structures = []
+
+        for feature_n, context_true, context_false in self.compute_possible_splits(
+                context
+        ):
+            true_lower = self.compute_context_expected_profit_lower_bound(
+                context_true)
+            false_lower = self.compute_context_expected_profit_lower_bound(
+                context_false)
+
+            incentive = true_lower + false_lower - current_lower
+            if incentive > 0:
+                new_structure = list(self.context_structure)
+                new_structure.remove(context)
+                new_structure.append(context_true)
+                new_structure.append(context_false)
+
+                print(
+                    f'Found convenient split at round {self.current_round} '
+                    f'on feature {feature_n}, incentive = {incentive:.2f}')
+                new_structures.append((incentive, new_structure, feature_n))
+        return new_structures
+
+    # end convenient splits
+
+    # start possible splits
+    def compute_possible_splits(self, context):
+        n_features = len(self.context_structure[0].features[0])
+        res = []
+        for i in range(n_features):
+            features_where_i_is_true = [f for f in context.features if f[i]]
+            features_where_i_is_false = [f for f in context.features if not f[i]]
+
+            # a valid split generates two non-empty contexts
+            if features_where_i_is_false and features_where_i_is_true:
+                context_true = self.context_creator(features=features_where_i_is_true,
+                                                    arm_margin_function=self.env.margin,
+                                                    n_arms=self.n_arms,
+                                                    rng=self.env.rng)
+
+                context_false = self.context_creator(features=features_where_i_is_false,
+                                                     arm_margin_function=self.env.margin,
+                                                     n_arms=self.n_arms,
+                                                     rng=self.env.rng)
+                res.append((i, context_true, context_false))
+
+        return res
+
+    # end possible splits
+
+    # start choose next explorative
+    def choose_next_strategy_explorative(self):
         strategy = {}
         for context in self.context_structure:
             could_be_split = len(context.features) > 1
 
             if could_be_split:
-                #print(f'Round {self.current_round}, performed round_robin, remaining {self.remaining_round_robins}')
                 arm = self.next_round_robin_arm
             else:
                 arm = context.choose_next_arm(self.new_clicks_per_comb_per_arm,
@@ -116,6 +136,16 @@ class OptimalPriceDiscriminatingLearner:
             for comb in context.features:
                 strategy[comb] = arm
 
+        return strategy
+
+    # end choose next explorative
+
+    # start choose next strategy
+    def choose_next_strategy(self):
+        if self.state_is_explorative_rounds:
+            strategy = self.choose_next_strategy_explorative()
+        else:
+            strategy = self.choose_next_strategy_normal()
         return strategy
 
     def choose_next_strategy_normal(self):
@@ -131,6 +161,8 @@ class OptimalPriceDiscriminatingLearner:
 
         return strategy
 
+    # end choose next strategy
+
     def initial_round_robin(self):
         while not all(self.future_visits_per_comb_per_arm[(False, False)]):
             arm = self.current_round % self.n_arms
@@ -138,12 +170,12 @@ class OptimalPriceDiscriminatingLearner:
             self.pull_from_env(strategy)
 
         self.performed_round_robins = 4
-        self.state_is_round_robin = False
-        self.remaining_normal_rounds = 2**self.performed_round_robins
+        self.state_is_explorative_rounds = False
+        self.remaining_normal_rounds = 2 ** self.performed_round_robins
 
     def pull_from_env(self, strategy):
         new_clicks, purchases, tot_cost_per_clicks, \
-            (past_arm_strategy, past_future_visits) = self.env.pull_arm_discriminating(strategy)
+        (past_arm_strategy, past_future_visits) = self.env.pull_arm_discriminating(strategy)
 
         for comb in self.env.get_features_combinations():
             self.new_clicks_per_comb_per_arm[comb][strategy[comb]].append(new_clicks[comb])
@@ -153,7 +185,6 @@ class OptimalPriceDiscriminatingLearner:
         if past_arm_strategy is not None:
             for comb, chosen_arm in past_arm_strategy.items():
                 self.future_visits_per_comb_per_arm[comb][chosen_arm].append(past_future_visits[comb])
-            self.expected_profits.append(self.compute_expected_profit_last_round(strategy))
 
         self.strategies.append(strategy)
         self.update_round_count()
@@ -161,20 +192,20 @@ class OptimalPriceDiscriminatingLearner:
     def update_round_count(self):
         self.current_round += 1
 
-        if self.state_is_round_robin:
+        if self.state_is_explorative_rounds:
             self.next_round_robin_arm = (self.next_round_robin_arm + 1) % self.n_arms
 
-            if not self.next_round_robin_arm:# one complete round robin has just ended
+            if not self.next_round_robin_arm:  # one complete round robin has just ended
                 self.remaining_round_robins -= 1
 
             if not self.remaining_round_robins:
                 self.performed_round_robins += 1
-                self.state_is_round_robin = False
-                self.remaining_normal_rounds = 2**self.performed_round_robins
+                self.state_is_explorative_rounds = False
+                self.remaining_normal_rounds = 2 ** self.performed_round_robins
         else:
             self.remaining_normal_rounds -= 1
             if not self.remaining_normal_rounds:
-                self.state_is_round_robin = True
+                self.state_is_explorative_rounds = True
                 self.remaining_round_robins = self.round_robins_per_cycle
                 self.next_round_robin_arm = 0
 
@@ -206,19 +237,6 @@ class OptimalPriceDiscriminatingLearner:
             sum(expected_profits[comb][arm] for comb, arm in s.items())
             for s in self.strategies]
         )
-
-    def compute_expected_profit_last_round(self, strategy):
-        profit = np.sum(context.compute_expected_profit_last_round(self.new_clicks_per_comb_per_arm,
-                                                                   self.purchases_per_comb_per_arm,
-                                                                   self.tot_cost_per_click_per_comb,
-                                                                   self.future_visits_per_comb_per_arm,
-                                                                   strategy[context.features[0]])
-                        for context in self.context_structure)
-
-        return profit
-
-    def compute_cumulative_profits(self):
-        return np.cumsum(self.expected_profits)
 
     def get_average_conversion_rates(self, context: Context):
         return context.get_average_conversion_rates(self.new_clicks_per_comb_per_arm, self.purchases_per_comb_per_arm)

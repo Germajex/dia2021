@@ -3,6 +3,12 @@ from src.bandit.OptimalPriceDiscriminatingLearner import OptimalPriceDiscriminat
 from src.bandit.UCBContext import UCBContext
 
 
+# start ucbdisc
 class UCBOptimalPriceDiscriminatingLearner(OptimalPriceDiscriminatingLearner):
     def __init__(self, env: PriceBanditEnvironment):
-        super().__init__(env, context_creator=lambda *args, **kwargs: UCBContext(*args, **kwargs))
+        super().__init__(env,
+                         context_creator=lambda *args,
+                                                **kwargs:
+                         UCBContext(*args, **kwargs))
+
+# end ucbdisc

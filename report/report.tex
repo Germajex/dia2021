@@ -315,8 +315,86 @@ It should be noticed that since each click is treated as a separate try of a Ber
 
 \clearpage
 \section{Step 4}
-{\color{red}da scrivere}
+In order to perform context generation, the information that the learner receives at each round is divided by combination of features: the method \textit{pull\_arm\_discriminating(arm\_strategy)} accepts a strategy that defines one arm (which means one price) for each combination of features, and returns:
+\begin{itemize}
+\item $n_{TT},n_{TF},n_{FT},n_{FF}$ The new clicks of users of each combination of features.
+\item $s_{TT}, s_{TF},s_{FT},s_{FF}$ The purchases of users of each combination of features.
+\item $c_{TT},c_{TF},c_{FT},c_{FF}$ The total cost per click paid due to clicks of users of each combination of features.
+\item $f_{TT},f_{TF},f_{FT},f_{FF}$ The total future purchases of users of each combination of features which visited the website for the first time $30$ rounds ago.
+\end{itemize}
+Receiving the data in this way, the learner can try any possible strategy and observe the disaggregate result without having access to the underlying class structure.
+The learner, defined by the class \textit{OptimalPriceDiscriminatingLearner}, keeps track of the context generation thanks to the attribute \textit{context structure}, which is a list of objects of the class \textit{Context}. A \textit{Context} object contains a subset of the combinations of features and the learner initially starts with one context containing all the possible combinations. The estimation of the parameters and of the expected value is performed by each $Context$ with the same logic as the non-discriminating learner, by working on the aggregate data aggregated only on its subset of features.
 
+The learning loop is as follows:
+\inputminted{python}{code/step4_learning_loop.py}
+The strategy selection must choose one arm for each combination of features: in order to do so, it queries the contexts and each context specifies the next arm for its combinatioins. Let us remind that the contexts always form a partition of the full feature space.
+\inputminted{python}{code/step4_choose_next_strategy.py}
+Let us skip for the moment the code of the method \textit{choose\_next\_strategy\_explorative()}, which is a marginal modification that we have introduced and which we will present later.\\
+One can notice that each context has the method \textit{choose\_next\_arm(...)}. In this method, each context computes the expected profit with an optimistic / explorative estimate of the conversion rate and returns the arm with the highest projection of profit, estimating all the parameters with aggregated data relative only to the covered set of combinations of features.
+
+\inputminted{python}{code/step4_context_next_arm.py}
+We don't report the code of the method \textit{compute\_projected\_profit()} since it is identical to the analogous method of the class \textit{OptimalPriceLearner}. Also in this case, the method \textit{compute\_projection\_conversion\_rate()} is defined as abstract to allow for different implementations of explorative strategies.\\
+
+The second core method is \textit{update\_contexts()}:
+\inputminted{python}{code/step4_update_contexts.py}
+For each context, among all the splits that are convenient, it takes the one that is convenient by the smallest amount. The rationale behind this is that it is more likely that the more convenient split will be performed the next round even if a split was just done.\\
+
+Let's see how the convenient splits are computed:
+
+\inputminted{python}{code/step4_convenient_split.py}
+
+The condition of convenience is that the lower bound of the expected profit after the split is higher that the current lower bound.\\
+
+For completeness we report also the implementation of the computation of the possible splits:
+\inputminted{python}{code/step4_possible_split.py}
+
+\subsection{The class \textit{UCBOptimalPriceDiscriminatingLearner}}
+Since the logic of the choice of explorative estimates of the conversion rates is performed by the contexts, this class is just a wrapper to instruct the parent class to instantiate \textit{UCBContext} objects when contexts are created.
+
+\inputminted{python}{code/step4_ucb_disc.py}
+
+Here we can see how the \textit{UCBContext} overrides  \textit{compute\_projection\_conversion\_rate()}:
+\inputminted{python}{code/step4_ucbcontext_projection.py}
+The confidence bound formula is the same as in \textit{UCBOptimalPriceLearner}.
+
+\subsection{The class \textit{TSOptimalPriceDiscriminatingLearner}}
+We can see the same pattern of the previous class:
+\inputminted{python}{code/step4_ts_disc.py}
+
+Here we can see how the \textit{TSContext} overrides  \textit{compute\_projection\_conversion\_rate()}:
+\inputminted{python}{code/step4_tscontext_projection.py}
+As in Step 3, the Thompson sampling approach samples from the Beta distributions and uses them as the projection values.
+
+\subsection{\textit{choose\_next\_strategy\_explorative()}}
+We added the explorative rounds after the following empiric observation: the splits that could not be detected after the initial round robin are never detected if their optimal arm is very sub-optimal for the current context, since the lower confidence bound will never get tighter (it will almost never be pulled). Therefore we added the \textit{explorative rounds}, rounds in which the contexts which could be split do not pull the best arm according to their strategy but rather pulll the arms in a round-robin fashion, to allow the confidence bounds of the currently sub-optimal arms to get tighter. We ensure that the number of explorative rounds remains logarithmic in the following way: after the $i_{th}$ explorative round robin has been completed, $2^i$ normal rounds must be completed before running the $i+1_{th}$ explorative round robin.
+\inputminted{python}{code/step4_choose_next_strategy_explorative.py}
+
+\clearpage
+\subsection{Experiment 1}
+\makebox[\linewidth]{\includegraphics[scale=0.4]{figures/step4/env0.png}}
+\makebox[\linewidth]{\includegraphics[scale=0.7] {figures/step4/plot0.png}}
+
+\clearpage
+
+{\footnotesize\verbatiminput{figures/step4/output0.txt}}
+
+\clearpage
+\subsection{Experiment 2}
+\makebox[\linewidth]{\includegraphics[scale=0.4]{figures/step4/env1.png}}
+\makebox[\linewidth]{\includegraphics[scale=0.7] {figures/step4/plot1.png}}
+
+\clearpage
+
+{\footnotesize\verbatiminput{figures/step4/output1.txt}}
+
+\clearpage
+\subsection{Experiment 2}
+\makebox[\linewidth]{\includegraphics[scale=0.4]{figures/step4/env2.png}}
+\makebox[\linewidth]{\includegraphics[scale=0.7] {figures/step4/plot2.png}}
+
+\clearpage
+
+{\footnotesize\verbatiminput{figures/step4/output2.txt}}
 
 \clearpage
 \section{Step 5}

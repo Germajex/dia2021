@@ -48,8 +48,7 @@ def main():
                          [ucb_cumulative_profits, ts_cumulative_profits],
                          clairvoyant_cumulative_profits, n_rounds)
 
-        table_data = [['Price']
-                      ]
+        table_data = [['Price']]
         for p in prices:
             table_data.append([f'{p:.2f}'])
 
@@ -68,6 +67,8 @@ def main():
                 table_data[i + 1].append(f'{e:.2f}')
 
         table = AsciiTable(table_data)
+        for i in range(7):
+            table.justify_columns[i] = 'right'
         print(table.table)
 
         dir = '../../../report/figures/step3'
