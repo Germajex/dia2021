@@ -69,14 +69,14 @@ def main():
 
     ucb_disc_learner = UCBOptimalPriceDiscriminatingLearner(bandit_env_2)
     ucb_disc_learner.learn(n_rounds)
-    ucb_profits = ucb_disc_learner.compute_cumulative_profits()
+    #ucb_profits = ucb_disc_learner.compute_cumulative_profits()
     ucb_profits2 = ucb_disc_learner.compute_cumulative_exp_profits(expected_profits)
     bandit_env_2.reset_state()
 
     print("\nLearning TSDisc")
     ts_disc_learner = TSOptimalPriceDiscriminatingLearner(bandit_env_3)
     ts_disc_learner.learn(n_rounds)
-    ts_profits = ts_disc_learner.compute_cumulative_profits()
+    #ts_profits = ts_disc_learner.compute_cumulative_profits()
     ts_profits2 = ts_disc_learner.compute_cumulative_exp_profits(expected_profits)
     bandit_env_3.reset_state()
 
@@ -96,7 +96,7 @@ def main():
 
     env1.print_summary()
 
-    plot_results(["UCB", "TS"], [ucb_profits, ts_profits], clairvoyant_cumulative_profits, regret_length)
+    #plot_results(["UCB", "TS"], [ucb_profits, ts_profits], clairvoyant_cumulative_profits, regret_length)
 
     plot_results(["UCB", "TS"], [ucb_profits2, ts_profits2], clairvoyant_cumulative_profits2, n_rounds)
 
