@@ -19,7 +19,7 @@ def main():
     n_rounds = 365
     future_visits_delay = 30
 
-    for envN, seedV in enumerate([3511939391, 1028491000, 4059059292]):
+    for envN, seedV in enumerate([3511939391, 1740212098, 4059059292]):
 
         env = Environment(random_seed=seedV) if seedV is not None else Environment()
 
@@ -116,14 +116,14 @@ def main():
         with open(dir + f'/output{envN}.txt', 'w', encoding='utf8') as output_file:
             output_file.write(f' Seed: {env.get_seed()}\n')
             output_file.write(' Legend: context, true expected value, number of pulls\n')
-            output_file.write(' ucb with context generation:\n')
+            output_file.write(' UCB with context generation:\n')
             output_file.write(ucb_table.table)
             output_file.write('\n\n Performed splits:\n')
             for round_n, feature, incentive in ucb_disc_learner.get_perfomed_splits():
                 output_file.write(f' Round{round_n:3d} split on feature {feature+1} '
                                   f'with incentive {incentive:.2f}\n')
             output_file.write('\n')
-            output_file.write(' ts with context generation:\n')
+            output_file.write(' TS with context generation:\n')
             output_file.write(ts_table.table)
             output_file.write('\n\n Performed splits:\n')
             for round_n, feature, incentive in ts_disc_learner.get_perfomed_splits():
