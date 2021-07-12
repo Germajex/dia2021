@@ -2,8 +2,8 @@ from typing import List
 
 import numpy as np
 
-from src.bandit.PriceBanditEnvironment import PriceBanditEnvironment
-from src.bandit.Context import Context
+from src.bandit.banditEnvironments.PriceBanditEnvironment import PriceBanditEnvironment
+from src.bandit.context import Context
 
 
 class OptimalPriceDiscriminatingLearner:
@@ -53,7 +53,7 @@ class OptimalPriceDiscriminatingLearner:
 
     # end learning loop
 
-    # start update contexts
+    # start update context
     def update_contexts(self):
         for context in self.context_structure:
             possible_splits = self.compute_convenient_splits(context)
@@ -64,7 +64,7 @@ class OptimalPriceDiscriminatingLearner:
                 print(f'Split context at round {self.current_round} '
                       f'on feature {feature}')
 
-    # end update contexts
+    # end update context
 
     # start convenient splits
     def compute_convenient_splits(self, context):
@@ -102,7 +102,7 @@ class OptimalPriceDiscriminatingLearner:
             features_where_i_is_true = [f for f in context.features if f[i]]
             features_where_i_is_false = [f for f in context.features if not f[i]]
 
-            # a valid split generates two non-empty contexts
+            # a valid split generates two non-empty context
             if features_where_i_is_false and features_where_i_is_true:
                 context_true = self.context_creator(features=features_where_i_is_true,
                                                     arm_margin_function=self.env.margin,

@@ -2,7 +2,7 @@ import numpy as np
 from scipy.stats import norm
 
 from src.algorithms import simple_class_profit
-from src.bandit.JointBanditEnvironment import JointBanditEnvironment
+from src.bandit.banditEnvironments.JointBanditEnvironment import JointBanditEnvironment
 from src.utils import sum_ragged_matrix, average_ragged_matrix
 
 

@@ -1,9 +1,9 @@
 from src.Environment import Environment
 from src.bandit.LearningStats import plot_results
-from src.bandit.TSOptimalPriceLearner import TSOptimalPriceLearner
+from src.bandit.learner.ts.TSOptimalPriceLearner import TSOptimalPriceLearner
 from src.algorithms import step1, expected_profit
-from src.bandit.PriceBanditEnvironment import PriceBanditEnvironment
-from src.bandit.UCBOptimalPriceLearner import UCBOptimalPriceLearner
+from src.bandit.banditEnvironments.PriceBanditEnvironment import PriceBanditEnvironment
+from src.bandit.learner.ucb.UCBOptimalPriceLearner import UCBOptimalPriceLearner
 import numpy as np
 
 
@@ -15,17 +15,16 @@ def main():
     print(f'Running with seed {env.get_seed()}')
     env.print_summary()
 
-    n_rounds = 2000
+    n_rounds = 4000
     future_visits_delay = 30
 
     opt_price, opt_bid, profit = step1(env, prices, bids)
 
     bandit_env = PriceBanditEnvironment(env, prices, opt_bid, future_visits_delay)
     regret_length = n_rounds - future_visits_delay
-    clairvoyant_cumulative_profits = bandit_env.get_clairvoyant_cumulative_profits_not_discriminating(regret_length)
     expected_profits = np.array([expected_profit(env, p, opt_bid) for p in prices])
     suboptimality_gaps = np.max(expected_profits) - expected_profits
-    clairvoyant_cumulative_profits_2 = np.cumsum([np.max(expected_profits)] * n_rounds)
+    clairvoyant_cumulative_profits = np.cumsum([np.max(expected_profits)] * n_rounds)
 
     # plot_everything(env)
 
@@ -33,14 +32,12 @@ def main():
     ucb_leaner = UCBOptimalPriceLearner(bandit_env)  # , lambda r: r % 50 == 0)
 
     ucb_leaner.learn(n_rounds)
-    ucb_cumulative_profits = ucb_leaner.compute_cumulative_profits()
-    ucb_cumulative_profits_2 = ucb_leaner.compute_cumulative_exp_profits(expected_profits)
+    ucb_cumulative_profits = ucb_leaner.compute_cumulative_exp_profits(expected_profits)
 
     bandit_env.reset_state()
 
     ts_learner.learn(n_rounds)
-    ts_cumulative_profits = ts_learner.compute_cumulative_profits()
-    ts_cumulative_profits_2 = ts_learner.compute_cumulative_exp_profits(expected_profits)
+    ts_cumulative_profits = ts_learner.compute_cumulative_exp_profits(expected_profits)
 
     optimal_profit = bandit_env.get_clairvoyant_optimal_expected_profit_not_discriminating()
 
@@ -51,7 +48,7 @@ def main():
     print("Gap:               " + " ".join(f'{e:10.2f}' for e in suboptimality_gaps))
     print()
 
-    for name, learner in [("UCB", ucb_leaner), ("TS", ts_learner)]:
+    for name, learner in [("ucb", ucb_leaner), ("ts", ts_learner)]:
         print(name)
         print("Price:             " + " ".join(f'{p:10d}' for p in bandit_env.prices))
         print("Projected profits: " + " ".join(f'{p:10.2f}' for p in learner.compute_projected_profits()))
@@ -61,13 +58,9 @@ def main():
         print("Number of pulls:   " + " ".join(f'{p:10d}' for p in learner.get_number_of_pulls()))
         print()
 
-    plot_results(["UCB", "TS"],
+    plot_results(["ucb", "ts"],
                  [ucb_cumulative_profits, ts_cumulative_profits],
-                 clairvoyant_cumulative_profits, regret_length, smooth=True)
-
-    plot_results(["UCB", "TS"],
-                 [ucb_cumulative_profits_2, ts_cumulative_profits_2],
-                 clairvoyant_cumulative_profits_2, n_rounds, smooth=True)
+                 clairvoyant_cumulative_profits, n_rounds, smooth=True)
 
     samples = 3000
     ucb_best = prices[np.argmax(ucb_leaner.compute_expected_profits())]
@@ -75,10 +68,10 @@ def main():
     target_prices = list({opt_price, ucb_best, ts_best})
 
     if ucb_best != opt_price:
-        print('UCB Learned the wrong price!')
+        print('ucb Learned the wrong price!')
 
     if ts_best != opt_price:
-        print('TS Learned the wrong price!')
+        print('ts Learned the wrong price!')
 
     if len(target_prices) == 1:
         print('All the learners learned the right price')

@@ -1,7 +1,7 @@
 import numpy as np
 
 from src.algorithms import simple_class_profit
-from src.bandit.PriceBanditEnvironment import PriceBanditEnvironment
+from src.bandit.banditEnvironments.PriceBanditEnvironment import PriceBanditEnvironment
 from src.utils import sum_ragged_matrix, average_ragged_matrix
 
 
@@ -118,6 +118,3 @@ class OptimalPriceLearner:
 
     def compute_cumulative_regr_from_gaps(self, gaps):
         return np.cumsum([gaps[a] for a in self.pulled_arms])
-
-    def compute_cumulative_profits(self):
-        return np.cumsum(self.expected_profits)

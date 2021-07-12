@@ -4,8 +4,8 @@ import numpy as np
 
 from src.Environment import Environment
 from src.algorithms import step1
-from src.bandit.PriceBanditEnvironment import PriceBanditEnvironment
-from src.bandit.TSOptimalPriceLearner import TSOptimalPriceLearner
+from src.bandit.banditEnvironments.PriceBanditEnvironment import PriceBanditEnvironment
+from src.bandit.learner.ts.TSOptimalPriceLearner import TSOptimalPriceLearner
 
 
 class TestRepeatable(TestCase):

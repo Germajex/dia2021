@@ -1,11 +1,11 @@
 from src.Environment import Environment
 from src.bandit.LearningStats import plot_results
-from src.bandit.TSOptimalPriceDiscriminatingLearner import TSOptimalPriceDiscriminatingLearner
+from src.bandit.learner.ts.TSOptimalPriceDiscriminatingLearner import TSOptimalPriceDiscriminatingLearner
 from src.algorithms import step1, optimal_pricing_strategy_for_bid, expected_profit_of_pricing_strategy, \
     expected_profit_for_comb
-from src.bandit.PriceBanditEnvironment import PriceBanditEnvironment
-from src.bandit.UCBOptimalPriceDiscriminatingLearner import UCBOptimalPriceDiscriminatingLearner
-from src.bandit.UCBOptimalPriceLearner import UCBOptimalPriceLearner
+from src.bandit.banditEnvironments.PriceBanditEnvironment import PriceBanditEnvironment
+from src.bandit.learner.ucb.UCBOptimalPriceDiscriminatingLearner import UCBOptimalPriceDiscriminatingLearner
+from src.bandit.learner.ucb.UCBOptimalPriceLearner import UCBOptimalPriceLearner
 import numpy as np
 
 
@@ -18,7 +18,7 @@ def main():
     #      che non viene mai proposto e non il lower confidence bound non si stringe mai
     #      abbastanza per splittare
 
-    env1 = Environment(3731638538)  # 2530307612)
+    env1 = Environment(3511939391)  # 3511939391 to be used in the report
     env2 = Environment(env1.get_seed())
     env3 = Environment(env1.get_seed())
 
@@ -43,7 +43,7 @@ def main():
     ucb_learner.learn(n_rounds)
     bandit_env_1.reset_state()
 
-    print("UCB no discrimination")
+    print("ucb no discrimination")
     print("Price:             " + " ".join(f'{p:10d}' for p in prices))
     print("\tProjected profits: " + " ".join(f'{p:10.2f}' for p in ucb_learner.compute_projected_profits()))
     print("\tExpected profits:  " + " ".join(f'{p:10.2f}' for p in ucb_learner.compute_expected_profits()))
@@ -80,7 +80,7 @@ def main():
     ts_profits2 = ts_disc_learner.compute_cumulative_exp_profits(expected_profits)
     bandit_env_3.reset_state()
 
-    for name, learner in [("UCB with discrimination", ucb_disc_learner), ("TS with discrimination", ts_disc_learner)]:
+    for name, learner in [("ucb with discrimination", ucb_disc_learner), ("ts with discrimination", ts_disc_learner)]:
         print(name)
         for i, context in enumerate(learner.get_contexts(), start=1):
             print(f'Context n°{i} - Combinations of features:', *context.features)
@@ -96,9 +96,9 @@ def main():
 
     env1.print_summary()
 
-    #plot_results(["UCB", "TS"], [ucb_profits, ts_profits], clairvoyant_cumulative_profits, regret_length)
+    #plot_results(["ucb", "ts"], [ucb_profits, ts_profits], clairvoyant_cumulative_profits, regret_length)
 
-    plot_results(["UCB", "TS"], [ucb_profits2, ts_profits2], clairvoyant_cumulative_profits2, n_rounds)
+    plot_results(["ucb", "ts"], [ucb_profits2, ts_profits2], clairvoyant_cumulative_profits2, n_rounds, smooth=True)
 
 
 if __name__ == "__main__":

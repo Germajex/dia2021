@@ -2,9 +2,9 @@ import numpy as np
 
 from src.Environment import Environment
 from src.algorithms import step1
-from src.bandit.BidBanditEnvironment import BidBanditEnvironment
+from src.bandit.banditEnvironments.BidBanditEnvironment import BidBanditEnvironment
 from src.bandit.LearningStats import plot_results
-from src.bandit.UCBOptimalBidLearner import UCBOptimalBidLearner
+from src.bandit.learner.ucb.UCBOptimalBidLearner import UCBOptimalBidLearner
 
 
 def main():
@@ -13,7 +13,7 @@ def main():
 
     env = Environment()
     print(f'Running with seed {env.get_seed()}')
-    n_rounds = 4000
+    n_rounds = 2000
     future_visits_delay = 30
 
     opt_price, opt_bid, profit = step1(env, prices, bids)
@@ -31,7 +31,7 @@ def main():
 
     print(f"Optimal bid is {opt_bid} with expected profit {optimal_profit:.2f}")
 
-    for name, learner in [("UCB", ucb_leaner)]:
+    for name, learner in [("ucb", ucb_leaner)]:
         print(name)
         print("Bid:               " + " ".join(f'{p:10d}' for p in bandit_env.bids))
         print("Projected profits: " + " ".join(f'{p:10.2f}' for p in learner.compute_projected_profits()))
@@ -42,7 +42,7 @@ def main():
 
     env.print_summary()
 
-    plot_results(["UCB"], [ucb_cumulative_profits], clairvoyant_cumulative_profits, regret_length, smooth=False)
+    plot_results(["ucb"], [ucb_cumulative_profits], clairvoyant_cumulative_profits, regret_length, smooth=False)
 
 
 if __name__ == "__main__":

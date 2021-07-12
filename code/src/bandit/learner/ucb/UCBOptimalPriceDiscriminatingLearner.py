@@ -1,6 +1,6 @@
-from src.bandit.PriceBanditEnvironment import PriceBanditEnvironment
-from src.bandit.OptimalPriceDiscriminatingLearner import OptimalPriceDiscriminatingLearner
-from src.bandit.UCBContext import UCBContext
+from src.bandit.banditEnvironments.PriceBanditEnvironment import PriceBanditEnvironment
+from src.bandit.learner.OptimalPriceDiscriminatingLearner import OptimalPriceDiscriminatingLearner
+from src.bandit.context.UCBContext import UCBContext
 
 
 # start ucbdisc

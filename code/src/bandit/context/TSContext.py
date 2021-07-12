@@ -1,6 +1,6 @@
 import numpy as np
 
-from src.bandit.Context import Context
+from src.bandit.context.Context import Context
 from src.distributions import Beta
 
 

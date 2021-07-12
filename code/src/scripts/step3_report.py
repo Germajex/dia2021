@@ -1,14 +1,12 @@
-import os
-
 from src.Environment import Environment
 from src.bandit.LearningStats import plot_results
-from src.bandit.TSOptimalPriceLearner import TSOptimalPriceLearner
+from src.bandit.learner.ts.TSOptimalPriceLearner import TSOptimalPriceLearner
 from src.algorithms import step1, expected_profit
-from src.bandit.PriceBanditEnvironment import PriceBanditEnvironment
+from src.bandit.banditEnvironments.PriceBanditEnvironment import PriceBanditEnvironment
 import numpy as np
 
-from src.bandit.UCBOptimalPriceLearner import UCBOptimalPriceLearner
-from terminaltables import SingleTable, AsciiTable
+from src.bandit.learner.ucb.UCBOptimalPriceLearner import UCBOptimalPriceLearner
+from terminaltables import AsciiTable
 
 from src.scripts.environment_plotter import plot_everything
 
@@ -44,7 +42,7 @@ def main():
         clairvoyant_cumulative_profits = np.cumsum([np.max(expected_profits)] * n_rounds)
 
         if interactive:
-            plot_results(["UCB", "TS"],
+            plot_results(["ucb", "ts"],
                          [ucb_cumulative_profits, ts_cumulative_profits],
                          clairvoyant_cumulative_profits, n_rounds)
 
@@ -60,7 +58,7 @@ def main():
         for i, p in enumerate(prices):
             table_data[i + 1].append(f'{gaps[i]:.2f}')
 
-        table_data[0] += ['UCB pulls', 'UCB expected', 'TS pulls', 'TS expected']
+        table_data[0] += ['ucb pulls', 'ucb expected', 'ts pulls', 'ts expected']
         for learner in [ucb_learner, ts_learner]:
             for i, (n, e) in enumerate(zip(learner.get_number_of_pulls(), learner.compute_expected_profits())):
                 table_data[i + 1].append(f'{n}')
@@ -77,7 +75,7 @@ def main():
             output_file.write(f' Seed: {env.get_seed()}\n')
             output_file.write(table.table)
 
-        plot_results(["UCB", "TS"],
+        plot_results(["ucb", "ts"],
                      [ucb_cumulative_profits, ts_cumulative_profits],
                      clairvoyant_cumulative_profits, n_rounds,
                      dest_file_path=dir+f'/plot{envN}')

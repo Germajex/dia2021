@@ -1,7 +1,7 @@
 import numpy as np
 
-from src.bandit.OptimalPriceLearner import OptimalPriceLearner
-from src.bandit.PriceBanditEnvironment import PriceBanditEnvironment
+from src.bandit.learner.OptimalPriceLearner import OptimalPriceLearner
+from src.bandit.banditEnvironments.PriceBanditEnvironment import PriceBanditEnvironment
 import matplotlib.pyplot as plt
 
 
@@ -44,7 +44,7 @@ class UCBOptimalPriceLearner(OptimalPriceLearner):
     def get_average_conversion_rates(self):
         return self.compute_conversion_rates_averages()
 
-    # Method used for debugging mainly. Plots the average reward and the confidence bounds used by the UCB algorithm
+    # Method used for debugging mainly. Plots the average reward and the confidence bounds used by the ucb algorithm
     def show_bounds(self):
         x = [a for a in range(self.n_arms)]
 

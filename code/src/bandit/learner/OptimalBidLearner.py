@@ -1,6 +1,6 @@
 import numpy as np
 
-from src.bandit import BidBanditEnvironment
+from src.bandit.banditEnvironments import BidBanditEnvironment
 from src.utils import average_ragged_matrix, sum_ragged_matrix
 from scipy.stats import norm
 

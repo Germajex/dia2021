@@ -1,5 +1,3 @@
-import os
-
 import numpy as np
 from terminaltables import AsciiTable
 
@@ -7,9 +5,9 @@ from src.Environment import Environment
 from src.algorithms import step1, optimal_pricing_strategy_for_bid, expected_profit_of_pricing_strategy, \
     expected_profit_for_comb
 from src.bandit.LearningStats import plot_results
-from src.bandit.PriceBanditEnvironment import PriceBanditEnvironment
-from src.bandit.TSOptimalPriceDiscriminatingLearner import TSOptimalPriceDiscriminatingLearner
-from src.bandit.UCBOptimalPriceDiscriminatingLearner import UCBOptimalPriceDiscriminatingLearner
+from src.bandit.banditEnvironments.PriceBanditEnvironment import PriceBanditEnvironment
+from src.bandit.learner.ts.TSOptimalPriceDiscriminatingLearner import TSOptimalPriceDiscriminatingLearner
+from src.bandit.learner.ucb.UCBOptimalPriceDiscriminatingLearner import UCBOptimalPriceDiscriminatingLearner
 from src.scripts.environment_plotter import plot_everything
 
 
@@ -21,7 +19,7 @@ def main():
     n_rounds = 365
     future_visits_delay = 30
 
-    for envN, seedV in enumerate([None, 1028491000, 4059059292]):
+    for envN, seedV in enumerate([3511939391, 1028491000, 4059059292]):
 
         env = Environment(random_seed=seedV) if seedV is not None else Environment()
 
@@ -38,7 +36,6 @@ def main():
         expected_profits = {comb: [expected_profit_for_comb(env, p, opt_bid, comb) for p in prices]
                             for comb in env.combinations}
 
-
         print("Learning UCBDisc")
         ucb_disc_learner = UCBOptimalPriceDiscriminatingLearner(bandit_env)
         ucb_disc_learner.learn(n_rounds)
@@ -51,24 +48,27 @@ def main():
         ts_profits = ts_disc_learner.compute_cumulative_exp_profits(expected_profits)
         bandit_env.reset_state()
 
-        for name, learner in [("UCB with discrimination", ucb_disc_learner), ("TS with discrimination", ts_disc_learner)]:
+        for name, learner in [("ucb with discrimination", ucb_disc_learner),
+                              ("ts with discrimination", ts_disc_learner)]:
             print(name)
             for i, context in enumerate(learner.get_contexts(), start=1):
-                print(f'Context n°{i} - Combinations of features:', *context.features)
+                print(f'context n°{i} - Combinations of features:', *context.features)
                 print("Price:             " + " ".join(f'{p:10d}' for p in prices))
                 print("\tProjected profits: " + " ".join(
                     f'{p:10.2f}' for p in learner.compute_context_projected_profit(context)))
                 print("\tExpected profits:  " + " ".join(
                     f'{p:10.2f}' for p in learner.compute_context_expected_profit(context)))
                 print(
-                    "\tAverages:          " + " ".join(f'{p:10.2f}' for p in learner.get_average_conversion_rates(context)))
-                print("\tNumber of pulls:   " + " ".join(f'{p:10d}' for p in learner.get_context_number_of_pulls(context)))
+                    "\tAverages:          " + " ".join(
+                        f'{p:10.2f}' for p in learner.get_average_conversion_rates(context)))
+                print("\tNumber of pulls:   " + " ".join(
+                    f'{p:10d}' for p in learner.get_context_number_of_pulls(context)))
                 print()
 
         env.print_summary()
 
         if interactive:
-            plot_results(["UCB", "TS"],
+            plot_results(["ucb", "ts"],
                          [ucb_profits, ts_profits],
                          clairvoyant_cumulative_profits, n_rounds)
 
@@ -77,28 +77,28 @@ def main():
             for c in env.classes))
         print(f"With value: {opt_value:.2f}\n\n")
 
-        table_data_ucb, table_data_ts = [],[]
+        table_data_ucb, table_data_ts = [], []
 
-        for table_data, learner in [(table_data_ucb, ucb_disc_learner),(table_data_ts, ts_disc_learner)]:
+        for table_data, learner in [(table_data_ucb, ucb_disc_learner), (table_data_ts, ts_disc_learner)]:
             table_data.append(['Price'])
             for p in prices:
                 table_data.append([f'{p:.2f}'])
 
             for context in learner.get_contexts():
-                context_str = ",".join(str(c[0])[0]+str(c[1])[0] for c in context.features)
+                context_str = ",".join(str(c[0])[0] + str(c[1])[0] for c in context.features)
 
                 table_data[0].append(context_str)
                 for i in range(len(prices)):
-                    table_data[i+1].append('')
+                    table_data[i + 1].append('')
 
                 table_data[0].append('Expected')
                 for i, price in enumerate(prices):
                     ep = sum(expected_profits[comb][i] for comb in context.features)
-                    table_data[i+1].append(f'{ep:.2f}')
+                    table_data[i + 1].append(f'{ep:.2f}')
 
                 table_data[0].append('Pulls')
                 for i, n_pulls in enumerate(learner.get_context_number_of_pulls(context)):
-                    table_data[i+1].append(f'{n_pulls}')
+                    table_data[i + 1].append(f'{n_pulls}')
 
         ucb_table = AsciiTable(table_data_ucb)
         for i in range(len(table_data_ucb[0])):
@@ -114,14 +114,14 @@ def main():
 
         with open(dir + f'/output{envN}.txt', 'w', encoding='utf8') as output_file:
             output_file.write(f' Seed: {env.get_seed()}\n')
-            output_file.write(' Legend: Context, true expected value, number of pulls\n')
-            output_file.write(' UCB with context generation:\n')
+            output_file.write(' Legend: context, true expected value, number of pulls\n')
+            output_file.write(' ucb with context generation:\n')
             output_file.write(ucb_table.table)
             output_file.write('\n\n')
-            output_file.write(' TS with context generation:\n')
+            output_file.write(' ts with context generation:\n')
             output_file.write(ts_table.table)
 
-        plot_results(["UCB", "TS"],
+        plot_results(["ucb", "ts"],
                      [ucb_profits, ts_profits],
                      clairvoyant_cumulative_profits, n_rounds,
                      dest_file_path=dir + f'/plot{envN}')

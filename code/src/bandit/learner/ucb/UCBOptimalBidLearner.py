@@ -1,9 +1,8 @@
 import numpy as np
 from matplotlib import pyplot as plt
 
-from src.bandit.BidBanditEnvironment import BidBanditEnvironment
-from src.bandit.OptimalBidLearner import OptimalBidLearner
-from src.utils import max_ragged_matrix
+from src.bandit.banditEnvironments.BidBanditEnvironment import BidBanditEnvironment
+from src.bandit.learner.OptimalBidLearner import OptimalBidLearner
 
 
 class UCBOptimalBidLearner(OptimalBidLearner):
@@ -26,7 +25,7 @@ class UCBOptimalBidLearner(OptimalBidLearner):
     def compute_auction_winning_probability_radia(self):
         return np.sqrt(2 * np.log(self.current_round) / self.get_number_of_pulls())
 
-    # Method used for debugging mainly. Plots the average reward and the confidence bounds used by the UCB algorithm
+    # Method used for debugging mainly. Plots the average reward and the confidence bounds used by the ucb algorithm
     def show_bounds(self):
         x = [a for a in range(self.n_arms)]
 

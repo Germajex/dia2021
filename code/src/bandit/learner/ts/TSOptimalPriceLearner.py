@@ -1,7 +1,7 @@
 import numpy as np
 
-from src.bandit.OptimalPriceLearner import OptimalPriceLearner
-from src.bandit.PriceBanditEnvironment import PriceBanditEnvironment
+from src.bandit.learner.OptimalPriceLearner import OptimalPriceLearner
+from src.bandit.banditEnvironments.PriceBanditEnvironment import PriceBanditEnvironment
 from src.distributions import Beta
 
 

@@ -1,7 +1,7 @@
 import numpy as np
 
-from src.bandit.JointBanditEnvironment import JointBanditEnvironment
-from src.bandit.OptimalJointLearner import OptimalJointLearner
+from src.bandit.banditEnvironments.JointBanditEnvironment import JointBanditEnvironment
+from src.bandit.learner.OptimalJointLearner import OptimalJointLearner
 from src.utils import sum_ragged_matrix
 
 

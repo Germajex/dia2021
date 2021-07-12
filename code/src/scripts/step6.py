@@ -2,14 +2,14 @@ import numpy as np
 
 from src.Environment import Environment
 from src.algorithms import step1
-from src.bandit.JointBanditEnvironment import JointBanditEnvironment
+from src.bandit.banditEnvironments.JointBanditEnvironment import JointBanditEnvironment
 from src.bandit.LearningStats import plot_results
-from src.bandit.UCBOptimalJointLearner import UCBOptimalJointLearner
+from src.bandit.learner.ucb.UCBOptimalJointLearner import UCBOptimalJointLearner
 
 
 def main():
     # [!] Feel free to play with the number of arms [!]
-    prices = np.linspace(10, 100, num=10, dtype=np.int64)
+    prices = np.linspace(10, 100, num=15, dtype=np.int64)
     bids = np.linspace(1, 40, num=10, dtype=np.int64)
 
     env = Environment()
@@ -35,7 +35,7 @@ def main():
     for arm_p in range(ucb_learner.n_arms_price):
         print(f'{bandit_env.prices[arm_p]:3d}      | ' + ' '.join(f'{p:5d}' for p in ucb_recap[arm_p]))
 
-    plot_results(["UCB"], [ucb_cumulative_profits], clairvoyant_cumulative_profits, regret_length, smooth=False)
+    plot_results(["ucb"], [ucb_cumulative_profits], clairvoyant_cumulative_profits, regret_length, smooth=False)
 
 
 if __name__ == "__main__":
