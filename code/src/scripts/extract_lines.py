@@ -2,6 +2,26 @@
 
 
 def main(destination_dir):
+    extract_lines(in_file='../algorithms.py',
+                  out_file=destination_dir+'/step1_expected_profit.py',
+                  start_delimiter='# start expected profit\n',
+                  end_delimiter='# end expected profit')
+
+    extract_lines(in_file='../algorithms.py',
+                  out_file=destination_dir + '/step1_simple_class_profit.py',
+                  start_delimiter='# start simple class profit\n',
+                  end_delimiter='# end simple class profit')
+
+    extract_lines(in_file='../algorithms.py',
+                  out_file=destination_dir+'/step1.py',
+                  start_delimiter='# start step 1\n',
+                  end_delimiter='# end step 1')
+
+    extract_lines(in_file='../algorithms.py',
+                  out_file=destination_dir+'/step1_support.py',
+                  start_delimiter='# start step 1 support\n',
+                  end_delimiter='# end step 1 support')
+
     extract_lines(in_file='../bandit/learner/OptimalPriceLearner.py',
                   out_file=destination_dir+'/step3_learning_loop.py',
                   start_delimiter='    # start learning loop\n',
@@ -11,11 +31,6 @@ def main(destination_dir):
                   out_file=destination_dir + '/step3_projected_profits.py',
                   start_delimiter='    # start projected profits\n',
                   end_delimiter='    # end projected profits')
-
-    extract_lines(in_file='../algorithms.py',
-                  out_file=destination_dir + '/step3_simple_class_profit.py',
-                  start_delimiter='# start simple class profit\n',
-                  end_delimiter='# end simple class profit')
 
     extract_lines(in_file='../bandit/learner/OptimalPriceLearner.py',
                   out_file=destination_dir + '/step3_estimates.py',
@@ -103,9 +118,14 @@ def extract_lines(in_file, out_file, start_delimiter, end_delimiter):
         lines = ''.join(inf.readlines())
         start = lines.index(start_delimiter)
         end = lines.index(end_delimiter, start)
-        lines = lines[start+len(start_delimiter):end]
+        lines = lines[start+len(start_delimiter):end].rstrip()
+
+        lines = lines.split('\n')
+        min_white = min(len(l)-len(l.lstrip()) for l in lines if l.strip())
+        lines = [line[min_white:] if line.strip() else line for line in lines]
+        lines = '\n'.join(lines)
         with open(out_file, 'w', encoding='utf8') as of:
-            of.write(lines.rstrip())
+            of.write(lines)
 
 
 if __name__ == "__main__":
