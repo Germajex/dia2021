@@ -14,7 +14,7 @@ from src.scripts.environment_plotter import plot_everything
 def main():
     prices = np.arange(10, 101, 10)
     bids = np.arange(1, 101)
-    interactive=False
+    interactive = False
 
     for envN, seedV in enumerate([3144548588, 1873674269]):
 
@@ -58,29 +58,30 @@ def main():
         for i, p in enumerate(prices):
             table_data[i + 1].append(f'{gaps[i]:.2f}')
 
-        table_data[0] += ['ucb pulls', 'ucb expected', 'ts pulls', 'ts expected']
+        table_data[0] += ['UCB Pulls', 'UCB Expected', 'TS Pulls', 'TS Expected']
         for learner in [ucb_learner, ts_learner]:
             for i, (n, e) in enumerate(zip(learner.get_number_of_pulls(), learner.compute_expected_profits())):
                 table_data[i + 1].append(f'{n}')
                 table_data[i + 1].append(f'{e:.2f}')
 
         table = AsciiTable(table_data)
-        for i in range(7):
+        for i in range(len(table_data[0])):
             table.justify_columns[i] = 'right'
         print(table.table)
 
         dir = '../../../report/figures/step3'
 
-        with open(dir+f'/output{envN}.txt', 'w', encoding='utf8') as output_file:
+        with open(dir + f'/output{envN}.txt', 'w', encoding='utf8') as output_file:
             output_file.write(f' Seed: {env.get_seed()}\n')
             output_file.write(table.table)
+            output_file.write(f'\n\n Optimal price: {opt_price:.2f}, Optimal bid: {opt_bid:.2f}')
 
-        plot_results(["ucb", "ts"],
+        plot_results(["UCB", "TS"],
                      [ucb_cumulative_profits, ts_cumulative_profits],
                      clairvoyant_cumulative_profits, n_rounds,
-                     dest_file_path=dir+f'/plot{envN}')
+                     dest_file_path=dir + f'/plot{envN}')
 
-        plot_everything(environment=env, path=dir+f'/env{envN}')
+        plot_everything(environment=env, path=dir + f'/env{envN}')
 
 
 if __name__ == "__main__":
