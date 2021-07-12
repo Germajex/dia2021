@@ -178,7 +178,7 @@ class OptimalPriceDiscriminatingLearner:
 
     def pull_from_env(self, strategy):
         new_clicks, purchases, tot_cost_per_clicks, \
-        (past_arm_strategy, past_future_visits) = self.env.pull_arm_discriminating(strategy)
+            (past_arm_strategy, past_future_visits) = self.env.pull_arm_discriminating(strategy)
 
         for comb in self.env.get_features_combinations():
             self.new_clicks_per_comb_per_arm[comb][strategy[comb]].append(new_clicks[comb])

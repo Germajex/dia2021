@@ -4,7 +4,8 @@ import numpy as np
 
 
 def sigmoid(x, center, z):
-    return 1 / (1 + math.exp(-z * (x - center)))
+    res = 1 / (1 + math.exp(-z * (x - center)))
+    return res
 
 
 def average_ragged_matrix(mat):

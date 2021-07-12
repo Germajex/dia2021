@@ -2,6 +2,7 @@ import numpy as np
 
 
 # start simple class profit
+
 def simple_class_profit(margin, new_clicks, conversion_rate,
                         future_visits, cost_per_click):
     return new_clicks * (margin * conversion_rate * (1 + future_visits)
@@ -83,9 +84,9 @@ def optimal_price_for_bid(env, prices, bid, classes=None):
     return prices[opt_p_index]
 
 
-def optimal_bid_for_price(env, bids, price):
+def optimal_bid_for_price(env, bids, price, classes=None):
     opt_b_index = np.argmax([
-        expected_profit(env, price, b)
+        expected_profit(env, price, b, classes)
         for b in bids
     ])
     return bids[opt_b_index]
