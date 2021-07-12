@@ -12,7 +12,7 @@ from src.bandit.learner.ucb.UCBOptimalPriceDiscriminatingLearner import UCBOptim
 
 def main():
     prices = np.linspace(10, 100, num=10, dtype=np.int64)
-    bids = np.linspace(1, 40, num=10, dtype=np.int64)
+    bids = np.linspace(1, 100, num=10, dtype=np.int64)
     delay = 30
     step_4_n_rounds = 400
     n_rounds = 400
@@ -28,7 +28,6 @@ def main():
     ucb_disc_learner = UCBOptimalPriceDiscriminatingLearner(bandit_env_step4)
     ucb_disc_learner.learn(step_4_n_rounds)
     contexts = ucb_disc_learner.context_structure
-
     print(f'Context structure found!')
     feature_combs = [comb.features for comb in contexts]
     for i in range(len(feature_combs)):
@@ -45,6 +44,20 @@ def main():
     clairvoyant = bandit_env.get_clairvoyant_cumulative_profit_discriminating(n_rounds)
     strategies = joint_disc_learner.get_strategies()
     learner_profit = bandit_env.get_learner_cumulative_profit_discriminating(strategies)
+
+    for i, context in enumerate(joint_disc_learner.get_context_structure()):
+        recap = context.get_pulled_arms_recap()
+        print(f'Context n°{i} - Combinations of features:', *context.features)
+        print(f'Bids ->  | ' + ' '.join(f'{bandit_env.bids[b]:5d}' for b in range(context.n_arms_bid)))
+        print(f'Prices v | ' + '-' * 6 * context.n_arms_bid)
+
+        for arm_p in range(context.n_arms_price):
+            print(f'{bandit_env.prices[arm_p]:3d}      | ' + ' '.join(f'{p:5d}' for p in recap[arm_p]))
+        print()
+
+    print(f'Expected profit: {learner_profit[-1]}')
+    print()
+    env.print_class_summary()
 
     plot_results(["ucb"], [learner_profit], clairvoyant, n_rounds, smooth=False)
 

@@ -19,6 +19,7 @@ class JointContext:
         self.new_clicks = None
         self.tot_cost_per_click_per_bid = None
         self.tot_auctions_per_bid = None
+        self.pulled_arms = []
 
     def merge_all_data(self, future_visits_per_comb, purchases_per_comb, new_clicks_per_comb, tot_cost_per_click_per_comb,
                        tot_auctions_per_comb):
@@ -147,3 +148,27 @@ class JointContext:
         cost_per_click = tot_cost / tot_clicks
 
         return cost_per_click
+
+    def update_pulled_arms(self, strategy_price, strategy_bid):
+        price = strategy_price[self.features[0]]
+        bid = strategy_bid[self.features[0]]
+        self.pulled_arms.append((price, bid))
+
+    def pulled_arm_count(self, arm_p, arm_b):
+        i = 0
+        for arm_price, arm_bid in self.pulled_arms:
+            if arm_price == arm_p and arm_bid == arm_b:
+                i += 1
+
+        return i
+
+    def get_pulled_arms_recap(self):
+        recap = []
+        for arm_p in range(self.n_arms_price):
+            bid_recap = []
+            for arm_b in range(self.n_arms_bid):
+                bid_recap.append(self.pulled_arm_count(arm_p, arm_b))
+            recap.append(bid_recap)
+
+        return recap
+
