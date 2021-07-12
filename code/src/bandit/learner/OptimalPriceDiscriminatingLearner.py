@@ -60,7 +60,7 @@ class OptimalPriceDiscriminatingLearner:
         for context in self.context_structure:
             possible_splits = self.compute_convenient_splits(context)
             if possible_splits:
-                incentive, new_structure, feature = min(possible_splits,
+                incentive, new_structure, feature = max(possible_splits,
                                                         key=lambda x: x[0])
                 self.context_structure = new_structure
                 self.performed_splits.append((self.current_round, feature, incentive))
