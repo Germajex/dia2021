@@ -20,6 +20,7 @@ class OptimalBidLearner:
         self.pulled_arms = []
         self.security = 0.2
 
+    # start learning loop
     def learn(self, n_rounds: int):
         self.round_robin()
 
@@ -36,6 +37,9 @@ class OptimalBidLearner:
         arms_bid_safe = np.where(mask, self.compute_projected_profits(), 0)
         return int(np.argmax(arms_bid_safe))
 
+    # end learning loop
+
+    # start safe arms
     def compute_safe_arms(self):
         means = [np.mean(new_clicks) for new_clicks in self.new_clicks_per_arm]
         std_dev = [np.std(new_clicks) for new_clicks in self.new_clicks_per_arm]
@@ -46,10 +50,14 @@ class OptimalBidLearner:
 
         return arm_mask
 
+    # end safe arms
+
+    # start projected profits
     def compute_projected_profits(self):
         auctions = self.compute_average_auctions()
-        winning_prob = self.compute_projection_auction_winning_probability_per_arm()
-        new_clicks = auctions * winning_prob
+        winning_probs = self.compute_projection_auction_winning_probability_per_arm()
+        new_clicks = auctions * winning_probs
+        # constant margin of the fixed price
         margin = self.env.margin()
         crs = self.compute_conversion_rates()
         future_visits = self.compute_future_visits()
@@ -64,6 +72,8 @@ class OptimalBidLearner:
         )
 
         return projected_profit
+
+    # end projected profit
 
     def compute_expected_profits(self, nc=None):
         new_clicks = nc if nc else self.compute_average_auctions() * self.compute_average_auction_winning_probability_per_arm()
@@ -84,19 +94,33 @@ class OptimalBidLearner:
 
         return average_clicks_per_arm
 
-    def compute_projection_auction_winning_probability_per_arm(self):
-        raise NotImplementedError
-
     def compute_average_auction_winning_probability_per_arm(self):
-        avgs = [sum(self.new_clicks_per_arm[arm]) / sum(self.auctions_per_arm[arm]) for arm in range(self.n_arms)]
+        avgs = [sum(self.new_clicks_per_arm[arm]) / sum(self.auctions_per_arm[arm])
+                for arm in range(self.n_arms)]
 
         return np.array(avgs)
 
+    def compute_projection_auction_winning_probability_per_arm(self):
+        raise NotImplementedError
+
+    # start estimated quantities
     def compute_average_auctions(self):
         return average_ragged_matrix(self.auctions_per_arm)
 
     def compute_conversion_rates(self):
-        return sum_ragged_matrix(self.purchases_per_arm) / sum_ragged_matrix(self.new_clicks_per_arm)
+        return sum_ragged_matrix(self.purchases_per_arm) / \
+               sum_ragged_matrix(self.new_clicks_per_arm)
+
+    def compute_future_visits(self):
+        successes_sum = 0
+
+        for arm in range(self.n_arms):
+            complete_samples = len(self.future_visits_per_arm[arm])
+            successes_sum += np.sum(self.purchases_per_arm[arm][:complete_samples])
+
+        return sum_ragged_matrix(self.future_visits_per_arm) / successes_sum
+
+    # end estimated quantities
 
     def compute_expected_profit_one_round(self, new_clicks, purchases, tot_cost_per_clicks):
         if new_clicks == 0:
@@ -111,15 +135,6 @@ class OptimalBidLearner:
 
     def compute_cumulative_profits(self):
         return np.cumsum(self.expected_profits)
-
-    def compute_future_visits(self):
-        successes_sum = 0
-
-        for arm in range(self.n_arms):
-            complete_samples = len(self.future_visits_per_arm[arm])
-            successes_sum += np.sum(self.purchases_per_arm[arm][:complete_samples])
-
-        return sum_ragged_matrix(self.future_visits_per_arm) / successes_sum
 
     def get_number_of_pulls(self):
         return np.array([len(a) for a in self.new_clicks_per_arm])
@@ -146,4 +161,3 @@ class OptimalBidLearner:
         self.current_round += 1
         self.pulled_arms.append(arm)
 
-        return new_clicks, purchases, tot_cost_per_clicks, (old_a, visits)
