@@ -112,6 +112,31 @@ def main(destination_dir):
                   start_delimiter='    # start projection\n',
                   end_delimiter='    # end projection')
 
+    extract_lines(in_file='../bandit/learner/OptimalBidLearner.py',
+                  out_file=destination_dir + '/step5_learning_loop.py',
+                  start_delimiter='    # start learning loop\n',
+                  end_delimiter='    # end learning loop')
+
+    extract_lines(in_file='../bandit/learner/OptimalBidLearner.py',
+                  out_file=destination_dir + '/step5_safety_constraint.py',
+                  start_delimiter='    # start safe arms\n',
+                  end_delimiter='    # end safe arms')
+
+    extract_lines(in_file='../bandit/learner/OptimalBidLearner.py',
+                  out_file=destination_dir + '/step5_projected_profit.py',
+                  start_delimiter='    # start projected profits\n',
+                  end_delimiter='    # end projected profit')
+
+    extract_lines(in_file='../bandit/learner/OptimalBidLearner.py',
+                  out_file=destination_dir + '/step5_estimated_quantities.py',
+                  start_delimiter='    # start estimated quantities\n',
+                  end_delimiter='    # end estimated quantities')
+
+    extract_lines(in_file='../bandit/learner/ucb/UCBOptimalBidLearner.py',
+                  out_file=destination_dir + '/step5_ucb_win_prob.py',
+                  start_delimiter='    # start ucb bid win prob\n',
+                  end_delimiter='    # end ucb bid win prob')
+
 
 def extract_lines(in_file, out_file, start_delimiter, end_delimiter):
     with open(in_file, 'r', encoding='utf8') as inf:

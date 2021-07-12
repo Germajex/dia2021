@@ -357,7 +357,7 @@ We don't report the code of the method \textit{compute\_projected\_profit()} sin
 
 The second core method is \textit{update\_contexts()}:
 \inputminted{python}{code/step4_update_contexts.py}
-For each context, among all the splits that are convenient, it takes the one that is convenient by the smallest amount. The rationale behind this is that it is more likely that the more convenient split will be performed the next round even if a split was just done.\\
+For each context, among all the splits that are convenient, it takes the one that is convenient by the largest amount.\\
 
 Let's see how the convenient splits are computed:
 
@@ -391,7 +391,8 @@ As in Step 3, the Thompson sampling approach samples from the Beta distributions
 
 \begin{samepage}
 \subsection{\textit{choose\_next\_strategy\_explorative()}}
-We added the explorative rounds after the following empiric observation: the splits that could not be detected after the initial round robin are never detected if their optimal arm is very sub-optimal for the current context, since the lower confidence bound will never get tighter (it will almost never be pulled). Therefore we added the \textit{explorative rounds}, rounds in which the contexts which could be split do not pull the best arm according to their strategy but rather pulll the arms in a round-robin fashion, to allow the confidence bounds of the currently sub-optimal arms to get tighter. We ensure that the number of explorative rounds remains logarithmic in the following way: after the $i_{th}$ explorative round robin has been completed, $2^i$ normal rounds must be completed before running the $i+1_{th}$ explorative round robin.
+We added the explorative rounds after the following empiric observation: the splits that could not be detected after the initial round robin are never detected if their optimal arm is very sub-optimal for the current context, since the lower confidence bound will never get tighter (it will almost never be pulled). Therefore we added the \textit{explorative rounds}, rounds in which the contexts which could be split do not pull the best arm according to their strategy but rather pulll the arms in a round-robin fashion, to allow the confidence bounds of the currently sub-optimal arms to get tighter. We ensure that the number of explorative rounds remains logarithmic in the following way: after the $i_{th}$ explorative round robin has been completed, $2^i$ normal rounds must be completed before running the $i+1_{th}$ explorative round robin. From the regret plots below, one can clearly see the explorative rounds as the regret makes a step.
+
 \inputminted{python}{code/step4_choose_next_strategy_explorative.py}
 \end{samepage}
 
@@ -414,7 +415,7 @@ We added the explorative rounds after the following empiric observation: the spl
 {\footnotesize\verbatiminput{figures/step4/output1.txt}}
 
 \clearpage
-\subsection{Experiment 2}
+\subsection{Experiment 3}
 \makebox[\linewidth]{\includegraphics[scale=0.4]{figures/step4/env2.png}}
 \makebox[\linewidth]{\includegraphics[scale=0.7] {figures/step4/plot2.png}}
 
@@ -424,7 +425,57 @@ We added the explorative rounds after the following empiric observation: the spl
 
 \clearpage
 \section{Step 5}
-{\color{red}da scrivere}
+In order to learn online the best bid for a fixed price, we implement a simmetric approach with respect to Step 3, with which it has  many similarities. We defined the class \textit{BidBanditEnvironment}, which has internally an instance of \textit{Environment}. Upon the creation of an instance of a \textit{BidBanditEnvironment}, the underlying \textit{Environment}, the set of possible bids and the fixed price value must be supplied as arguments. The bandit environment hides the actual bids $B$ from the learner, and instead it shows a bandit-like set of arms numbered from $0$ to $|B|-1$.\\
+
+The \textit{BidBanditEnvironment} exposes the method \textit{pull\_arm\_not\_discriminating(arm: int)} which returns to the aggregated data:\\
+\textit{auctions, new\_clicks, purchases, tot\_cost\_per\_clicks, (past\_arm, past\_future\_visits)}.\\
+We can notice that the number of auctions run by the advertisor is also communicated to the learner, differently from the \textit{PriceBanditEnvironment} of Step 3.\\
+
+The \textit{OptimalBidLearner} is also similar to the learner of Step 3, it is evident from the core learning loop:
+\inputminted{python}{code/step5_learning_loop.py}
+The arm selection logic is, as always, to pull the arm with the highest expected profit, computed with an optimistic / explorative estimate of the parameter (in this case, the probablity of winning an auction with a certain bid value). However, here we notice a difference: a safety constraint is introduced to prevent the learner from playing arms that would yield a negative profit with a probability greater or equal to a certain threshold. We call this threshold the \textit{security} parameter, which is set by default to $0.2$.\\
+
+\begin{samepage}
+The set of safe arms is computed as follows:
+\inputminted{python}{code/step5_safety_constraint.py}
+\end{samepage}
+{\color{red} Spiegazione di come funziona}\\
+
+The computation of the projection of profit for each arm is as follows:
+
+\inputminted{python}{code/step5_projected_profit.py}
+
+\begin{samepage}
+The estimated quantities are computed in the following way:
+\inputminted{python}{code/step5_estimated_quantities.py}
+\end{samepage}
+While the method \textit{compute\_projection\_auction\_winning\_probability\_per\_arm()} is defined as abstract to allow for the implementation of different explorative strategies.
+
+\subsection{The class \textit{UCBOptimalBidLearner}}
+We have chosen the UCB approach to continue the assignment, the upper confidence bounds for the probability of winning an auction with a given bid value are computed in the following way:
+
+\inputminted{python}{code/step5_ucb_win_prob.py}
+
+The bound is the standard upper confidence bound used by UCB1 for stochastic Bernoulli bandits, where each auction is considered one try and the click of the user (which under our assumption is equivalent to winning the auction) is the success.
+
+\clearpage
+\subsection{Experiment 1}
+\makebox[\linewidth]{\includegraphics[scale=0.4]{figures/step5/env0.png}}
+\makebox[\linewidth]{\includegraphics[scale=0.7] {figures/step5/plot0.png}}
+
+\clearpage
+
+{\footnotesize\verbatiminput{figures/step5/output0.txt}}
+
+\clearpage
+\subsection{Experiment 2}
+\makebox[\linewidth]{\includegraphics[scale=0.4]{figures/step5/env1.png}}
+\makebox[\linewidth]{\includegraphics[scale=0.7] {figures/step5/plot1.png}}
+
+\clearpage
+
+{\footnotesize\verbatiminput{figures/step5/output1.txt}}
+
 
 
 \clearpage
