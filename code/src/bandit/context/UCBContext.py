@@ -22,8 +22,8 @@ class UCBContext(Context):
     def _compute_cr_upper_bounds(self, new_clicks_per_arm,
                                  purchases_per_arm, current_round):
         averages = self._compute_cr_averages(new_clicks_per_arm, purchases_per_arm)
-        radia = self.compute_conversion_rates_radia(new_clicks_per_arm, current_round)
-        upper_bounds = averages + radia
+        radii = self.compute_conversion_rates_radii(new_clicks_per_arm, current_round)
+        upper_bounds = averages + radii
 
         return upper_bounds
 
@@ -31,7 +31,7 @@ class UCBContext(Context):
         return np.array([sum(purchases_per_arm[arm]) / sum(new_clicks_per_arm[arm])
                          for arm in range(self.n_arms)]).flatten()
 
-    def compute_conversion_rates_radia(self, new_clicks_per_arm, current_round):
+    def compute_conversion_rates_radii(self, new_clicks_per_arm, current_round):
         tot_clicks_per_arm = np.array([np.sum(new_clicks_per_arm[arm])
                                        for arm in range(self.n_arms)])
 
@@ -40,8 +40,8 @@ class UCBContext(Context):
 
     def _compute_cr_lower_bounds(self, new_clicks_per_arm, purchases_per_arm, current_round):
         averages = self._compute_cr_averages(new_clicks_per_arm, purchases_per_arm)
-        radia = self.compute_conversion_rates_radia(new_clicks_per_arm, current_round)
-        lower_bounds = averages - radia
+        radii = self.compute_conversion_rates_radii(new_clicks_per_arm, current_round)
+        lower_bounds = averages - radii
 
         return lower_bounds
 
