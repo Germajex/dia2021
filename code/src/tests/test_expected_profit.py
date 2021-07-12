@@ -20,11 +20,9 @@ class Test(TestCase):
             env = Environment()
             opt_price, opt_bid, exp_profit = step1(env, prices, bids)
 
-            pricing_strategy = {c:opt_price for c in env.get_features_combinations()}
-
             cum_profit = 0
             for __ in range(samples):
-                _, _, _, _, _, profit = env.simulate_one_day_fixed_bid(pricing_strategy, opt_bid)
+                _, _, _, _, _, profit = env.simulate_one_day_fixed_both(opt_price, opt_bid)
                 cum_profit += profit
 
             average_profit = cum_profit / samples
