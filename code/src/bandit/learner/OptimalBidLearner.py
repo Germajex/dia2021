@@ -16,7 +16,6 @@ class OptimalBidLearner:
         self.new_clicks_per_arm = [[] for i in range(self.n_arms)]
         self.tot_cost_per_click_per_arm = [0 for i in range(self.n_arms)]
         self.current_round = 0
-        self.expected_profits = []
         self.pulled_arms = []
         self.security = 0.2
 
@@ -76,12 +75,18 @@ class OptimalBidLearner:
     # end projected profit
 
     def compute_expected_profits(self, nc=None):
-        new_clicks = nc if nc else self.compute_average_auctions() * self.compute_average_auction_winning_probability_per_arm()
+        new_clicks = nc
+        if nc is None:
+            auctions = self.compute_average_auctions()
+            win_probs = self.compute_average_auction_winning_probability_per_arm()
+            new_clicks = auctions * win_probs
+
         margin = self.env.margin()
         crs = self.compute_conversion_rates()
         future_visits = self.compute_future_visits()
         cost_per_click = np.array(
-            [self.tot_cost_per_click_per_arm[arm] / np.sum(self.new_clicks_per_arm[arm]) for arm in range(self.n_arms)])
+            [self.tot_cost_per_click_per_arm[arm] / np.sum(self.new_clicks_per_arm[arm])
+             for arm in range(self.n_arms)])
 
         expected_profit = new_clicks * (margin * crs * (1 + future_visits) - cost_per_click)
 
@@ -118,23 +123,12 @@ class OptimalBidLearner:
             complete_samples = len(self.future_visits_per_arm[arm])
             successes_sum += np.sum(self.purchases_per_arm[arm][:complete_samples])
 
-        return sum_ragged_matrix(self.future_visits_per_arm) / successes_sum
+        if not successes_sum:
+            return 0
+        else:
+            return sum_ragged_matrix(self.future_visits_per_arm) / successes_sum
 
     # end estimated quantities
-
-    def compute_expected_profit_one_round(self, new_clicks, purchases, tot_cost_per_clicks):
-        if new_clicks == 0:
-            cr = 0
-        else:
-            cr = purchases / new_clicks
-        future = self.compute_future_visits()
-        margin = self.env.margin()
-
-        expected_profit = new_clicks * (margin * cr * (1 + future)) - tot_cost_per_clicks
-        return expected_profit
-
-    def compute_cumulative_profits(self):
-        return np.cumsum(self.expected_profits)
 
     def get_number_of_pulls(self):
         return np.array([len(a) for a in self.new_clicks_per_arm])
@@ -155,9 +149,9 @@ class OptimalBidLearner:
 
         if old_a is not None:
             self.future_visits_per_arm[old_a].append(visits)
-            self.expected_profits.append(self.compute_expected_profit_one_round(new_clicks, purchases,
-                                                                                tot_cost_per_clicks))
 
         self.current_round += 1
         self.pulled_arms.append(arm)
 
+    def compute_cumulative_exp_profits(self, expected_profits):
+        return np.cumsum([expected_profits[a] for a in self.pulled_arms])
