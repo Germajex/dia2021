@@ -64,6 +64,7 @@ class Environment:
         print(f'Average daily auctions: {self.average_tot_auctions:.2f}')
         print(f'50% winrate bid: {self.newClicksC:.2f}')
         print(f'Bid concentration: {self.newClicksZ:.2f}')
+        print(f'Base price: {self.item_base_price:.2f}')
         print()
         print()
         self.print_class_summary()
