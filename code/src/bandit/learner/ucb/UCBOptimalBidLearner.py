@@ -16,14 +16,20 @@ class UCBOptimalBidLearner(OptimalBidLearner):
         if self.show_round(self.current_round):
             self.show_bounds()
 
+    # start ucb bid win prob
     def compute_projection_auction_winning_probability_per_arm(self):
         avg = self.compute_average_auction_winning_probability_per_arm()
-        radia = self.compute_auction_winning_probability_radia()
+        radii = self.compute_auction_winning_probability_radii()
+        upper_bounds = avg + radii
 
-        return avg + radia
+        return upper_bounds
 
-    def compute_auction_winning_probability_radia(self):
-        return np.sqrt(2 * np.log(self.current_round) / self.get_number_of_pulls())
+    def compute_auction_winning_probability_radii(self):
+        auctions_per_arm = np.array([sum(self.auctions_per_arm[a])
+                                     for a in range(self.n_arms)])
+        return np.sqrt(2 * np.log(self.current_round) / auctions_per_arm)
+
+    # end ucb bid win prob
 
     # Method used for debugging mainly. Plots the average reward and the confidence bounds used by the ucb algorithm
     def show_bounds(self):
@@ -38,7 +44,7 @@ class UCBOptimalBidLearner(OptimalBidLearner):
         ax.set_xticks(x)
 
         means = self.compute_average_auction_winning_probability_per_arm()
-        radia = self.compute_auction_winning_probability_radia()
+        radia = self.compute_auction_winning_probability_radii()
 
         ax.errorbar(x, means, yerr=radia, color="black", capsize=5, fmt='o', markersize=4)
 
