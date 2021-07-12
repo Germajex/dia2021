@@ -47,12 +47,16 @@ class OptimalBidLearner:
         return arm_mask
 
     def compute_projected_profits(self):
-        new_clicks = self.compute_average_auctions_per_arm() * self.compute_projection_auction_winning_probability_per_arm()
+        auctions = self.compute_average_auctions()
+        winning_prob = self.compute_projection_auction_winning_probability_per_arm()
+        new_clicks = auctions * winning_prob
         margin = self.env.margin()
         crs = self.compute_conversion_rates()
         future_visits = self.compute_future_visits()
         cost_per_click = np.array(
-            [self.tot_cost_per_click_per_arm[arm] / np.sum(self.new_clicks_per_arm[arm]) for arm in range(self.n_arms)])
+            [self.tot_cost_per_click_per_arm[arm] / np.sum(self.new_clicks_per_arm[arm])
+             for arm in range(self.n_arms)]
+        )
 
         projected_profit = simple_class_profit(
             margin=margin, conversion_rate=crs, new_clicks=new_clicks,
@@ -62,7 +66,7 @@ class OptimalBidLearner:
         return projected_profit
 
     def compute_expected_profits(self, nc=None):
-        new_clicks = nc if nc else self.compute_average_auctions_per_arm() * self.compute_average_auction_winning_probability_per_arm()
+        new_clicks = nc if nc else self.compute_average_auctions() * self.compute_average_auction_winning_probability_per_arm()
         margin = self.env.margin()
         crs = self.compute_conversion_rates()
         future_visits = self.compute_future_visits()
@@ -88,7 +92,7 @@ class OptimalBidLearner:
 
         return np.array(avgs)
 
-    def compute_average_auctions_per_arm(self):
+    def compute_average_auctions(self):
         return average_ragged_matrix(self.auctions_per_arm)
 
     def compute_conversion_rates(self):
