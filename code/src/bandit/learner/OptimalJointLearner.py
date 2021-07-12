@@ -169,8 +169,6 @@ class OptimalJointLearner:
         self.current_round += 1
         self.pulled_arms.append((arm_price, arm_bid))
 
-        return new_clicks, purchases, tot_cost_per_clicks, (old_a, visits)
-
     def pulled_arm_count(self, arm_p, arm_b):
         i = 0
         for arm_price, arm_bid in self.pulled_arms:

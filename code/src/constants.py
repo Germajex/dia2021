@@ -19,7 +19,7 @@ class _Const(object):
 
     @constant
     def BID_MIN():
-        return 1
+        return 5
 
     @constant
     def BID_MAX():
