@@ -30,8 +30,8 @@ class OptimalBidLearner:
         self.pull_from_env(arm=arm)
 
     def choose_next_arm(self):
-        # We hope this mask won't ever be all false
         mask = self.compute_safe_arms()
+        # put compute_projected_profits where mask is true and 0 otherwise
         arms_bid_safe = np.where(mask, self.compute_projected_profits(), 0)
         return int(np.argmax(arms_bid_safe))
 

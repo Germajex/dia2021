@@ -29,6 +29,7 @@ def expected_profit_for_comb(env, p, b, comb):
     return profit
 
 
+# start expected profit
 def expected_profit(env, p, b, classes=None):
     m = env.margin
     n = env.distNewClicks.mean
@@ -46,6 +47,9 @@ def expected_profit(env, p, b, classes=None):
     return profit
 
 
+# end expected profit
+
+
 def optimal_pricing_strategy_for_bid(env, prices, bid):
     strategy = {}
     for c in env.classes:
@@ -56,6 +60,21 @@ def optimal_pricing_strategy_for_bid(env, prices, bid):
     return strategy
 
 
+# start step 1
+def step1(env, prices, bids):
+    median_b = bids[len(bids) // 2]
+
+    optimal_price = optimal_price_for_bid(env, prices, median_b)
+    optimal_bid = optimal_bid_for_price(env, bids, optimal_price)
+
+    profit = expected_profit(env, optimal_price, optimal_bid)
+
+    return optimal_price, optimal_bid, profit
+
+
+# end step 1
+
+# start step 1 support
 def optimal_price_for_bid(env, prices, bid, classes=None):
     opt_p_index = np.argmax([
         expected_profit(env, p, bid, classes)
@@ -71,14 +90,4 @@ def optimal_bid_for_price(env, bids, price, classes=None):
         for b in bids
     ])
     return bids[opt_b_index]
-
-
-def step1(env, prices, bids):
-    median_b = bids[len(bids) // 2]
-
-    optimal_price = optimal_price_for_bid(env, prices, median_b)
-    optimal_bid = optimal_bid_for_price(env, bids, optimal_price)
-
-    profit = expected_profit(env, optimal_price, optimal_bid)
-
-    return optimal_price, optimal_bid, profit
+# end step 1 support

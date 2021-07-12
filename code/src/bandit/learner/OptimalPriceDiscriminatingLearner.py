@@ -38,6 +38,8 @@ class OptimalPriceDiscriminatingLearner:
         self.remaining_normal_rounds = 0
         self.performed_round_robins = 0
 
+        self.performed_splits = []
+
     # start learning loop
     def learn(self, n_rounds: int):
         self.initial_round_robin()
@@ -61,6 +63,7 @@ class OptimalPriceDiscriminatingLearner:
                 incentive, new_structure, feature = min(possible_splits,
                                                         key=lambda x: x[0])
                 self.context_structure = new_structure
+                self.performed_splits.append((self.current_round, feature, incentive))
                 print(f'Split context at round {self.current_round} '
                       f'on feature {feature}')
 
@@ -208,6 +211,9 @@ class OptimalPriceDiscriminatingLearner:
                 self.state_is_explorative_rounds = True
                 self.remaining_round_robins = self.round_robins_per_cycle
                 self.next_round_robin_arm = 0
+
+    def get_perfomed_splits(self):
+        return self.performed_splits
 
     def get_contexts(self):
         return self.context_structure

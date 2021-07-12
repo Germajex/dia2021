@@ -72,9 +72,10 @@ def main():
                          [ucb_profits, ts_profits],
                          clairvoyant_cumulative_profits, n_rounds)
 
-        print("Optimal pricing strategy: " + ", ".join(
-            f'{c.name}({", ".join(str(comb) for comb in c.features)}): {opt_strategy[c.features[0]]:.2f}'
-            for c in env.classes))
+        optimal_pricing_str = "Optimal pricing strategy: " + ", ".join(
+            f'{c.name}({", ".join(str(comb[0])[0]+str(comb[1])[0] for comb in c.features)}): {opt_strategy[c.features[0]]:.2f}'
+            for c in env.classes)
+        print(optimal_pricing_str)
         print(f"With value: {opt_value:.2f}\n\n")
 
         table_data_ucb, table_data_ts = [], []
@@ -117,9 +118,18 @@ def main():
             output_file.write(' Legend: context, true expected value, number of pulls\n')
             output_file.write(' ucb with context generation:\n')
             output_file.write(ucb_table.table)
-            output_file.write('\n\n')
+            output_file.write('\n\n Performed splits:\n')
+            for round_n, feature, incentive in ucb_disc_learner.get_perfomed_splits():
+                output_file.write(f' Round{round_n:3d} split on feature {feature+1} '
+                                  f'with incentive {incentive:.2f}\n')
+            output_file.write('\n')
             output_file.write(' ts with context generation:\n')
             output_file.write(ts_table.table)
+            output_file.write('\n\n Performed splits:\n')
+            for round_n, feature, incentive in ts_disc_learner.get_perfomed_splits():
+                output_file.write(f' Round{round_n:3d} split on feature {feature+1} '
+                                  f'with incentive {incentive:.2f}\n')
+            output_file.write("\n\n" + optimal_pricing_str)
 
         plot_results(["ucb", "ts"],
                      [ucb_profits, ts_profits],
