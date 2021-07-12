@@ -102,17 +102,17 @@ class OptimalPriceDiscriminatingLearner:
         n_features = len(self.context_structure[0].features[0])
         res = []
         for i in range(n_features):
-            features_where_i_is_true = [f for f in context.features if f[i]]
-            features_where_i_is_false = [f for f in context.features if not f[i]]
+            combinations_where_i_is_true = [f for f in context.features if f[i]]
+            combinations_where_i_is_false = [f for f in context.features if not f[i]]
 
             # a valid split generates two non-empty context
-            if features_where_i_is_false and features_where_i_is_true:
-                context_true = self.context_creator(features=features_where_i_is_true,
+            if combinations_where_i_is_false and combinations_where_i_is_true:
+                context_true = self.context_creator(features=combinations_where_i_is_true,
                                                     arm_margin_function=self.env.margin,
                                                     n_arms=self.n_arms,
                                                     rng=self.env.rng)
 
-                context_false = self.context_creator(features=features_where_i_is_false,
+                context_false = self.context_creator(features=combinations_where_i_is_false,
                                                      arm_margin_function=self.env.margin,
                                                      n_arms=self.n_arms,
                                                      rng=self.env.rng)
