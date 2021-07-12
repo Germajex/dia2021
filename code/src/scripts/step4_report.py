@@ -111,8 +111,6 @@ def main():
         print(ts_table.table)
 
         dir = '../../../report/figures/step4'
-        if not os.path.exists(dir):
-            os.makedirs(dir)
 
         with open(dir + f'/output{envN}.txt', 'w', encoding='utf8') as output_file:
             output_file.write(f' Seed: {env.get_seed()}\n')
