@@ -33,7 +33,6 @@ class OptimalJointDiscriminatingLearner:
 
     def learn(self, n_rounds: int):
         self.round_robin()
-
         while self.current_round < n_rounds:
             self.learn_one_round()
 
@@ -67,6 +66,7 @@ class OptimalJointDiscriminatingLearner:
         for context in self.context_structure:
             context.merge_all_data(self.future_visits, self.purchases, self.new_clicks, self.tot_cost_per_click_per_bid,
                                    self.tot_auctions_per_bid)
+            context.update_pulled_arms(strategy_price, strategy_bid)
 
         # Update history
         self.current_round += 1
@@ -101,3 +101,6 @@ class OptimalJointDiscriminatingLearner:
             all_price_with_future_visits = all(any(x) for x in self.future_visits[(False, False)])
             bid_without_sample = any(all(not self.new_clicks[(False, False)][p][b] for p in range(self.n_arms_price)) for b in range(self.n_arms_bid))
             finished = all_price_with_future_visits and not bid_without_sample
+
+    def get_context_structure(self):
+        return self.context_structure
