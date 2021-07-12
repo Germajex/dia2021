@@ -1,5 +1,6 @@
 import numpy as np
 
+from src.algorithms import simple_class_profit
 from src.bandit.banditEnvironments import BidBanditEnvironment
 from src.utils import average_ragged_matrix, sum_ragged_matrix
 from scipy.stats import norm
@@ -53,7 +54,10 @@ class OptimalBidLearner:
         cost_per_click = np.array(
             [self.tot_cost_per_click_per_arm[arm] / np.sum(self.new_clicks_per_arm[arm]) for arm in range(self.n_arms)])
 
-        projected_profit = new_clicks * (margin * crs * (1 + future_visits) - cost_per_click)
+        projected_profit = simple_class_profit(
+            margin=margin, conversion_rate=crs, new_clicks=new_clicks,
+            future_visits=future_visits, cost_per_click=cost_per_click
+        )
 
         return projected_profit
 
