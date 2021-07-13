@@ -521,7 +521,7 @@ in the same way we did in the previous steps.
 
 Note the abstract methods that will allow us to implement specific learners to tackle the problem.
 
-\subsection{Class UCBOptimalJointLearner}
+\subsection{The class \textit{UCBOptimalJointLearner}}
 This class implements the abstract methods described before, in order to provide an UCB learner for the given scenario.
 The most interesting methods are those to compute the radii for the UCB upper bound of our random variables.
 \inputminted{python}{code/step6_computation_radii.py}
@@ -530,6 +530,30 @@ We need also to compute the average winning probability for each bid. Note that 
 over the price arms.
 \inputminted{python}{code/step6_computation_winning_probability.py}
 
+
+\clearpage
+\subsection{Experiment 1}
+\makebox[\linewidth]{\includegraphics[scale=0.4]{figures/step6/env0.png}}
+\makebox[\linewidth]{\includegraphics[scale=0.7] {figures/step6/plot0.png}}
+
+\clearpage
+{\footnotesize\verbatiminput{figures/step6/output0.txt}}
+
+\clearpage
+\subsection{Experiment 2}
+\makebox[\linewidth]{\includegraphics[scale=0.4]{figures/step6/env1.png}}
+\makebox[\linewidth]{\includegraphics[scale=0.7] {figures/step6/plot1.png}}
+
+\clearpage
+{\footnotesize\verbatiminput{figures/step6/output1.txt}}
+
+\clearpage
+\subsection{Experiment 3}
+\makebox[\linewidth]{\includegraphics[scale=0.4]{figures/step6/env2.png}}
+\makebox[\linewidth]{\includegraphics[scale=0.7] {figures/step6/plot2.png}}
+
+\clearpage
+{\footnotesize\verbatiminput{figures/step6/output2.txt}}
 
 \clearpage
 \section{Step 7}

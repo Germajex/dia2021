@@ -15,14 +15,14 @@ from src.scripts.environment_plotter import plot_everything
 def main():
     CONST = _Const()
 
-    interactive = True
+    interactive = False
     prices = np.linspace(10, 100, num=10, dtype=np.int64)
     bids = np.linspace(1, CONST.BID_MAX+10, num=10, dtype=np.int32)
 
     n_rounds = 365
     future_visits_delay = 30
 
-    for envN, seedV in enumerate([None]):
+    for envN, seedV in enumerate([None, None, None]):
         env = Environment(random_seed=seedV) if seedV is not None else Environment()
         print(f'Running with seed {env.get_seed()}')
 
@@ -74,7 +74,7 @@ def main():
 
         for p_i, p in enumerate(prices):
             for b_i, b in enumerate(bids):
-                table_gap_data[p_i+1].append(f'{gaps[p_i][b_i]:.2f}')
+                table_gap_data[p_i+1].append(f'{gaps[p_i][b_i]:.0f}')
 
         table_gap = AsciiTable(table_gap_data)
         for i in range(len(table_gap_data[0])):
@@ -88,6 +88,7 @@ def main():
             output_file.write(f' UCB number of pulls:\n')
             output_file.write(table_pull.table)
             output_file.write(f'\n\n Optimal price: {opt_price:.2f}, Optimal bid: {opt_bid:.2f}\n\n')
+            output_file.write('Gaps from the optimal arm:\n')
             output_file.write(table_gap.table)
 
         plot_results(["UCB"],
