@@ -57,7 +57,7 @@ def main():
         if interactive:
             plot_results(["UCB"], [ucb_cumulative_profits], clairvoyant_cumulative_profits, n_rounds)
 
-        table_pull_data = [['p\\b'] + [f'{b:4.2f}' for b in bids]]
+        table_pull_data = [['P\\B'] + [f'{b:4.2f}' for b in bids]]
         for p in prices:
             table_pull_data.append([f'{p:.2f}'])
 
@@ -70,7 +70,7 @@ def main():
             table_pull.justify_columns[i] = 'right'
         print(table_pull.table)
 
-        table_gap_data = [['p\\b'] + [f'{b:4.2f}' for b in bids]]
+        table_gap_data = [['P\\B'] + [f'{b:4.2f}' for b in bids]]
         for p in prices:
             table_gap_data.append([f'{p:.2f}'])
 
