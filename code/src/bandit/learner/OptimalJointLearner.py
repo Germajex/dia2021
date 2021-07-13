@@ -170,14 +170,15 @@ class OptimalJointLearner:
 
     def round_robin(self):
         # Just trust Jacopo for this one-liner, I do, you will.
-        while not all(any(x) for x in self.future_visits) or any(all(not self.new_clicks[p][b] for p in range(self.n_arms_price)) for b in range(self.n_arms_bid)):
+        while not all(any(x) for x in self.future_visits) or any(
+                all(not self.new_clicks[p][b] for p in range(self.n_arms_price)) for b in range(self.n_arms_bid)):
             arm_p = self.current_round % self.n_arms_price
             arm_b = self.current_round % self.n_arms_bid
             self.pull_from_env(arm_p, arm_b)
 
     def pull_from_env(self, arm_price: int, arm_bid: int):
         auctions, new_clicks, purchases, tot_cost, \
-            (old_a, visits) = self.env.pull_arm_not_discriminating(arm_price, arm_bid)
+        (old_a, visits) = self.env.pull_arm_not_discriminating(arm_price, arm_bid)
 
         self.tot_auctions_per_bid[arm_bid] += auctions
 
@@ -209,3 +210,7 @@ class OptimalJointLearner:
             recap.append(bid_recap)
 
         return recap
+
+    def compute_cumulative_exp_profits(self, expected_profits):
+        return np.cumsum([expected_profits[p][b]
+                          for p, b in self.pulled_arms])

@@ -112,7 +112,8 @@ class OptimalPriceLearner:
 
         self.current_round += 1
         self.pulled_arms.append(arm)
-
+        
+        # return value used in TSOptimalPriceLearner
         return new_clicks, purchases, tot_cost, (old_a, visits)
 
     def compute_cumulative_exp_profits(self, expected_profits):
