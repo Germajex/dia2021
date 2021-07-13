@@ -12,12 +12,12 @@ from src.bandit.learner.ucb.UCBOptimalPriceDiscriminatingLearner import UCBOptim
 
 def main():
     prices = np.linspace(10, 100, num=10, dtype=np.int64)
-    bids = np.linspace(1, 100, num=10, dtype=np.int64)
+    bids = np.linspace(1, 60, num=10, dtype=np.int64)
     delay = 30
     step_4_n_rounds = 400
-    n_rounds = 400
+    n_rounds = 1200
 
-    env_for_step4 = Environment(3442565254)
+    env_for_step4 = Environment()
     seed = env_for_step4.get_seed()
     env = Environment(seed)
 
@@ -28,19 +28,25 @@ def main():
     ucb_disc_learner = UCBOptimalPriceDiscriminatingLearner(bandit_env_step4)
     ucb_disc_learner.learn(step_4_n_rounds)
     contexts = ucb_disc_learner.context_structure
+
     print(f'Context structure found!')
-    feature_combs = [comb.features for comb in contexts]
+    feature_combs = [[] for i in range(len(contexts))]
+    for i in range(len(contexts)):
+        for j in range(len(contexts[i].features)):
+            feature_combs[i].append(contexts[i].features[j])
     for i in range(len(feature_combs)):
         print(f'Context {i}: {feature_combs[i]}')
+    print(f'[dbg] ')
 
-    context_structure = [UCBJointContext(comb, env_for_step4.margin, len(prices), len(bids), env_for_step4.rng) for comb in feature_combs]
+    bandit_env = JointBanditEnvironment(env, prices, bids, delay)
+    context_structure = [UCBJointContext(comb, bandit_env.margin, len(prices), len(bids), bandit_env.rng) for comb in
+                         feature_combs]
 
     print(f'Running step7 (with seed {seed}) to find optimal joint bidding/pricing strategy')
-    bandit_env = JointBanditEnvironment(env, prices, bids, delay)
+
     joint_disc_learner = OptimalJointDiscriminatingLearner(bandit_env, context_structure)
     joint_disc_learner.learn(n_rounds)
 
-    regret_length = n_rounds - delay
     clairvoyant = bandit_env.get_clairvoyant_cumulative_profit_discriminating(n_rounds)
     strategies = joint_disc_learner.get_strategies()
     learner_profit = bandit_env.get_learner_cumulative_profit_discriminating(strategies)

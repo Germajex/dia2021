@@ -17,28 +17,39 @@ class JointContext:
         self.future_visits = None
         self.purchases = None
         self.new_clicks = None
-        self.tot_cost_per_click_per_bid = None
+        self.tot_cost_per_bid = None
         self.tot_auctions_per_bid = None
         self.pulled_arms = []
 
-    def merge_all_data(self, future_visits_per_comb, purchases_per_comb, new_clicks_per_comb, tot_cost_per_click_per_comb,
+    def merge_all_data(self, future_visits_per_comb, purchases_per_comb, new_clicks_per_comb,
+                       tot_cost_per_comb,
                        tot_auctions_per_comb):
-        self.future_visits = self.merge(future_visits_per_comb)
-        self.purchases = self.merge(purchases_per_comb)
-        self.new_clicks = self.merge(new_clicks_per_comb)
-        self.tot_cost_per_click_per_bid = self.merge(tot_cost_per_click_per_comb)
-        self.tot_auctions_per_bid = self.merge(tot_auctions_per_comb)
+        self.future_visits = self.merge_double_indexed(future_visits_per_comb)
+        self.purchases = self.merge_double_indexed(purchases_per_comb)
+        self.new_clicks = self.merge_double_indexed(new_clicks_per_comb)
+        self.tot_cost_per_bid = self.merge_single_indexed_bid(tot_cost_per_comb)
+        self.tot_auctions_per_bid = self.merge_single_indexed_bid(tot_auctions_per_comb)
 
-    def merge(self, data_per_comb):
+    def merge_double_indexed(self, data_per_comb):
         data = []
+        merged_data = [[[] for b in range(self.n_arms_bid)] for p in range(self.n_arms_price)]  # merged_data[price_arm][price_bid][realization_n]
 
         for comb in self.features:
             row = data_per_comb[comb]
             data.append(row)
 
-        data = np.sum(data, axis=0)
+        # cycle through all prices and bids
+        for p in range(self.n_arms_price):
+            for b in range(self.n_arms_bid):
+                for i in range(len(data[0][p][b])):
+                    # j-th combination, i-th realization
+                    merged_data[p][b].append(np.sum([data[j][p][b][i] for j in range(len(data))]))
 
-        return data
+        return merged_data
+
+    def merge_single_indexed_bid(self, data_per_comb):
+        merged_data = np.sum([data_per_comb[comb] for comb in self.features], axis=0)
+        return merged_data
 
     def choose_next_arm(self, security, current_round):
         median_bid = self.n_arms_bid // 2
@@ -144,7 +155,7 @@ class JointContext:
 
     def compute_cost_per_click(self, arm_bid):
         tot_clicks = np.sum([np.sum(self.new_clicks[arm_p][arm_bid]) for arm_p in range(self.n_arms_price)])
-        tot_cost = self.tot_cost_per_click_per_bid[arm_bid]
+        tot_cost = self.tot_cost_per_bid[arm_bid]
         cost_per_click = tot_cost / tot_clicks
 
         return cost_per_click
@@ -171,4 +182,3 @@ class JointContext:
             recap.append(bid_recap)
 
         return recap
-

@@ -43,7 +43,8 @@ class OptimalBidLearner:
         means = [np.mean(new_clicks) for new_clicks in self.new_clicks_per_arm]
         std_dev = [np.std(new_clicks) for new_clicks in self.new_clicks_per_arm]
 
-        lower_security_value = [norm.ppf(self.security, m, std) for m, std in zip(means, std_dev)]
+        lower_security_value = [norm.ppf(self.security, m, std)
+                                for m, std in zip(means, std_dev)]
         expected_profits = self.compute_expected_profits(nc=lower_security_value)
         arm_mask = expected_profits > 0
 
