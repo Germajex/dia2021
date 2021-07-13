@@ -35,13 +35,18 @@ class OptimalJointLearner:
         arm_price, arm_bid = self.choose_next_arm()
         self.pull_from_env(arm_price, arm_bid)
 
+    # start next arm choice
+
     def choose_next_arm(self):
         median_bid = self.n_arms_bid // 2
         arm_price = np.argmax(self.compute_projected_profits_fixed_bid(median_bid))
         mask = self.compute_safe_arms(arm_price)
-        arms_bid_safe = np.where(mask, self.compute_projected_profits_fixed_price(arm_price), 0)
+        arms_bid_safe = np.where(mask,
+                                 self.compute_projected_profits_fixed_price(arm_price), 0)
         arm_bid = np.argmax(arms_bid_safe)
         return arm_price, arm_bid
+
+    # end next arm choice
 
     def compute_safe_arms(self, arm_price):
 
@@ -60,6 +65,8 @@ class OptimalJointLearner:
 
         return arm_mask
 
+    # start projected profits fixed bid
+
     def compute_projected_profits_fixed_bid(self, arm_bid):
         new_clicks = self.compute_new_clicks(arm_bid)
         margin = np.array([self.env.margin(a) for a in range(self.n_arms_price)])
@@ -73,6 +80,9 @@ class OptimalJointLearner:
         )
 
         return projected_profit
+
+    # end projected profits fixed bid
+    # start projected profits fixed price
 
     def compute_projected_profits_fixed_price(self, arm_price):
         new_clicks = self.compute_projection_new_clicks()
@@ -88,6 +98,8 @@ class OptimalJointLearner:
 
         return projected_profit
 
+    # end projected profits fixed price
+
     def compute_expected_profits_fixed_price(self, arm_price, nc):
         new_clicks = nc
         margin = self.env.margin(arm_price)
@@ -102,14 +114,27 @@ class OptimalJointLearner:
 
         return expected_profit
 
+    # start axis projected quantities
+
     def compute_conversion_rates(self, arm_price):
-        return sum_ragged_matrix(self.purchases[arm_price]) / sum_ragged_matrix(self.new_clicks[arm_price])
+        return sum_ragged_matrix(self.purchases[arm_price]) / \
+               sum_ragged_matrix(self.new_clicks[arm_price])
 
     def compute_new_clicks(self, arm_bid):
-        return average_ragged_matrix([self.new_clicks[p][arm_bid] for p in range(self.n_arms_price)])
+        return average_ragged_matrix([self.new_clicks[p][arm_bid]
+                                      for p in range(self.n_arms_price)])
+
+    def compute_cost_per_click(self, arm_bid):
+        tot_clicks = np.sum([np.sum(self.new_clicks[arm_p][arm_bid])
+                             for arm_p in range(self.n_arms_price)])
+        tot_cost = self.tot_cost_per_bid[arm_bid]
+        cost_per_click = tot_cost / tot_clicks
+
+        return cost_per_click
 
     def compute_future_visits_per_arm(self):
-        return np.array([self.compute_future_visits(arm_p) for arm_p in range(self.n_arms_price)])
+        return np.array([self.compute_future_visits(arm_p)
+                         for arm_p in range(self.n_arms_price)])
 
     def compute_future_visits(self, arm_price):
         arm_p_future_visits = 0
@@ -123,7 +148,13 @@ class OptimalJointLearner:
 
         return arm_p_future_visits / arm_p_purchases if arm_p_purchases else 0
 
+    # end axis projected quantities
+    # start random variables computation
+
     def compute_projection_conversion_rates(self):
+        raise NotImplementedError
+
+    def compute_projection_auction_winning_probability(self):
         raise NotImplementedError
 
     def compute_projection_new_clicks(self):
@@ -132,18 +163,10 @@ class OptimalJointLearner:
 
         return auction_win_probability * average_auctions
 
-    def compute_projection_auction_winning_probability(self):
-        raise NotImplementedError
+    # end random variables computation
 
     def compute_cost_per_click_per_arm(self):
         return np.array([self.compute_cost_per_click(arm_b) for arm_b in range(self.n_arms_bid)])
-
-    def compute_cost_per_click(self, arm_bid):
-        tot_clicks = np.sum([np.sum(self.new_clicks[arm_p][arm_bid]) for arm_p in range(self.n_arms_price)])
-        tot_cost = self.tot_cost_per_bid[arm_bid]
-        cost_per_click = tot_cost / tot_clicks
-
-        return cost_per_click
 
     def round_robin(self):
         # Just trust Jacopo for this one-liner, I do, you will.

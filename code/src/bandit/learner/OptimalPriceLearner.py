@@ -113,6 +113,8 @@ class OptimalPriceLearner:
         self.current_round += 1
         self.pulled_arms.append(arm)
 
+        return new_clicks, purchases, tot_cost, (old_a, visits)
+
     def compute_cumulative_exp_profits(self, expected_profits):
         return np.cumsum([expected_profits[a] for a in self.pulled_arms])
 

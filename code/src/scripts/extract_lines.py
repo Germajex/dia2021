@@ -137,6 +137,31 @@ def main(destination_dir):
                   start_delimiter='    # start ucb bid win prob\n',
                   end_delimiter='    # end ucb bid win prob')
 
+    extract_lines(in_file='../bandit/learner/OptimalJointLearner.py',
+                  out_file=destination_dir + '/step6_choose_arm.py',
+                  start_delimiter='    # start next arm choice',
+                  end_delimiter='    # end next arm choice')
+
+    extract_lines(in_file='../bandit/learner/OptimalJointLearner.py',
+                  out_file=destination_dir + '/step6_expected_price_fixed_bid.py',
+                  start_delimiter='    # start projected profits fixed bid',
+                  end_delimiter='    # end projected profits fixed bid')
+
+    extract_lines(in_file='../bandit/learner/OptimalJointLearner.py',
+                  out_file=destination_dir + '/step6_expected_price_fixed_price.py',
+                  start_delimiter='    # start projected profits fixed price',
+                  end_delimiter='    # end projected profits fixed price')
+
+    extract_lines(in_file='../bandit/learner/OptimalJointLearner.py',
+                  out_file=destination_dir + '/step6_axis_projected_quantities.py',
+                  start_delimiter='    # start axis projected quantities',
+                  end_delimiter='    # end axis projected quantities')
+
+    extract_lines(in_file='../bandit/learner/OptimalJointLearner.py',
+                  out_file=destination_dir + '/step6_random_variables_computation.py',
+                  start_delimiter='    # start random variables computation',
+                  end_delimiter='    # end random variables computation')
+
 
 def extract_lines(in_file, out_file, start_delimiter, end_delimiter):
     with open(in_file, 'r', encoding='utf8') as inf:
