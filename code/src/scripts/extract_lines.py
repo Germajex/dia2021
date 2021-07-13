@@ -162,6 +162,16 @@ def main(destination_dir):
                   start_delimiter='    # start random variables computation',
                   end_delimiter='    # end random variables computation')
 
+    extract_lines(in_file='../bandit/learner/ucb/UCBOptimalJointLearner.py',
+                  out_file=destination_dir + '/step6_computation_radii.py',
+                  start_delimiter='    # start computation radii',
+                  end_delimiter='    # end computation radii')
+
+    extract_lines(in_file='../bandit/learner/ucb/UCBOptimalJointLearner.py',
+                  out_file=destination_dir + '/step6_computation_winning_probability.py',
+                  start_delimiter='    # start computation winning probability',
+                  end_delimiter='    # end computation winning probability')
+
 
 def extract_lines(in_file, out_file, start_delimiter, end_delimiter):
     with open(in_file, 'r', encoding='utf8') as inf:

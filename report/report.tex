@@ -519,7 +519,16 @@ The random variables of this step, namely the conversion rates and the winning p
 in the same way we did in the previous steps.
 \inputminted{python}{code/step6_random_variables_computation.py}
 
-{\color{red}da scrivere}
+Note the abstract methods that will allow us to implement specific learners to tackle the problem.
+
+\subsection{Class UCBOptimalJointLearner}
+This class implements the abstract methods described before, in order to provide an UCB learner for the given scenario.
+The most interesting methods are those to compute the radii for the UCB upper bound of our random variables.
+\inputminted{python}{code/step6_computation_radii.py}
+
+We need also to compute the average winning probability for each bid. Note that also here we project the data by summing
+over the price arms.
+\inputminted{python}{code/step6_computation_winning_probability.py}
 
 
 \clearpage
