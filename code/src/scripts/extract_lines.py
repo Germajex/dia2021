@@ -172,6 +172,11 @@ def main(destination_dir):
                   start_delimiter='    # start computation winning probability',
                   end_delimiter='    # end computation winning probability')
 
+    extract_lines(in_file='../Environment.py',
+                  out_file=destination_dir + '/simulation_one_day.py',
+                  start_delimiter='    # start simulation one day',
+                  end_delimiter='    # end simulation one day')
+
 
 def extract_lines(in_file, out_file, start_delimiter, end_delimiter):
     with open(in_file, 'r', encoding='utf8') as inf:

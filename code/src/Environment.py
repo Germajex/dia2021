@@ -105,6 +105,8 @@ class Environment:
         bidding_strategy = defaultdict(lambda: bid)
         return self.simulate_one_day(pricing_strategy, bidding_strategy)
 
+    # start simulation one day
+
     def simulate_one_day(self, pricing_strategy, bidding_strategy):
         purchases, tot_cost, new_future_visits, new_clicks = {}, {}, {}, {}
 
@@ -121,3 +123,5 @@ class Environment:
                 profit += self.margin(price) * (purchases[comb] + new_future_visits[comb]) - tot_cost[comb]
 
         return auctions, new_clicks, purchases, tot_cost, new_future_visits, profit
+
+    # end simulation one day
