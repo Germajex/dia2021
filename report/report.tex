@@ -78,13 +78,13 @@
 
 \section{The setting}
 
-Advertising is used to attract users on an ecommerce website that sells only one type of item. Each day, a stochastic number of auctions $A$ is run by the ad publisher, each auction corresponding to a different user. The users are characterized by two binary features $F_1$ and $F_2$, which are independent and described by their probabilies $\theta_1$ and $\theta_2$ of assuming the value $True$ for a specific user.
+Advertising is used to attract users on an e-commerce website that sells only one type of item. Each day, a stochastic number of auctions $A$ is run by the ad publisher, each auction corresponding to a different user. The users are characterized by two binary features $F_1$ and $F_2$, which are independent and described by their probabilities $\theta_1$ and $\theta_2$ of assuming the value $True$ for a specific user.
 Each user belongs to one of three classes, and the classes are determined by the combination of the two features. 
-For each class $c \in C$ the following functions are modeled:
+For each class $c \in C$ the following functions are modelled:
 \begin{itemize}
 \item A stochastic number of daily clicks of new users (i.e., that have never clicked before on the ads), represented by the discrete random variable $N_{c,b}$ such that $\EX[N_{c,b}] = n(c,b)$, where $b \in B$ is a bid value.
 \item A conversion rate function providing the probability that a user will buy the item at a certain price,  $r(c,p)$, where $p \in P$ is the price. For each user of class $c$ that has clicked on the ad, a Bernoulli random variable $D_{c,p} \sim Bern(r(c,p))$ indicates whether the user bought the product ($D_{c,p}=1$) or not ($D_{c,p}=0$), such that $\EX[D_{c,p}]=r(c,p)$. We call this distribution $ClickConverted(c,p)$ and therefore $D_{c,p} \sim ClickConverted(c,p)$.
-\item A probability distribution $FutureVisits(c)$ over the number of times a user of class $c$ will come back to the ecommerce website to buy that item by 30 days after the first purchase. In other words, when a user makes a purchase, they are somehow likely to make more purchases in the near future, and after that they will leave the website forever. For each user of class $c$, a discrete random variable $F_c \sim FutureVisits(c)$ indicates the number of times that the user came back, and for each class $c$ the function $f(c)$ is defined such that $\EX[F_c] = f(c)$
+\item A probability distribution $FutureVisits(c)$ over the number of times a user of class $c$ will come back to the e-commerce website to buy that item by 30 days after the first purchase. In other words, when a user makes a purchase, they are somehow likely to make more purchases in the near future, and after that they will leave the website forever. For each user of class $c$, a discrete random variable $F_c \sim FutureVisits(c)$ indicates the number of times that the user came back, and for each class $c$ the function $f(c)$ is defined such that $\EX[F_c] = f(c)$
 \item A probability distribution $CostPerClick(c,b)$. For each click, the random variable $C_{c,b}\sim CostPerClick(c,b)$ represents the amount that is paid to the ad publisher, such that $\EX[C_{c,b}] = k(c,b)$ and $\Prob(C_{c,b} \leq b) = 1$.
 \end{itemize}
 
@@ -117,7 +117,7 @@ For each auction, a Bernoulli random variable is sampled to determine if the own
 The meaning of the Agnostic Publisher assumption is that a change in the bid will change the number of users seeing the ad but will not change the percentage of users seeing it for each class. In other words, an increase in the auctions won will reflect in an increase in the number of clicks with the same proportion on all the classes.
 \newline
 \newline
-We therefore define the function $v(b)$ representing the probability of winning one auction: it needs to be a monotonically increasing function of the bid ranging from $0$ to $1$. We chose a sigmoidal function for this purpose:
+We therefore define the function $v(b)$ representing the probability of winning one auction: it needs to be a monotonically increasing function of the bid ranging from $0$ to $1$. We chose a sigmoid function for this purpose:
 \begin{align*}
 v(b)=\frac{1}{1+e^{-\overline z(b-\overline b)}}
 \end{align*}
@@ -153,14 +153,14 @@ For each class $c \in C$, the function $r_c(p)$ used to model the conversion rat
 \item $r_c(p)$ is monotonically decreasing with respect to p: an increase of the price will never increase the probability that the user will buy it.
 \end{itemize}
 The function $r(c,p)$ is then defined as: $r(c,p) := r_c(p)$.
-Despite the fact that the functions $r_c(p)$ could be in principle defined in completely different ways, in our implementation we chose to use only (reflected, translated and horizontally scaled) sigmoidal functions:
+Despite the fact that the functions $r_c(p)$ could be in principle defined in completely different ways, in our implementation we chose to use only (reflected, translated and horizontally scaled) sigmoid functions:
 \begin{align*}
 r_c(p) = \frac{1}{1+e^{-z_c(P_c-p)}}
 \end{align*}
 Where $P_c$, the inflection point of the sigmoid, can be seen as the average reserve price of the users of the class and $z_c$ can be seen as the concentration of the reserve prices of the users around the average: if $z_c$ is small the reserve prices of the many users will be more distributed across the domain and the function will be more flat, while as $z_c$ grows the reserve prices of the many users will be more concentrated around the average and at the point $P_c$ there will be a rapid transition from "buy" to "don't buy".
 
 \subsection{The future visits $F_c$}
-We modeled the future visits with a Poisson random variable, such that $F_c \sim Poisson(f(c))$ and the mean $f(c)$ is constant and randomly sampled for each class when the environment is generated. We call the resulting distribution $FutureVisits(c)$, therefore $F_c \sim FutureVisits(c)$.
+We modelled the future visits with a Poisson random variable, such that $F_c \sim Poisson(f(c))$ and the mean $f(c)$ is constant and randomly sampled for each class when the environment is generated. We call the resulting distribution $FutureVisits(c)$, therefore $F_c \sim FutureVisits(c)$.
 
 \subsection{The cost per click $C_{c,b}$}
 The price paid for each click is in principle a stochastic function of the bid and of the user class. To limit the complexity of the model, we chose to model it such that the mean $k(c,b)$ is a percentage of the bid and the variable is always equal to its mean.
@@ -291,13 +291,13 @@ Note that since the conversion rates are numpy arrays, the result is a numpy arr
 
 The estimators $\overline{f_p}$ of the average future visits associated with a price and $\overline{n}$ of the average number of new clicks are computed as follows:
 \inputminted{python}{code/step3_estimates.py}
-It remains to determine how to make an optimistic estimate of the conversion rates: this is left to implement to the subclasses, as in the class \textit{OptimalPriceLearner} the methods are defined as abtract, with the python convention.
+It remains to determine how to make an optimistic estimate of the conversion rates: this is left to implement to the subclasses, as in the class \textit{OptimalPriceLearner} the methods are defined as abstract, with the python convention.
 \inputminted{python}{code/step3_conversion_rates.py}
 We created two subclasses, one that employs a UCB approach and one that employs a Thompson sampling approach.\\
 
 \begin{samepage}
 \subsection{The class \textit{UCBOptimalPriceLearner}}
-We implemented the UCB approach by subclassing  \textit{OptimalPriceLearner} and overriding the following methods:
+We implemented the UCB approach by sub-classing  \textit{OptimalPriceLearner} and overriding the following methods:
 \inputminted{python}{code/step3_ucb.py}
 \end{samepage}
 The average of the conversion rate is estimated, for each arm, as $\mu_a=\frac{purchases_a}{clicks_a}$ and the confidence bound radius is computed with the same formula of the UCB1 algorithm for the Bernoulli stochastic bandit environments: $r_a=\sqrt{\frac{2log(t)}{clicks_a}}$.
@@ -346,7 +346,7 @@ The learning loop is as follows:
 \inputminted{python}{code/step4_learning_loop.py}
 
 \begin{samepage}
-The strategy selection must choose one arm for each combination of features: in order to do so, it queries the contexts and each context specifies the next arm for its combinatioins. Let us remind that the contexts always form a partition of the full feature space.
+The strategy selection must choose one arm for each combination of features: in order to do so, it queries the contexts and each context specifies the next arm for its combinations. Let us remind that the contexts always form a partition of the full feature space.
 \inputminted{python}{code/step4_choose_next_strategy.py}
 \end{samepage}
 Let us skip for the moment the code of the method \textit{choose\_next\_strategy\_explorative()}, which is a marginal modification that we have introduced and which we will present later.\\
@@ -391,7 +391,7 @@ As in Step 3, the Thompson sampling approach samples from the Beta distributions
 
 \begin{samepage}
 \subsection{\textit{choose\_next\_strategy\_explorative()}}
-We added the explorative rounds after the following empiric observation: the splits that could not be detected after the initial round robin are never detected if their optimal arm is very sub-optimal for the current context, since the lower confidence bound will never get tighter (it will almost never be pulled). Therefore we added the \textit{explorative rounds}, rounds in which the contexts which could be split do not pull the best arm according to their strategy but rather pulll the arms in a round-robin fashion, to allow the confidence bounds of the currently sub-optimal arms to get tighter. We ensure that the number of explorative rounds remains logarithmic in the following way: after the $i_{th}$ explorative round robin has been completed, $2^i$ normal rounds must be completed before running the $i+1_{th}$ explorative round robin. From the regret plots below, one can clearly see the explorative rounds as the regret makes a step.
+We added the explorative rounds after the following empiric observation: the splits that could not be detected after the initial round robin are never detected if their optimal arm is very sub-optimal for the current context, since the lower confidence bound will never get tighter (it will almost never be pulled). Therefore we added the \textit{explorative rounds}, rounds in which the contexts which could be split do not pull the best arm according to their strategy but rather pull the arms in a round-robin fashion, to allow the confidence bounds of the currently sub-optimal arms to get tighter. We ensure that the number of explorative rounds remains logarithmic in the following way: after the $i_{th}$ explorative round robin has been completed, $2^i$ normal rounds must be completed before running the $i+1_{th}$ explorative round robin. From the regret plots below, one can clearly see the explorative rounds as the regret makes a step.
 
 \inputminted{python}{code/step4_choose_next_strategy_explorative.py}
 \end{samepage}
@@ -425,7 +425,7 @@ We added the explorative rounds after the following empiric observation: the spl
 
 \clearpage
 \section{Step 5}
-In order to learn online the best bid for a fixed price, we implement a simmetric approach with respect to Step 3, with which it has  many similarities. We defined the class \textit{BidBanditEnvironment}, which has internally an instance of \textit{Environment}. Upon the creation of an instance of a \textit{BidBanditEnvironment}, the underlying \textit{Environment}, the set of possible bids and the fixed price value must be supplied as arguments. The bandit environment hides the actual bids $B$ from the learner, and instead it shows a bandit-like set of arms numbered from $0$ to $|B|-1$.\\
+In order to learn online the best bid for a fixed price, we implement a symmetric approach with respect to Step 3, with which it has  many similarities. We defined the class \textit{BidBanditEnvironment}, which has internally an instance of \textit{Environment}. Upon the creation of an instance of a \textit{BidBanditEnvironment}, the underlying \textit{Environment}, the set of possible bids and the fixed price value must be supplied as arguments. The bandit environment hides the actual bids $B$ from the learner, and instead it shows a bandit-like set of arms numbered from $0$ to $|B|-1$.\\
 
 The \textit{BidBanditEnvironment} exposes the method \textit{pull\_arm\_not\_discriminating(arm: int)} which returns to the aggregated data:\\
 \textit{auctions, new\_clicks, purchases, tot\_cost\_per\_clicks, (past\_arm, past\_future\_visits)}.\\
@@ -433,7 +433,7 @@ We can notice that the number of auctions run by the advertiser is also communic
 
 The \textit{OptimalBidLearner} is also similar to the learner of Step 3, it is evident from the core learning loop:
 \inputminted{python}{code/step5_learning_loop.py}
-The arm selection logic is, as always, to pull the arm with the highest expected profit, computed with an optimistic / explorative estimate of the parameter (in this case, the probablity of winning an auction with a certain bid value). However, here we notice a difference: a safety constraint is introduced to prevent the learner from playing arms that would yield a negative profit with a probability greater or equal to a certain threshold. We call this threshold the \textit{security} parameter, which is set by default to $0.2$.\\
+The arm selection logic is, as always, to pull the arm with the highest expected profit, computed with an optimistic / explorative estimate of the parameter (in this case, the probability of winning an auction with a certain bid value). However, here we notice a difference: a safety constraint is introduced to prevent the learner from playing arms that would yield a negative profit with a probability greater or equal to a certain threshold. We call this threshold the \textit{security} parameter, which is set by default to $0.2$.\\
 
 \begin{samepage}
 The set of safe arms is computed as follows:

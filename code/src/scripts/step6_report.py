@@ -22,6 +22,8 @@ def main():
     n_rounds = 365
     future_visits_delay = 30
 
+#1684006624
+
     for envN, seedV in enumerate([4264432570, 1530294961, 1966222620]):
         env = Environment(random_seed=seedV) if seedV is not None else Environment()
         print(f'Running with seed {env.get_seed()}')
@@ -55,7 +57,7 @@ def main():
         if interactive:
             plot_results(["UCB"], [ucb_cumulative_profits], clairvoyant_cumulative_profits, n_rounds)
 
-        table_pull_data = [['Price\Bid'] + [f'{b:4.2f}' for b in bids]]
+        table_pull_data = [['p\\b'] + [f'{b:4.2f}' for b in bids]]
         for p in prices:
             table_pull_data.append([f'{p:.2f}'])
 
@@ -68,7 +70,7 @@ def main():
             table_pull.justify_columns[i] = 'right'
         print(table_pull.table)
 
-        table_gap_data = [['Price\Bid'] + [f'{b:4.2f}' for b in bids]]
+        table_gap_data = [['p\\b'] + [f'{b:4.2f}' for b in bids]]
         for p in prices:
             table_gap_data.append([f'{p:.2f}'])
 
