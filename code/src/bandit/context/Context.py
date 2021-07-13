@@ -13,19 +13,19 @@ class Context:
 
     # start context next arm
     def choose_next_arm(self, new_clicks_per_comb_per_arm,
-                        purchases_per_comb_per_arm, cost_per_click_per_comb,
+                        purchases_per_comb_per_arm, tot_cost_per_comb,
                         future_visits_per_comb_per_arm, current_round):
         return int(np.argmax(self.compute_projected_profit(
             new_clicks_per_comb_per_arm,
             purchases_per_comb_per_arm,
-            cost_per_click_per_comb,
+            tot_cost_per_comb,
             future_visits_per_comb_per_arm,
             current_round)
         ))
 
     # end context next arm
 
-    def merge_cost_per_click(self, cost_per_click_per_comb):
+    def merge_cost(self, cost_per_click_per_comb):
         cost_per_click = sum(cost_per_click_per_comb[comb] for comb in self.features)
         return cost_per_click
 
@@ -46,10 +46,10 @@ class Context:
         return data_per_arm
 
     def compute_projected_profit(self, new_clicks_per_comb_per_arm, purchases_per_comb_per_arm,
-                                 cost_per_click_per_comb, future_visits_per_comb_per_arm, current_round):
+                                 tot_cost_per_comb, future_visits_per_comb_per_arm, current_round):
         new_clicks_per_arm = self.merge(new_clicks_per_comb_per_arm)
         purchases_per_arm = self.merge(purchases_per_comb_per_arm)
-        tot_cost_per_click = self.merge_cost_per_click(cost_per_click_per_comb)
+        tot_cost = self.merge_cost(tot_cost_per_comb)
         future_visits_per_arm = self.merge(future_visits_per_comb_per_arm)
 
         average_new_clicks = self.compute_average_new_clicks(new_clicks_per_arm)
@@ -57,7 +57,7 @@ class Context:
         crs = self.compute_projection_conversion_rate(new_clicks_per_arm, purchases_per_arm, current_round)
         future_visits_per_purchase_per_arm = self.compute_future_visits_per_purchase_per_arm(future_visits_per_arm,
                                                                                              purchases_per_arm)
-        cost_per_click = tot_cost_per_click / sum_ragged_matrix(new_clicks_per_arm)
+        cost_per_click = tot_cost / sum_ragged_matrix(new_clicks_per_arm)
 
         profits = simple_class_profit(
             margin=margin, new_clicks=average_new_clicks, conversion_rate=crs,
@@ -67,15 +67,15 @@ class Context:
         return profits
 
     def compute_expected_profit_lower_bound(self, new_clicks_per_comb_per_arm, purchases_per_comb_per_arm,
-                                            cost_per_click_per_comb, future_visits_per_comb_per_arm, current_round):
+                                            tot_cost_per_comb, future_visits_per_comb_per_arm, current_round):
         new_clicks_per_arm = self.merge(new_clicks_per_comb_per_arm)
         purchases_per_arm = self.merge(purchases_per_comb_per_arm)
-        tot_cost_per_click = self.merge_cost_per_click(cost_per_click_per_comb)
+        tot_cost = self.merge_cost(tot_cost_per_comb)
         future_visits_per_arm = self.merge(future_visits_per_comb_per_arm)
         average_new_clicks = self.compute_average_new_clicks(new_clicks_per_arm)
 
         optimal_arm = np.argmax(self.compute_expected_profits(new_clicks_per_comb_per_arm, purchases_per_comb_per_arm,
-                                                              cost_per_click_per_comb, future_visits_per_comb_per_arm))
+                                                              tot_cost_per_comb, future_visits_per_comb_per_arm))
 
         margin = self.margin(optimal_arm)
 
@@ -85,7 +85,7 @@ class Context:
         future_visits_per_purchase_per_arm = self.compute_future_visits_per_purchase_per_arm(future_visits_per_arm,
                                                                                              purchases_per_arm)[
             optimal_arm]
-        cost_per_click = tot_cost_per_click / sum_ragged_matrix(new_clicks_per_arm)
+        cost_per_click = tot_cost / sum_ragged_matrix(new_clicks_per_arm)
 
         profit = simple_class_profit(
             margin=margin, new_clicks=average_new_clicks, conversion_rate=cr,
@@ -94,11 +94,11 @@ class Context:
 
         return profit
 
-    def compute_expected_profits(self, new_clicks_per_comb_per_arm, purchases_per_comb_per_arm, cost_per_click_per_comb,
+    def compute_expected_profits(self, new_clicks_per_comb_per_arm, purchases_per_comb_per_arm, tot_cost_per_comb,
                                  future_visits_per_comb_per_arm):
         new_clicks_per_arm = self.merge(new_clicks_per_comb_per_arm)
         purchases_per_arm = self.merge(purchases_per_comb_per_arm)
-        tot_cost_per_click = self.merge_cost_per_click(cost_per_click_per_comb)
+        tot_cost = self.merge_cost(tot_cost_per_comb)
 
         future_visits_per_arm = self.merge(future_visits_per_comb_per_arm)
 
@@ -110,7 +110,7 @@ class Context:
 
         future_visits_per_purchase_per_arm = self.compute_future_visits_per_purchase_per_arm(future_visits_per_arm,
                                                                                              purchases_per_arm)
-        cost_per_click = tot_cost_per_click / sum_ragged_matrix(new_clicks_per_arm)
+        cost_per_click = tot_cost / sum_ragged_matrix(new_clicks_per_arm)
 
         profits = simple_class_profit(
             margin=margin, new_clicks=average_new_clicks, conversion_rate=crs,
@@ -146,15 +146,6 @@ class Context:
 
         return np.array(res)
 
-    def compute_future_visits_per_purchase(self, future_visits_per_arm, purchases_per_arm):
-        purchases_sum = 0
-
-        for arm in range(self.n_arms):
-            complete_samples = len(future_visits_per_arm[arm])
-            purchases_sum += np.sum(purchases_per_arm[arm][:complete_samples])
-
-        return sum_ragged_matrix(future_visits_per_arm) / purchases_sum
-
     def get_average_conversion_rates(self, new_clicks_per_comb_per_arm, purchases_per_comb_per_arm):
         new_clicks_per_arm = self.merge(new_clicks_per_comb_per_arm)
         purchases_per_arm = self.merge(purchases_per_comb_per_arm)
@@ -168,6 +159,17 @@ class Context:
     def _get_average_conversion_rates(self, new_clicks_per_arm, purchases_per_arm):
         raise NotImplementedError
 
+"""
+
+    def compute_future_visits_per_purchase(self, future_visits_per_arm, purchases_per_arm):
+        purchases_sum = 0
+
+        for arm in range(self.n_arms):
+            complete_samples = len(future_visits_per_arm[arm])
+            purchases_sum += np.sum(purchases_per_arm[arm][:complete_samples])
+
+        return sum_ragged_matrix(future_visits_per_arm) / purchases_sum
+
     def compute_expected_profit_last_round(self, new_clicks_per_comb_per_arm, purchases_per_comb_per_arm,
                                            cost_per_click_per_comb,
                                            future_visits_per_comb_per_arm, arm):
@@ -178,7 +180,7 @@ class Context:
             cr = 0
         else:
             cr = purchases / new_clicks
-        tot_cost_per_click = self.merge_cost_per_click(cost_per_click_per_comb)
+        tot_cost_per_click = self.merge_cost(cost_per_click_per_comb)
         cost_per_click = tot_cost_per_click / sum_ragged_matrix(self.merge(new_clicks_per_comb_per_arm))
         future_visits = self.compute_future_visits_per_purchase(self.merge(future_visits_per_comb_per_arm),
                                                                 self.merge(purchases_per_comb_per_arm))
@@ -186,3 +188,4 @@ class Context:
 
         expected_profit = new_clicks * (margin * cr * (1 + future_visits) - cost_per_click)
         return expected_profit
+"""

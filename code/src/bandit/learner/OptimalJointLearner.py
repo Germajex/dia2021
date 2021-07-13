@@ -18,7 +18,7 @@ class OptimalJointLearner:
                           for j in range(self.n_arms_price)]
         self.new_clicks = [[[] for i in range(self.n_arms_bid)]
                            for j in range(self.n_arms_price)]
-        self.tot_cost_per_click_per_bid = [0 for i in range(self.n_arms_bid)]
+        self.tot_cost_per_bid = [0 for i in range(self.n_arms_bid)]
         self.tot_auctions_per_bid = [[0] for i in range(self.n_arms_bid)]
         self.current_round = 0
         self.security = 0.2
@@ -140,7 +140,7 @@ class OptimalJointLearner:
 
     def compute_cost_per_click(self, arm_bid):
         tot_clicks = np.sum([np.sum(self.new_clicks[arm_p][arm_bid]) for arm_p in range(self.n_arms_price)])
-        tot_cost = self.tot_cost_per_click_per_bid[arm_bid]
+        tot_cost = self.tot_cost_per_bid[arm_bid]
         cost_per_click = tot_cost / tot_clicks
 
         return cost_per_click
@@ -153,14 +153,14 @@ class OptimalJointLearner:
             self.pull_from_env(arm_p, arm_b)
 
     def pull_from_env(self, arm_price: int, arm_bid: int):
-        auctions, new_clicks, purchases, tot_cost_per_clicks, \
+        auctions, new_clicks, purchases, tot_cost, \
             (old_a, visits) = self.env.pull_arm_not_discriminating(arm_price, arm_bid)
 
         self.tot_auctions_per_bid[arm_bid] += auctions
 
         self.new_clicks[arm_price][arm_bid].append(new_clicks)
         self.purchases[arm_price][arm_bid].append(purchases)
-        self.tot_cost_per_click_per_bid[arm_bid] += tot_cost_per_clicks
+        self.tot_cost_per_bid[arm_bid] += tot_cost
 
         if old_a[0] is not None:
             arm_p, arm_b = old_a

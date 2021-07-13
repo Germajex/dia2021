@@ -14,7 +14,7 @@ class OptimalBidLearner:
         self.purchases_per_arm = [[] for i in range(self.n_arms)]
         self.auctions_per_arm = [[] for i in range(self.n_arms)]
         self.new_clicks_per_arm = [[] for i in range(self.n_arms)]
-        self.tot_cost_per_click_per_arm = [0 for i in range(self.n_arms)]
+        self.tot_cost_per_arm = [0 for i in range(self.n_arms)]
         self.current_round = 0
         self.pulled_arms = []
         self.security = 0.2
@@ -62,7 +62,7 @@ class OptimalBidLearner:
         crs = self.compute_conversion_rates()
         future_visits = self.compute_future_visits()
         cost_per_click = np.array(
-            [self.tot_cost_per_click_per_arm[arm] / np.sum(self.new_clicks_per_arm[arm])
+            [self.tot_cost_per_arm[arm] / np.sum(self.new_clicks_per_arm[arm])
              for arm in range(self.n_arms)]
         )
 
@@ -86,7 +86,7 @@ class OptimalBidLearner:
         crs = self.compute_conversion_rates()
         future_visits = self.compute_future_visits()
         cost_per_click = np.array(
-            [self.tot_cost_per_click_per_arm[arm] / np.sum(self.new_clicks_per_arm[arm])
+            [self.tot_cost_per_arm[arm] / np.sum(self.new_clicks_per_arm[arm])
              for arm in range(self.n_arms)])
 
         expected_profit = new_clicks * (margin * crs * (1 + future_visits) - cost_per_click)
@@ -140,13 +140,13 @@ class OptimalBidLearner:
             self.pull_from_env(arm)
 
     def pull_from_env(self, arm: int):
-        auctions, new_clicks, purchases, tot_cost_per_clicks, \
+        auctions, new_clicks, purchases, tot_cost, \
             (old_a, visits) = self.env.pull_arm_not_discriminating(arm)
 
         self.new_clicks_per_arm[arm].append(new_clicks)
         self.auctions_per_arm[arm].append(auctions)
         self.purchases_per_arm[arm].append(purchases)
-        self.tot_cost_per_click_per_arm[arm] += tot_cost_per_clicks
+        self.tot_cost_per_arm[arm] += tot_cost
 
         if old_a is not None:
             self.future_visits_per_arm[old_a].append(visits)

@@ -25,23 +25,23 @@ class PriceBanditEnvironment:
     def pull_arm_not_discriminating(self, arm: int):
         arm_strategy = {comb: arm for comb in self.env.get_features_combinations()}
 
-        new_clicks, purchases, tot_cost_per_clicks, \
+        new_clicks, purchases, tot_cost, \
             (past_arm_strategy, past_future_visits) = self._inner_pull_arm(arm_strategy)
 
         past_pulled_arm = None if past_arm_strategy is None else past_arm_strategy[(False, False)]
 
-        return sum(new_clicks.values()), sum(purchases.values()), sum(tot_cost_per_clicks.values()), \
+        return sum(new_clicks.values()), sum(purchases.values()), sum(tot_cost.values()), \
             (past_pulled_arm, sum(past_future_visits.values()))
 
     def pull_arm_discriminating(self, arm_strategy):
-        new_clicks, purchases, tot_cost_per_clicks, past_future_visits = self._inner_pull_arm(arm_strategy)
+        new_clicks, purchases, tot_cost, past_future_visits = self._inner_pull_arm(arm_strategy)
 
-        return new_clicks, purchases, tot_cost_per_clicks, past_future_visits
+        return new_clicks, purchases, tot_cost, past_future_visits
 
     def _inner_pull_arm(self, arm_strategy):
         pricing_strategy = {c: self.prices[a] for c, a in arm_strategy.items()}
 
-        auctions, new_clicks, purchases, tot_cost_per_clicks, \
+        auctions, new_clicks, purchases, tot_cost, \
             new_future_visits, profit = self.env.simulate_one_day_fixed_bid(pricing_strategy, self.bid)
 
         self.future_visits_queue.append((arm_strategy, new_future_visits))
@@ -49,7 +49,7 @@ class PriceBanditEnvironment:
 
         self.current_round += 1
 
-        return new_clicks, purchases, tot_cost_per_clicks, past_future_visits
+        return new_clicks, purchases, tot_cost, past_future_visits
 
     def reset_state(self):
         self.future_visits_queue = [(None, {comb: 0 for comb in

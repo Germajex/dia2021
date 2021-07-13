@@ -106,7 +106,7 @@ class Environment:
         return self.simulate_one_day(pricing_strategy, bidding_strategy)
 
     def simulate_one_day(self, pricing_strategy, bidding_strategy):
-        purchases, tot_cost_per_clicks, new_future_visits, new_clicks = {}, {}, {}, {}
+        purchases, tot_cost, new_future_visits, new_clicks = {}, {}, {}, {}
 
         auctions, new_clicks = self.distNewClicks.sample_bidding_strategy(bidding_strategy)
         profit = 0
@@ -116,8 +116,8 @@ class Environment:
                 price = pricing_strategy[comb]
                 bid = bidding_strategy[comb]
                 purchases[comb] = self.distClickConverted.sample_n(c, price, new_clicks[comb])
-                tot_cost_per_clicks[comb] = sum(self.distCostPerClick.sample_n(c, bid, new_clicks[comb]))
+                tot_cost[comb] = sum(self.distCostPerClick.sample_n(c, bid, new_clicks[comb]))
                 new_future_visits[comb] = sum(self.distFutureVisits.sample_n(c, purchases[comb]))
-                profit += self.margin(price) * (purchases[comb] + new_future_visits[comb]) - tot_cost_per_clicks[comb]
+                profit += self.margin(price) * (purchases[comb] + new_future_visits[comb]) - tot_cost[comb]
 
-        return auctions, new_clicks, purchases, tot_cost_per_clicks, new_future_visits, profit
+        return auctions, new_clicks, purchases, tot_cost, new_future_visits, profit

@@ -22,7 +22,7 @@ class OptimalJointDiscriminatingLearner:
                               for j in range(self.n_arms_price)] for c in combs}
         self.new_clicks = {c: [[[] for i in range(self.n_arms_bid)]
                                for j in range(self.n_arms_price)] for c in combs}
-        self.tot_cost_per_click_per_bid = {c: [0 for i in range(self.n_arms_bid)] for c in combs}
+        self.tot_cost_per_bid = {c: [0 for i in range(self.n_arms_bid)] for c in combs}
         self.tot_auctions_per_bid = {c: [[0] for i in range(self.n_arms_bid)] for c in combs}
 
         # Recap data
@@ -42,7 +42,7 @@ class OptimalJointDiscriminatingLearner:
 
     def pull_from_env(self, strategy_price, strategy_bid):
         # Actual pull
-        auctions, new_clicks, purchases, tot_cost_per_clicks, \
+        auctions, new_clicks, purchases, tot_cost, \
             (past_strategies, visits) = self.env.pull_arm_discriminating(strategy_price, strategy_bid)
 
         # Current round data update
@@ -51,7 +51,7 @@ class OptimalJointDiscriminatingLearner:
 
             self.new_clicks[comb][strategy_price[comb]][strategy_bid[comb]].append(new_clicks[comb])
             self.purchases[comb][strategy_price[comb]][strategy_bid[comb]].append(purchases[comb])
-            self.tot_cost_per_click_per_bid[comb][strategy_bid[comb]] += tot_cost_per_clicks[comb]
+            self.tot_cost_per_bid[comb][strategy_bid[comb]] += tot_cost[comb]
 
         # Past round data update
         if past_strategies[0]:
@@ -64,7 +64,7 @@ class OptimalJointDiscriminatingLearner:
 
         # Update context data
         for context in self.context_structure:
-            context.merge_all_data(self.future_visits, self.purchases, self.new_clicks, self.tot_cost_per_click_per_bid,
+            context.merge_all_data(self.future_visits, self.purchases, self.new_clicks, self.tot_cost_per_bid,
                                    self.tot_auctions_per_bid)
             context.update_pulled_arms(strategy_price, strategy_bid)
 

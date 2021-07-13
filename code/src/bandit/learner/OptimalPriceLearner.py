@@ -12,7 +12,7 @@ class OptimalPriceLearner:
         self.future_visits_per_arm = [[] for i in range(self.n_arms)]
         self.purchases_per_arm = [[] for i in range(self.n_arms)]
         self.new_clicks_per_arm = [[] for i in range(self.n_arms)]
-        self.tot_cost_per_click = 0
+        self.tot_cost = 0
         self.current_round = 0
 
         self.pulled_arms = []
@@ -34,15 +34,15 @@ class OptimalPriceLearner:
     # end learning loop
     # start projected profits
     def compute_projected_profits(self):
-        new_clicks = self.compute_new_clicks()
+        average_new_clicks = self.compute_average_new_clicks()
         margin = np.array([self.env.margin(a) for a in range(self.n_arms)])
         crs = self.compute_projection_conversion_rates()
         future_visits = self.compute_future_visits_per_arm()
-        cost_per_click = self.tot_cost_per_click / \
-                         sum_ragged_matrix(self.new_clicks_per_arm)
+        tot_clicks = sum_ragged_matrix(self.new_clicks_per_arm)
+        cost_per_click = self.tot_cost / tot_clicks
 
         projected_profit = simple_class_profit(
-            margin=margin, conversion_rate=crs, new_clicks=new_clicks,
+            margin=margin, conversion_rate=crs, new_clicks=average_new_clicks,
             future_visits=future_visits, cost_per_click=cost_per_click
         )
 
@@ -51,14 +51,16 @@ class OptimalPriceLearner:
     # end projected profits
 
     def compute_expected_profits(self):
-        new_clicks = self.compute_new_clicks()
+        average_new_clicks = self.compute_average_new_clicks()
         margin = np.array([self.env.margin(a) for a in range(self.n_arms)])
         crs = self.get_average_conversion_rates()
         future_visits = self.compute_future_visits_per_arm()
-        cost_per_click = self.tot_cost_per_click / sum_ragged_matrix(self.new_clicks_per_arm)
+        tot_clicks = sum_ragged_matrix(self.new_clicks_per_arm)
+
+        cost_per_click = self.tot_cost / tot_clicks
 
         expected_profit = simple_class_profit(
-            margin=margin, conversion_rate=crs, new_clicks=new_clicks,
+            margin=margin, conversion_rate=crs, new_clicks=average_new_clicks,
             future_visits=future_visits, cost_per_click=cost_per_click
         )
 
@@ -76,7 +78,7 @@ class OptimalPriceLearner:
 
         return np.array(res)
 
-    def compute_new_clicks(self):
+    def compute_average_new_clicks(self):
         return average_ragged_matrix(self.new_clicks_per_arm)
 
     # end compute estimates
@@ -98,20 +100,18 @@ class OptimalPriceLearner:
             self.pull_from_env(arm)
 
     def pull_from_env(self, arm: int):
-        new_clicks, purchases, tot_cost_per_clicks, \
-        (old_a, visits) = self.env.pull_arm_not_discriminating(arm)
+        new_clicks, purchases, tot_cost, \
+            (old_a, visits) = self.env.pull_arm_not_discriminating(arm)
 
         self.new_clicks_per_arm[arm].append(new_clicks)
         self.purchases_per_arm[arm].append(purchases)
-        self.tot_cost_per_click += tot_cost_per_clicks
+        self.tot_cost += tot_cost
 
         if old_a is not None:
             self.future_visits_per_arm[old_a].append(visits)
 
         self.current_round += 1
         self.pulled_arms.append(arm)
-
-        return new_clicks, purchases, tot_cost_per_clicks, (old_a, visits)
 
     def compute_cumulative_exp_profits(self, expected_profits):
         return np.cumsum([expected_profits[a] for a in self.pulled_arms])

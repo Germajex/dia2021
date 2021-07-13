@@ -17,7 +17,7 @@ class OptimalPriceDiscriminatingLearner:
         self.future_visits_per_comb_per_arm = {c: [[] for i in range(self.n_arms)] for c in combs}
         self.purchases_per_comb_per_arm = {c: [[] for i in range(self.n_arms)] for c in combs}
         self.new_clicks_per_comb_per_arm = {c: [[] for i in range(self.n_arms)] for c in combs}
-        self.tot_cost_per_click_per_comb = {c: 0 for c in combs}
+        self.tot_cost_per_comb = {c: 0 for c in combs}
 
         self.strategies = []
 
@@ -58,9 +58,9 @@ class OptimalPriceDiscriminatingLearner:
     # start update context
     def update_contexts(self):
         for context in self.context_structure:
-            possible_splits = self.compute_convenient_splits(context)
-            if possible_splits:
-                incentive, new_structure, feature = max(possible_splits,
+            convenient_splits = self.compute_convenient_splits(context)
+            if convenient_splits:
+                incentive, new_structure, feature = max(convenient_splits,
                                                         key=lambda x: x[0])
                 self.context_structure = new_structure
                 self.performed_splits.append((self.current_round, feature, incentive))
@@ -74,13 +74,11 @@ class OptimalPriceDiscriminatingLearner:
         current_lower = self.compute_context_expected_profit_lower_bound(context)
         new_structures = []
 
-        for feature_n, context_true, context_false in self.compute_possible_splits(
-                context
-        ):
-            true_lower = self.compute_context_expected_profit_lower_bound(
-                context_true)
-            false_lower = self.compute_context_expected_profit_lower_bound(
-                context_false)
+        possible_splits = self.compute_possible_splits(context)
+
+        for feature_n, context_true, context_false in possible_splits:
+            true_lower = self.compute_context_expected_profit_lower_bound(context_true)
+            false_lower = self.compute_context_expected_profit_lower_bound(context_false)
 
             incentive = true_lower + false_lower - current_lower
             if incentive > 0:
@@ -133,7 +131,7 @@ class OptimalPriceDiscriminatingLearner:
             else:
                 arm = context.choose_next_arm(self.new_clicks_per_comb_per_arm,
                                               self.purchases_per_comb_per_arm,
-                                              self.tot_cost_per_click_per_comb,
+                                              self.tot_cost_per_comb,
                                               self.future_visits_per_comb_per_arm,
                                               self.current_round)
             for comb in context.features:
@@ -156,7 +154,7 @@ class OptimalPriceDiscriminatingLearner:
         for context in self.context_structure:
             arm = context.choose_next_arm(self.new_clicks_per_comb_per_arm,
                                           self.purchases_per_comb_per_arm,
-                                          self.tot_cost_per_click_per_comb,
+                                          self.tot_cost_per_comb,
                                           self.future_visits_per_comb_per_arm,
                                           self.current_round)
             for comb in context.features:
@@ -177,13 +175,13 @@ class OptimalPriceDiscriminatingLearner:
         self.remaining_normal_rounds = 2 ** self.performed_round_robins
 
     def pull_from_env(self, strategy):
-        new_clicks, purchases, tot_cost_per_clicks, \
+        new_clicks, purchases, tot_cost, \
             (past_arm_strategy, past_future_visits) = self.env.pull_arm_discriminating(strategy)
 
         for comb in self.env.get_features_combinations():
             self.new_clicks_per_comb_per_arm[comb][strategy[comb]].append(new_clicks[comb])
             self.purchases_per_comb_per_arm[comb][strategy[comb]].append(purchases[comb])
-            self.tot_cost_per_click_per_comb[comb] += tot_cost_per_clicks[comb]
+            self.tot_cost_per_comb[comb] += tot_cost[comb]
 
         if past_arm_strategy is not None:
             for comb, chosen_arm in past_arm_strategy.items():
@@ -221,20 +219,20 @@ class OptimalPriceDiscriminatingLearner:
     def compute_context_projected_profit(self, context: Context):
         return context.compute_projected_profit(self.new_clicks_per_comb_per_arm,
                                                 self.purchases_per_comb_per_arm,
-                                                self.tot_cost_per_click_per_comb,
+                                                self.tot_cost_per_comb,
                                                 self.future_visits_per_comb_per_arm,
                                                 self.current_round)
 
     def compute_context_expected_profit(self, context: Context):
         return context.compute_expected_profits(self.new_clicks_per_comb_per_arm,
                                                 self.purchases_per_comb_per_arm,
-                                                self.tot_cost_per_click_per_comb,
+                                                self.tot_cost_per_comb,
                                                 self.future_visits_per_comb_per_arm)
 
     def compute_context_expected_profit_lower_bound(self, context: Context):
         return context.compute_expected_profit_lower_bound(self.new_clicks_per_comb_per_arm,
                                                            self.purchases_per_comb_per_arm,
-                                                           self.tot_cost_per_click_per_comb,
+                                                           self.tot_cost_per_comb,
                                                            self.future_visits_per_comb_per_arm,
                                                            self.current_round)
 
