@@ -9,12 +9,12 @@ from src.bandit.learner.ucb.UCBOptimalJointLearner import UCBOptimalJointLearner
 
 def main():
     # [!] Feel free to play with the number of arms [!]
-    prices = np.linspace(10, 100, num=15, dtype=np.int64)
+    prices = np.linspace(10, 100, num=10, dtype=np.int64)
     bids = np.linspace(1, 40, num=10, dtype=np.int64)
 
     env = Environment()
     print(f'Running with seed {env.get_seed()}')
-    n_rounds = 1500
+    n_rounds = 365
     future_visits_delay = 30
 
     opt_price, opt_bid, profit = step1(env, prices, bids)
