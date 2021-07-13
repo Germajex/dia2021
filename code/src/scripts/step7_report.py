@@ -2,7 +2,7 @@ import numpy as np
 from terminaltables import AsciiTable
 
 from src.Environment import Environment
-from src.algorithms import step1
+from src.algorithms import step1, expected_profit_for_comb
 from src.bandit.LearningStats import plot_results
 from src.bandit.banditEnvironments.JointBanditEnvironment import JointBanditEnvironment
 from src.bandit.banditEnvironments.PriceBanditEnvironment import PriceBanditEnvironment
@@ -13,15 +13,14 @@ from src.scripts.environment_plotter import plot_everything
 
 
 def main():
-
     prices = np.linspace(10, 100, num=10, dtype=np.int64)
     bids = np.linspace(1, 60, num=10, dtype=np.int64)
     delay = 30
     step_4_n_rounds = 400
-    n_rounds = 365
+    n_rounds = 365  +1200-365
     interactive = False
 
-    for envN, seedV in enumerate([4264432570, 1530294961, 1966222620]):
+    for envN, seedV in enumerate([None, None, None]):
         env = Environment(random_seed=seedV) if seedV is not None else Environment()
         print(f'Running with seed {env.get_seed()}')
         env_for_step4 = Environment(seedV)
@@ -76,8 +75,9 @@ def main():
             plot_results(["UCB"], [learner_profit], clairvoyant, n_rounds)
 
         pull_tables = []
+        gaps_tables = []
         for context in joint_disc_learner.context_structure:
-            print('Context:',  *context.features)
+            print('Context:', *context.features)
             pulls = [[0 for b in bids] for p in prices]
             comb = context.features[0]
             for p_a, b_a in joint_disc_learner.get_strategies():
@@ -88,7 +88,7 @@ def main():
                 table_pull_data.append([f'{p:.2f}'])
             for p_i, p in enumerate(prices):
                 for b_i, b in enumerate(bids):
-                    table_pull_data[p_i+1].append(f'{pulls[p_i][b_i]}')
+                    table_pull_data[p_i + 1].append(f'{pulls[p_i][b_i]}')
 
             table_pull = AsciiTable(table_pull_data)
             for i in range(len(table_pull_data[0])):
@@ -98,21 +98,46 @@ def main():
             print(table_pull.table)
 
             expected_profs = np.array([[0 for b in bids] for p in prices])
-            for comb in context.features:
-                pass
+            for p_i, p in enumerate(prices):
+                for b_i, b in enumerate(bids):
+                    expected_profs[p_i][b_i] = sum(
+                        expected_profit_for_comb(env, p, b, comb)
+                        for comb in context.features
+                    )
+            gaps = np.max(expected_profs) - expected_profs
 
+            table_exp_data = [['P\\B'] + [f'{b:.2f}' for b in bids]]
+            for p in prices:
+                table_exp_data.append([f'{p:.2f}'])
+            for p_i, p in enumerate(prices):
+                for b_i, b in enumerate(bids):
+                    table_exp_data[p_i + 1].append(f'{gaps[p_i][b_i]}')
+
+            table_exp = AsciiTable(table_exp_data)
+            for i in range(len(table_exp_data[0])):
+                table_exp.justify_columns[i] = 'right'
+
+            gaps_tables.append(table_exp)
+            print(table_exp.table)
 
         dir = '../../../report/figures/step7'
 
-        with open(dir+f'/output{envN}.txt', 'w', encoding='utf8') as output_file:
+        with open(dir + f'/output{envN}.txt', 'w', encoding='utf8') as output_file:
             output_file.write(f' Seed: {seedV}\n')
-            output_file.write(f' UCB number of pulls:\n')
+            for i, context in enumerate(joint_disc_learner.get_context_structure()):
+                output_file.write(f' Context ' + ', '.join(str(comb[0])[0]+str(comb[1])[0]
+                                                           for comb in context.features)
+                                  +'\n\n')
+                output_file.write(f' UCB number of pulls:\n')
+                output_file.write(pull_tables[i].table)
+                output_file.write('\n\n Gaps:\n')
+                output_file.write(gaps_tables[i].table)
+                output_file.write('\n')
 
         plot_results(["UCB"], [learner_profit], clairvoyant, n_rounds,
-                     dest_file_path=dir+f'/plot{envN}')
+                     dest_file_path=dir + f'/plot{envN}')
 
-        plot_everything(environment=env, path=dir+f'/env{envN}')
-
+        plot_everything(environment=env, path=dir + f'/env{envN}')
 
 
 if __name__ == "__main__":
