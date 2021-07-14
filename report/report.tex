@@ -269,11 +269,12 @@ The learner's goal should be to estimate the expected profit of all the pricing/
 \item For each bid value $b$, the probability $\overline{w_b}$ of winning the auction as the ratio between the number of new clicks and the number of auctions (recall that we are assuming that every user which is displayed the ad will also click on it), considering only the rounds where the bid $b$ was employed:  \[\overline{w_b}_i=\frac{\sum_{j\in\{j:b_j=b\}}{n_j}}{\sum_{j\in\{j:b_j=b\}}{a_j}}\]
 \end{itemize}
 After all these estimates have been computed, the learner can make a projecton of the expected profit $\widehat{exp(p,b)}_i$ of the strategy $(p,b)$ as: \[\widehat{exp(p,b)}_i=\overline{a}_i\overline{w_b}_i\bigg(m(p)\overline{r_p}_i(1+\overline{f_p}_i) -\overline{c_b} \bigg) \]
-The estimation can be done efficiently because none of the quantities to estimate depends on both $p$ and $b$. {\color{red}It may be non trivial to notice that the estimate of $\overline{f_p}$ can be computed summing the sample that come from rounds where different bids were used}. Using the estimation the learner will choose $(p_i,b_i)$ and the learning process will move one round forward.\\
+The estimation can be done efficiently because none of the quantities to estimate depends on both $p$ and $b$. Using the estimation the learner will choose $(p_i,b_i)$ and the learning process will move one round forward.\\
 Since the learner is optimizing on $p$ and $b$, they should not use the expected profit but rather an optimistic estimate of the expected profit, which can be obtained by applying to the conversion rate $\overline{r_p}_i$ and to the winning probability $\overline{w_b}_i$ optimistic exploration techniques such as upper confidence bounds or Thompson sampling and using those values instead of the sample means.\\
 
-\textbf{Note:} \textit{The number of rounds $30+P$ after which the learner begins to compute the estimates is to ensure that all the prices have received at least one delayed feedback in the case the learner performs round robins for the first $P$ rounds, which corresponds to our implementation.}
+\textbf{Note:} \textit{The number of rounds $30+P$ after which the learner begins to compute the estimates is to ensure that all the prices have received at least one delayed feedback in the case the learner performs round robins for the first $P$ rounds, which corresponds to our implementation.}\\
 
+\textbf{Note:} \textit{The future visits per purchase $\overline{f_p}$ can be estimated independently of the bid value that was used: in fact, the observed future visits per purchase depend on the proportion of each class with respect to the total number of purchases with a price. Each price $p$ will induce a different proportion in the classes of users that have purchased the product, due to different reserve prices: if before the purchase the weights $x_c$ of proportion are the class likelihoods $x_c=l_c$, and the percentage of each class $c$ is $\frac{x_c}{\sum_j{x_j}}$, after the purchase the weights are influenced by the conversion rate: $x_{c,p}=l_cr(c,p)$. Given a price, any change in the bid will preserve, on average, the proportion induced by that price: therefore every different purchase on a round where the strategy $(p,b)$ was used counts as a sample of the future visits associated with price $p$, and the only difference between different bid values is that the highest bids will provide more samples.}
 
 \clearpage
 \section{Step 3}
@@ -601,8 +602,6 @@ just some additions to avoid nasty corner cases:
 \inputminted{python}{code/step7_computation_random_variables.py}
 The radii of these estimates are computed as follows:
 \inputminted{python}{code/step7_radii_computation.py}
-
-
 
 \clearpage
 \subsection{Experiment 1}
