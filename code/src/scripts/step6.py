@@ -12,9 +12,9 @@ def main():
     prices = np.linspace(10, 100, num=10, dtype=np.int64)
     bids = np.linspace(1, 40, num=10, dtype=np.int64)
 
-    env = Environment(368714223)
+    env = Environment()
     print(f'Running with seed {env.get_seed()}')
-    n_rounds = 4000
+    n_rounds = 365
     future_visits_delay = 30
 
     opt_price, opt_bid, profit = step1(env, prices, bids)
@@ -35,7 +35,7 @@ def main():
     for arm_p in range(ucb_learner.n_arms_price):
         print(f'{bandit_env.prices[arm_p]:3d}      | ' + ' '.join(f'{p:5d}' for p in ucb_recap[arm_p]))
 
-    plot_results(["ucb"], [ucb_cumulative_profits], clairvoyant_cumulative_profits, regret_length, smooth=False)
+    plot_results(["ucb"], [ucb_cumulative_profits], clairvoyant_cumulative_profits, regret_length)
 
 
 if __name__ == "__main__":

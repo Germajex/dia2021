@@ -59,7 +59,7 @@ def optimal_pricing_strategy_for_bid(env, prices, bid):
 def step1(env, prices, bids, combinations=None):
     median_b = bids[len(bids) // 2]
 
-    optimal_price = optimal_price_for_bid(env, prices, median_b, combinations=combinations)
+    optimal_price = optimal_price_for_bid(env, prices, median_b, combinations)
     optimal_bid = optimal_bid_for_price(env, bids, optimal_price, combinations)
 
     profit = expected_profit(env, optimal_price, optimal_bid, combinations)

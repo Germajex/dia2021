@@ -13,7 +13,7 @@ def main():
 
     env = Environment()
     print(f'Running with seed {env.get_seed()}')
-    n_rounds = 2000
+    n_rounds = 365
     future_visits_delay = 30
 
     opt_price, opt_bid, profit = step1(env, prices, bids)
@@ -42,7 +42,7 @@ def main():
 
     env.print_summary()
 
-    plot_results(["ucb"], [ucb_cumulative_profits], clairvoyant_cumulative_profits, regret_length, smooth=False)
+    plot_results(["ucb"], [ucb_cumulative_profits], clairvoyant_cumulative_profits, regret_length)
 
 
 if __name__ == "__main__":

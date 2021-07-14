@@ -12,14 +12,14 @@ import warnings
 
 
 def main():
-    warnings.filterwarnings('error')
+    #warnings.filterwarnings('error')
     prices = np.linspace(10, 100, num=10, dtype=np.int64)
     bids = np.linspace(1, 60, num=10, dtype=np.int64)
     delay = 30
     step_4_n_rounds = 365
-    n_rounds = 800
+    n_rounds = 365
 
-    env_for_step4 = Environment(1137056956)
+    env_for_step4 = Environment()
     seed = env_for_step4.get_seed()
     env = Environment(seed)
 
@@ -66,7 +66,7 @@ def main():
     print()
     env.print_class_summary()
 
-    plot_results(["ucb"], [learner_profit], clairvoyant, n_rounds, smooth=False)
+    plot_results(["ucb"], [learner_profit], clairvoyant, n_rounds)
 
 
 if __name__ == "__main__":

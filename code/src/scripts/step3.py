@@ -15,13 +15,13 @@ def main():
     print(f'Running with seed {env.get_seed()}')
     env.print_summary()
 
-    n_rounds = 4000
+    n_rounds = 365
     future_visits_delay = 30
 
     opt_price, opt_bid, profit = step1(env, prices, bids)
 
     bandit_env = PriceBanditEnvironment(env, prices, opt_bid, future_visits_delay)
-    regret_length = n_rounds - future_visits_delay
+
     expected_profits = np.array([expected_profit(env, p, opt_bid) for p in prices])
     suboptimality_gaps = np.max(expected_profits) - expected_profits
     clairvoyant_cumulative_profits = np.cumsum([np.max(expected_profits)] * n_rounds)
@@ -60,7 +60,7 @@ def main():
 
     plot_results(["ucb", "ts"],
                  [ucb_cumulative_profits, ts_cumulative_profits],
-                 clairvoyant_cumulative_profits, n_rounds, smooth=True)
+                 clairvoyant_cumulative_profits, n_rounds)
 
     samples = 3000
     ucb_best = prices[np.argmax(ucb_leaner.compute_expected_profits())]

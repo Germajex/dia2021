@@ -22,8 +22,6 @@ def main():
     n_rounds = 365
     future_visits_delay = 30
 
-#1684006624
-
     for envN, seedV in enumerate([4264432570, 1530294961, 1966222620]):
         env = Environment(random_seed=seedV) if seedV is not None else Environment()
         print(f'Running with seed {env.get_seed()}')

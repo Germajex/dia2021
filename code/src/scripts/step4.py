@@ -13,17 +13,12 @@ def main():
     prices = np.arange(10, 101, 10)
     bids = np.arange(1, 100)
 
-    #      supponiamo che la ragione sia che le due combinazioni da splittare
-    #      hanno prezzi ottimi molto diversi e in particolare una lo ha molto basso, così basso
-    #      che non viene mai proposto e non il lower confidence bound non si stringe mai
-    #      abbastanza per splittare
-
-    env1 = Environment(3511939391)  # 3511939391 to be used in the report
+    env1 = Environment()
     env2 = Environment(env1.get_seed())
     env3 = Environment(env1.get_seed())
 
     print(f'Running with seed {env1.get_seed()}')
-    n_rounds = 800
+    n_rounds = 365
     future_visits_delay = 30
 
     opt_price_1, opt_bid_1, profit_1 = step1(env1, prices, bids)
@@ -33,9 +28,6 @@ def main():
     bandit_env_1 = PriceBanditEnvironment(env1, prices, opt_bid_1, future_visits_delay)
     bandit_env_2 = PriceBanditEnvironment(env2, prices, opt_bid_2, future_visits_delay)
     bandit_env_3 = PriceBanditEnvironment(env3, prices, opt_bid_3, future_visits_delay)
-
-    regret_length = n_rounds - future_visits_delay
-    clairvoyant_cumulative_profits = bandit_env_1.get_clairvoyant_cumulative_profits_discriminating(regret_length)
 
     print(f'Optimal price without feature discrimination: {opt_price_1:.2f}, with profit {profit_1:.2f}')
 
@@ -58,7 +50,7 @@ def main():
         f'{c.name}({", ".join(str(comb) for comb in c.features)}): {opt_strategy[c.features[0]]:.2f}'
         for c in env1.classes))
     print(f"With value: {opt_value:.2f}\n\n")
-    clairvoyant_cumulative_profits2 = np.cumsum([opt_value] * n_rounds)
+    clairvoyant_cumulative_profits = np.cumsum([opt_value] * n_rounds)
     expected_profits = {}
     for comb in env1.combinations:
         expected_profits[comb] = []
@@ -69,15 +61,15 @@ def main():
 
     ucb_disc_learner = UCBOptimalPriceDiscriminatingLearner(bandit_env_2)
     ucb_disc_learner.learn(n_rounds)
-    #ucb_profits = ucb_disc_learner.compute_cumulative_profits()
-    ucb_profits2 = ucb_disc_learner.compute_cumulative_exp_profits(expected_profits)
+
+    ucb_profits = ucb_disc_learner.compute_cumulative_exp_profits(expected_profits)
     bandit_env_2.reset_state()
 
     print("\nLearning TSDisc")
     ts_disc_learner = TSOptimalPriceDiscriminatingLearner(bandit_env_3)
     ts_disc_learner.learn(n_rounds)
-    #ts_profits = ts_disc_learner.compute_cumulative_profits()
-    ts_profits2 = ts_disc_learner.compute_cumulative_exp_profits(expected_profits)
+
+    ts_profits = ts_disc_learner.compute_cumulative_exp_profits(expected_profits)
     bandit_env_3.reset_state()
 
     for name, learner in [("ucb with discrimination", ucb_disc_learner), ("ts with discrimination", ts_disc_learner)]:
@@ -96,9 +88,7 @@ def main():
 
     env1.print_summary()
 
-    #plot_results(["ucb", "ts"], [ucb_profits, ts_profits], clairvoyant_cumulative_profits, regret_length)
-
-    plot_results(["ucb", "ts"], [ucb_profits2, ts_profits2], clairvoyant_cumulative_profits2, n_rounds, smooth=True)
+    plot_results(["ucb", "ts"], [ucb_profits, ts_profits], clairvoyant_cumulative_profits, n_rounds)
 
 
 if __name__ == "__main__":
