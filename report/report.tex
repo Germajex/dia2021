@@ -183,6 +183,7 @@ And it represents the profit that the seller makes by selling one item at price 
 Once the \textit{Environment} has been created, it is wrapped by one of the \textit{BanditEnvironment}.  The learner, in order to simulate one day of selling, pulls an arm from a \textit{BanditEnvironment} which, in turn, calls the method \textit{simulate\_one\_day(pricing\_strategy, bidding\_strategy)} exposed by its internal \textit{Environment}. 
 \inputminted[fontsize=\footnotesize]{python}{code/simulation_one_day.py}
 First, the \textit{Environment} samples the total number of auctions and the new clicks for each combinations of users' features, given the bidding strategy chosen by the learner. Then, again for each combination, given its price and bid strategies, it computes the purchases, the total cost of the clicks and the future visits. Eventually, it computes the overall profit according to the chosen arms.
+\newline Note that this method is independent of the \textit{BanditEnvironment} and the learner, so it always used.
 
 \clearpage
 \section{Step 1}
