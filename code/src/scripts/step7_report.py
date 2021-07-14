@@ -16,7 +16,8 @@ def main():
     prices = np.linspace(10, 100, num=10, dtype=np.int64)
     bids = np.linspace(1, 60, num=10, dtype=np.int64)
     delay = 30
-    step_4_n_rounds = 400
+
+    step_4_n_rounds = 365
     n_rounds = 365
     interactive = False
 

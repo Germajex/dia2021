@@ -40,17 +40,22 @@ class OptimalJointDiscriminatingLearner:
         strategy_price, strategy_bid = self.choose_next_strategy()
         self.pull_from_env(strategy_price, strategy_bid)
 
+    # start pull
+
     def pull_from_env(self, strategy_price, strategy_bid):
         # Actual pull
         auctions, new_clicks, purchases, tot_cost, \
-            (past_strategies, visits) = self.env.pull_arm_discriminating(strategy_price, strategy_bid)
+            (past_strategies, visits) = self.env.pull_arm_discriminating(strategy_price,
+                                                                         strategy_bid)
 
         # Current round data update
         for comb in self.env.get_features_combinations():
             self.tot_auctions_per_bid[comb][strategy_bid[comb]] += auctions[comb]
 
-            self.new_clicks[comb][strategy_price[comb]][strategy_bid[comb]].append(new_clicks[comb])
-            self.purchases[comb][strategy_price[comb]][strategy_bid[comb]].append(purchases[comb])
+            self.new_clicks[comb][strategy_price[comb]][strategy_bid[comb]]\
+                .append(new_clicks[comb])
+            self.purchases[comb][strategy_price[comb]][strategy_bid[comb]]\
+                .append(purchases[comb])
             self.tot_cost_per_bid[comb][strategy_bid[comb]] += tot_cost[comb]
 
         # Past round data update
@@ -64,15 +69,17 @@ class OptimalJointDiscriminatingLearner:
 
         # Update context data
         for context in self.context_structure:
-            context.merge_all_data(self.future_visits, self.purchases, self.new_clicks, self.tot_cost_per_bid,
-                                   self.tot_auctions_per_bid)
+            context.merge_all_data(self.future_visits, self.purchases, self.new_clicks,
+                                   self.tot_cost_per_bid,self.tot_auctions_per_bid)
             context.update_pulled_arms(strategy_price, strategy_bid)
 
         # Update history
         self.current_round += 1
         self.strategies.append((strategy_price, strategy_bid))
 
-    # start choose next strategy
+    # end pull
+    # start choose strategy
+
     def choose_next_strategy(self):
         strategy_price = {}
         strategy_bid = {}
@@ -86,7 +93,7 @@ class OptimalJointDiscriminatingLearner:
 
         return strategy_price, strategy_bid
 
-    # end choose next strategy
+    # end choose strategy
 
     def round_robin(self):
         combs = self.env.get_features_combinations()

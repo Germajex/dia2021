@@ -12,9 +12,9 @@ def main():
     prices = np.linspace(10, 100, num=10, dtype=np.int64)
     bids = np.linspace(1, 40, num=10, dtype=np.int64)
 
-    env = Environment()
+    env = Environment(368714223)
     print(f'Running with seed {env.get_seed()}')
-    n_rounds = 365
+    n_rounds = 4000
     future_visits_delay = 30
 
     opt_price, opt_bid, profit = step1(env, prices, bids)
