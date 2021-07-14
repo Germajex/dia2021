@@ -22,7 +22,7 @@ class UCBJointContext(JointContext):
     def compute_conversion_rates_radia(self, current_round):
         tot_clicks_per_arm = np.array([np.sum(sum_ragged_matrix(self.new_clicks[p]))
                                        for p in range(self.n_arms_price)])
-        np.where(tot_clicks_per_arm > 0, tot_clicks_per_arm, 1)
+        tot_clicks_per_arm = np.where(tot_clicks_per_arm > 0, tot_clicks_per_arm, 1)
 
         return np.sqrt(2 * np.log(current_round) / tot_clicks_per_arm)
 
