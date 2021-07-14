@@ -17,7 +17,7 @@ def main():
     bids = np.linspace(1, 60, num=10, dtype=np.int64)
     delay = 30
     step_4_n_rounds = 365
-    n_rounds = 365
+    n_rounds = 365+300
 
     env_for_step4 = Environment()
     seed = env_for_step4.get_seed()
@@ -48,7 +48,7 @@ def main():
     joint_disc_learner = OptimalJointDiscriminatingLearner(bandit_env, context_structure)
     joint_disc_learner.learn(n_rounds)
 
-    clairvoyant = bandit_env.get_clairvoyant_cumulative_profit_discriminating(n_rounds)
+    clairvoyant = bandit_env.get_clairvoyant_cumulative_profit_discriminating(context_structure, n_rounds)
     strategies = joint_disc_learner.get_strategies()
     learner_profit = bandit_env.get_learner_cumulative_profit_discriminating(strategies)
 

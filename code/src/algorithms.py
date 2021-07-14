@@ -17,31 +17,26 @@ def expected_profit_of_pricing_strategy(env, pricing_strategy, b):
 
 
 def expected_profit_for_comb(env, p, b, comb):
-    c = env.class_of_comb[comb]
-    margin = env.margin(p)
-    new_click = env.distNewClicks.mean_per_comb(b)[comb]
-    conversion_rate = env.distClickConverted.mean(c, p)
-    future_visits = env.distFutureVisits.mean(c)
-    cost_per_click = env.distCostPerClick.mean(c, b)
-
-    profit = simple_class_profit(margin, new_click, conversion_rate, future_visits, cost_per_click)
-
-    return profit
+    return expected_profit(env, p, b, [comb])
 
 
 # start expected profit
-def expected_profit(env, p, b, classes=None):
+def expected_profit(env, p, b, combinations=None):
     m = env.margin
-    n = env.distNewClicks.mean
+    n = env.distNewClicks.mean_per_comb(b)
     r = env.distClickConverted.mean
     f = env.distFutureVisits.mean
     k = env.distCostPerClick.mean
 
-    C = classes if classes is not None else env.classes
+    combs = combinations if combinations is not None else env.combinations
 
     profit = sum(
-        simple_class_profit(m(p), n(c, b), r(c, p), f(c), k(c, b))
-        for c in C
+        simple_class_profit(margin=m(p),
+                            new_clicks=n[comb],
+                            conversion_rate=r(env.class_of_comb[comb], p),
+                            future_visits=f(env.class_of_comb[comb]),
+                            cost_per_click=k(env.class_of_comb[comb], b))
+        for comb in combs
     )
 
     return profit
@@ -53,7 +48,7 @@ def expected_profit(env, p, b, classes=None):
 def optimal_pricing_strategy_for_bid(env, prices, bid):
     strategy = {}
     for c in env.classes:
-        opt_p = optimal_price_for_bid(env, prices, bid, [c])
+        opt_p = optimal_price_for_bid(env, prices, bid, combinations=c.features)
         for comb in c.features:
             strategy[comb] = opt_p
 
@@ -61,13 +56,13 @@ def optimal_pricing_strategy_for_bid(env, prices, bid):
 
 
 # start step 1
-def step1(env, prices, bids):
+def step1(env, prices, bids, combinations=None):
     median_b = bids[len(bids) // 2]
 
-    optimal_price = optimal_price_for_bid(env, prices, median_b)
-    optimal_bid = optimal_bid_for_price(env, bids, optimal_price)
+    optimal_price = optimal_price_for_bid(env, prices, median_b, combinations=combinations)
+    optimal_bid = optimal_bid_for_price(env, bids, optimal_price, combinations)
 
-    profit = expected_profit(env, optimal_price, optimal_bid)
+    profit = expected_profit(env, optimal_price, optimal_bid, combinations)
 
     return optimal_price, optimal_bid, profit
 
@@ -75,18 +70,18 @@ def step1(env, prices, bids):
 # end step 1
 
 # start step 1 support
-def optimal_price_for_bid(env, prices, bid, classes=None):
+def optimal_price_for_bid(env, prices, bid, combinations=None):
     opt_p_index = np.argmax([
-        expected_profit(env, p, bid, classes)
+        expected_profit(env, p, bid, combinations=combinations)
         for p in prices
     ])
 
     return prices[opt_p_index]
 
 
-def optimal_bid_for_price(env, bids, price, classes=None):
+def optimal_bid_for_price(env, bids, price, combinations=None):
     opt_b_index = np.argmax([
-        expected_profit(env, price, b, classes)
+        expected_profit(env, price, b, combinations=combinations)
         for b in bids
     ])
     return bids[opt_b_index]

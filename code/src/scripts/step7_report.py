@@ -17,7 +17,7 @@ def main():
     bids = np.linspace(1, 60, num=10, dtype=np.int64)
     delay = 30
     step_4_n_rounds = 400
-    n_rounds = 365  +1200-365
+    n_rounds = 365  +400-365
     interactive = False
 
     for envN, seedV in enumerate([None, None, None]):
@@ -52,7 +52,7 @@ def main():
         joint_disc_learner = OptimalJointDiscriminatingLearner(bandit_env, context_structure)
         joint_disc_learner.learn(n_rounds)
 
-        clairvoyant = bandit_env.get_clairvoyant_cumulative_profit_discriminating(n_rounds)
+        clairvoyant = bandit_env.get_clairvoyant_cumulative_profit_discriminating(context_structure, n_rounds)
         strategies = joint_disc_learner.get_strategies()
         learner_profit = bandit_env.get_learner_cumulative_profit_discriminating(strategies)
 
@@ -123,7 +123,7 @@ def main():
         dir = '../../../report/figures/step7'
 
         with open(dir + f'/output{envN}.txt', 'w', encoding='utf8') as output_file:
-            output_file.write(f' Seed: {seedV}\n')
+            output_file.write(f' Seed: {env.get_seed()}\n')
             for i, context in enumerate(joint_disc_learner.get_context_structure()):
                 output_file.write(f' Context ' + ', '.join(str(comb[0])[0]+str(comb[1])[0]
                                                            for comb in context.features)

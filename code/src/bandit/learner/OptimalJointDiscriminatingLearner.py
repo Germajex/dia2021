@@ -72,6 +72,7 @@ class OptimalJointDiscriminatingLearner:
         self.current_round += 1
         self.strategies.append((strategy_price, strategy_bid))
 
+    # start choose next strategy
     def choose_next_strategy(self):
         strategy_price = {}
         strategy_bid = {}
@@ -84,6 +85,8 @@ class OptimalJointDiscriminatingLearner:
                 strategy_bid[comb] = arm_b
 
         return strategy_price, strategy_bid
+
+    # end choose next strategy
 
     def round_robin(self):
         combs = self.env.get_features_combinations()
