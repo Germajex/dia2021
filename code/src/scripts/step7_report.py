@@ -16,11 +16,11 @@ def main():
     prices = np.linspace(10, 100, num=10, dtype=np.int64)
     bids = np.linspace(1, 60, num=10, dtype=np.int64)
     delay = 30
-    step_4_n_rounds = 400
-    n_rounds = 365  +1200-365
+    step_4_n_rounds = 365
+    n_rounds = 365
     interactive = False
 
-    for envN, seedV in enumerate([None, None, None]):
+    for envN, seedV in enumerate([3511939391, 1740212098, 4059059292]):
         env = Environment(random_seed=seedV) if seedV is not None else Environment()
         print(f'Running with seed {env.get_seed()}')
         env_for_step4 = Environment(seedV)

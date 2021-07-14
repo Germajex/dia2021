@@ -17,9 +17,9 @@ def main():
     bids = np.linspace(1, 60, num=10, dtype=np.int64)
     delay = 30
     step_4_n_rounds = 365
-    n_rounds = 365
+    n_rounds = 800
 
-    env_for_step4 = Environment()
+    env_for_step4 = Environment(1137056956)
     seed = env_for_step4.get_seed()
     env = Environment(seed)
 

@@ -562,7 +562,47 @@ over the price arms.
 
 \clearpage
 \section{Step 7}
-{\color{red}da scrivere}
+Step 7 has a similar goal to step 6 except for the fact that now we must discriminate between customer classes. Differently
+from step 4, here we don't have to discover the contexts, we use the context structure found during step 4. The learning
+proceeds analogously to step 6 with the technique of quantities projection.
+Since we are discriminating, all the data we record is saved in a dictionary which keys are the feature combinations.
+The environment is still an instance of \textit{JointBanditEnvironment}, but we will use the method
+\textit{pull\_arm\_discriminating} to obtain disaggregated data.
+
+In order to perform this step we defined the class \textit{OptimalJointDiscriminatingLearner}, which upon creation
+accepts a \textit{context structure}. Just like in \textit{UCBOptimalPriceDiscriminatingLearner}, the strategy selection
+is deferred to the contexts and the resulting strategy is obtained by merging the results:
+\inputminted{python}{code/step7_choose_strategy.py}
+As for the pull of the arms and the storage of the data we have:
+\inputminted{python}{code/step7_pull.py}
+As we can see from the code, we have to store the data accordingly to the dictionary keys.
+
+\subsection{The class \textit{JointContext}}
+This class is the core of step 7 as it contains the logic to choose the most promising arm to pull for the specific
+context.
+The basic mechanism relies in the merge of the data. Basically we feed all the aggregated data and the context will
+extract only what is relevant for him (based on the feature combination). Due to the compexity of the data (indexed by
+both price and bid, with the addition of the feature combination) we had to re-implement the merge method for the
+double indexed case.
+\inputminted{python}{code/step7_merge.py}
+
+Given this merge, all the following methods are very similar to step 6, since now we are working with fake aggregated data,
+it's like the context sees the merged data as aggregated and can thus work normally.
+Indeed the routine to choose the arm is:
+\inputminted{python}{code/step7_context_arm_choice.py}
+We can still see the safe arm computation with some fixes to avoid nasty zero-divisions in case a bid for a specific context
+yield a value of 0 for \textit{new\_clicks} and consequently \textit{tot\_cost}.
+
+\subsection{The class \textit{UCBJointContext}}
+This class implements the abstract methods of \textit{JointContext}, namely \\ \textit{compute\_projection\_conversion\_rates}
+and \textit{compute\_projection\_auction\_winning\_probability}, just like in the previous steps. Remember that the context
+thanks to the merging can work on fake aggregated data, thus this two methods are very similar to the previous ones, with
+just some additions to avoid nasty corner cases:
+\inputminted{python}{code/step7_computation_random_variables.py}
+The radii of these estimates are computed as follows:
+\inputminted{python}{code/step7_radii_computation.py}
+
+
 
 \clearpage
 \subsection{Experiment 1}

@@ -21,9 +21,11 @@ class JointContext:
         self.tot_auctions_per_bid = None
         self.pulled_arms = []
 
-    def merge_all_data(self, future_visits_per_comb, purchases_per_comb, new_clicks_per_comb,
-                       tot_cost_per_comb,
-                       tot_auctions_per_comb):
+    # start merge
+
+    def merge_all_data(self, future_visits_per_comb, purchases_per_comb,
+                       new_clicks_per_comb, tot_cost_per_comb, tot_auctions_per_comb):
+
         self.future_visits = self.merge_double_indexed(future_visits_per_comb)
         self.purchases = self.merge_double_indexed(purchases_per_comb)
         self.new_clicks = self.merge_double_indexed(new_clicks_per_comb)
@@ -32,7 +34,10 @@ class JointContext:
 
     def merge_double_indexed(self, data_per_comb):
         data = []
-        merged_data = [[[] for b in range(self.n_arms_bid)] for p in range(self.n_arms_price)]  # merged_data[price_arm][price_bid][realization_n]
+        # merged_data[price_arm][price_bid][realization_n]
+        merged_data = [[[]
+                        for b in range(self.n_arms_bid)]
+                       for p in range(self.n_arms_price)]
 
         for comb in self.features:
             row = data_per_comb[comb]
@@ -43,7 +48,8 @@ class JointContext:
             for b in range(self.n_arms_bid):
                 for i in range(len(data[0][p][b])):
                     # j-th combination, i-th realization
-                    merged_data[p][b].append(np.sum([data[j][p][b][i] for j in range(len(data))]))
+                    merged_data[p][b].append(np.sum([data[j][p][b][i]
+                                                     for j in range(len(data))]))
 
         return merged_data
 
@@ -51,11 +57,18 @@ class JointContext:
         merged_data = np.sum([data_per_comb[comb] for comb in self.features], axis=0)
         return merged_data
 
+    # end merge
+    # start arm choice
+
     def choose_next_arm(self, security, current_round):
         median_bid = self.n_arms_bid // 2
-        arm_price = np.argmax(self.compute_projected_profits_fixed_bid(median_bid, current_round))
+        arm_price = np.argmax(self.compute_projected_profits_fixed_bid(median_bid,
+                                                                       current_round))
         mask = self.compute_safe_arms(arm_price, security)
-        arms_bid_safe = np.where(mask, self.compute_projected_profits_fixed_price(arm_price, current_round), 0)
+        arms_bid_safe = np.where(mask,
+                                 self.compute_projected_profits_fixed_price(arm_price,
+                                                                            current_round),
+                                 0)
         arm_bid = np.argmax(arms_bid_safe)
         return arm_price, arm_bid
 
@@ -69,13 +82,17 @@ class JointContext:
         std_devs = np.array([np.std(new_c[b]) for b in range(self.n_arms_bid)])
         std_devs = np.where(std_devs > 0, std_devs, 1)
 
-        lower_security_value = np.array([norm.ppf(security, m, std) for m, std in zip(means, std_devs)])
+        lower_security_value = np.array([norm.ppf(security, m, std)
+                                         for m, std in zip(means, std_devs)])
         lower_security_value = np.where(lower_security_value > 0, lower_security_value, 0)
 
-        expected_profits = self.compute_expected_profits_fixed_price(arm_price, nc=lower_security_value)
+        expected_profits = self.compute_expected_profits_fixed_price(arm_price,
+                                                                     lower_security_value)
         arm_mask = expected_profits > 0
 
         return arm_mask
+
+    # end arm choice
 
     def compute_projected_profits_fixed_bid(self, arm_bid, current_round):
         new_clicks = self.compute_new_clicks(arm_bid)

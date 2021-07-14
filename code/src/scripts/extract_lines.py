@@ -177,6 +177,36 @@ def main(destination_dir):
                   start_delimiter='    # start simulation one day',
                   end_delimiter='    # end simulation one day')
 
+    extract_lines(in_file='../bandit/learner/OptimalJointDiscriminatingLearner.py',
+                  out_file=destination_dir + '/step7_pull.py',
+                  start_delimiter='    # start pull',
+                  end_delimiter='    # end pull')
+
+    extract_lines(in_file='../bandit/learner/OptimalJointDiscriminatingLearner.py',
+                  out_file=destination_dir + '/step7_choose_strategy.py',
+                  start_delimiter='    # start choose strategy',
+                  end_delimiter='    # end choose strategy')
+
+    extract_lines(in_file='../bandit/context/JointContext.py',
+                  out_file=destination_dir + '/step7_merge.py',
+                  start_delimiter='    # start merge',
+                  end_delimiter='    # end merge')
+
+    extract_lines(in_file='../bandit/context/JointContext.py',
+                  out_file=destination_dir + '/step7_context_arm_choice.py',
+                  start_delimiter='    # start arm choice',
+                  end_delimiter='    # end arm choice')
+
+    extract_lines(in_file='../bandit/context/UCBJointContext.py',
+                  out_file=destination_dir + '/step7_computation_random_variables.py',
+                  start_delimiter='    # start computation random variables',
+                  end_delimiter='    # end computation random variables')
+
+    extract_lines(in_file='../bandit/context/UCBJointContext.py',
+                  out_file=destination_dir + '/step7_radii_computation.py',
+                  start_delimiter='    # start radii computation',
+                  end_delimiter='    # end radii computation')
+
 
 def extract_lines(in_file, out_file, start_delimiter, end_delimiter):
     with open(in_file, 'r', encoding='utf8') as inf:
