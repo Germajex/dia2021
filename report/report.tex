@@ -430,31 +430,17 @@ We added the explorative rounds after the following empiric observation: the spl
 {\footnotesize\verbatiminput{figures/step4/output2.txt}}
 
 \subsection{Final considerations about UCB vs TS}
-We found some discrepancies between the behaviour of Thompson Sampling and Upper Confidence Bound, leading to potential
-differences in the early convergence. We are estimating a conversion rate, which is lower as the price goes up and higher
-as the price approaches zero. Due to the nature of the problem, a small change in the conversion rate can lead to
-dramatic changes in the expected profit.
+We found some discrepancies between the behaviour of Thompson Sampling and Upper Confidence Bound, leading to potential differences in the early convergence. We are estimating a conversion rate, which is lower as the price goes up and higher as the price approaches zero. Due to the nature of the problem, a small change in the conversion rate can lead to dramatic changes in the expected profit.
 
-What might happen is that given a high price, the real conversion rate is very low and so is the expected profit. Trivially
-if an item is very expensive only a few people will but it, then the company producing that item will earn nothing or
-even lose money. What happens if for some reason a small amount of people start buying that product? Suddenly, due to the
-high price, the revenue of the company skyrockets! This is exactly what happens if we overestimate the conversion rates
-for arms with a high price: the expected profit overshoots.
+What might happen is that given a high price, the real conversion rate is very low and so is the expected profit. Trivially if an item is very expensive only a few people will buy it, then the company producing that item will earn nothing or even lose money. What happens if for some reason a small amount of people start buying that product? Suddenly, due to the high price, the revenue of the company skyrockets! This is exactly what happens if we overestimate the conversion rates for arms with a high price: the expected profit overshoots.
 
-If we think about the mechanisms behind UCB and TS we can clearly see that UCB tends to be optimistic and will always consider
-a higher value for the random variable it's estimating. On the other hand TS works by drawing samples from a prior distribution
-thus on the long run it won't be optimistic nor pessimistic, it will just consider the random variables with some noise.
-What are the consequences on the expected profit? UCB will give more shots to the higher prices since as we said before
-it overestimates the conversion rates and a small change in it will result in a much higher profit.
+If we think about the mechanisms behind UCB and TS we can clearly see that UCB tends to be optimistic and will always consider a higher value for the random variable it's estimating. On the other hand TS works by drawing samples from a prior distribution thus on the long run it won't be optimistic nor pessimistic, it will just consider the random variables with some noise.
 
-For this reason, in some experiments TS converges faster, while UCB "wastes time" exploring very expensive arms, but due
-to the nature of the confidence bounds, the regret will still be logarithmic and also UCB converges in a decent number
-of rounds.
+What are the consequences on the expected profit? UCB will give more shots to the higher prices since as we said before it overestimates the conversion rates and a small change in it will result in a much higher profit.
 
-From now on, we will use only a UCB-like approach. Despite the disadvantages we have just discussed, we think that a
-deterministic algorithm allows us to study in more depth the problem since we will face only decisions caused by
-math and we won't have randomness in the experiments (also facilitating the reproducibility, core aspect of the
-scientific method).
+For this reason, in some experiments TS converges faster, while UCB "wastes time" exploring very expensive arms, but due to the nature of the confidence bounds, the regret will still be logarithmic and also UCB converges in a decent number of rounds.\\
+
+From now on, we will use only a UCB-like approach. Despite the disadvantages we have just discussed, we think that a deterministic algorithm allows us to study in more depth the problem since we will face only decisions caused by math and we won't have randomness in the experiments (also facilitating the reproducibility, core aspect of the scientific method).
 
 \clearpage
 \section{Step 5}
@@ -518,42 +504,39 @@ The bound is the standard upper confidence bound used by UCB1 for stochastic Ber
 
 \clearpage
 \section{Step 6}
-In this step we have to learn in online fashion both the price and the bid, while not discriminating among the customer
-classes. In other words we will work only with aggregate data and we will provide a single optimal tuple of arms.
-The rationale behind our approach is the following: we still have two random variables, the conversion rate (pricing
-problem) and the probability of winning an auction (bidding problem). All the other quantities involved in the problem
-depend only on one of the two random variables. We have to store our data in a matrix, with the two axis being the prices
-and the bids, but since a quantity will depend only on one single axis, during the learning we can project this quantity
-on the other axis and thus exploit the functions we wrote before for the disjointed problems.
+In this step we have to learn in online fashion both the price and the bid, while not discriminating among the customer classes. In other words we will work only with aggregate data and we will provide a single optimal tuple of arms.
+The rationale behind our approach is the following: we still have two random variables, the conversion rate (pricing problem) and the probability of winning an auction (bidding problem). All the other quantities involved in the problem depend only on one of the two random variables. We have to store our data in a matrix, with the two axis being the prices and the bids, but since a quantity will depend only on one single axis, during the learning we can project this quantity on the other axis and thus exploit the functions we wrote before for the disjointed problems.
 
 The environment is an instance of \textit{JointBanditEnvironment} which is pretty much the same as \textit{PriceBanditEnvironment}
 and \textit{BidBanditEnvironment}, but the method \\ \textit{pull\_arm\_not\_discriminating} accepts both a price arm and a
 bid arm.
 As for the delayed feedback, being a joint problem environment, this class will return the future visits with a tuple of
-arms, not with a single arm as before.
+arms, not with a single arm as before.\\
 
-The learning loop is the very same as the previous steps so there is no point in reporting it here again, what is
-interesting is the routine for choosing and arm. Here we exploit the results from Step 1, where we stated that the optimal
-price is constant for all the bids. Indeed to choose the next tuple of arms we firstly compute the price arm we want to
-pull with a fixed bid, then given that price arm, we compute the bid arm we want to pull.
+The learning loop is the very same as the previous steps so there is no point in reporting it here again, what is interesting is the routine for choosing the next arm. Here we exploit the results from Step 1, where we stated that the optimal price is the same for all the bids. Indeed to choose the next tuple of arms we firstly compute the price arm we want to pull with a fixed bid, then given that price arm, we compute the bid arm we want to pull.
 \inputminted{python}{code/step6_choose_arm.py}
-Note that there still is the safety constraint introduced at step 5.
+Note that there still is the safety constraint introduced at step 5.\\
 
-Since the choice of the arms is divided in two steps, we have the two functions to select the most promising arm, namely
-\textit{compute\_projected\_profits\_fixed\_bid} and \textit{compute\_projected\_profits\_fixed\_price} which are reported below.
+Since the choice of the arms is divided in two steps, we have the two functions to select the most promising arm, namely \textit{compute\_projected\_profits\_fixed\_bid(arm\_bid)} and \textit{compute\_projected\_profits\_fixed\_price(arm\_price)} which are reported below.
+\begin{samepage}
 \inputminted{python}{code/step6_expected_price_fixed_bid.py}
+\end{samepage}
 \inputminted{python}{code/step6_expected_price_fixed_price.py}
 
-In the reported code we can notice some interesting functions that exploit the technique of axis projection. Here are the
-mentioned functions.
-\inputminted{python}{code/step6_axis_projected_quantities.py}
 
-The random variables of this step, namely the conversion rates and the winning probability for an auction, are computed
-in the same way we did in the previous steps.
+\begin{samepage}
+In the reported code we can notice some interesting functions that exploit the technique of axis projection. Here are the mentioned functions.
+\inputminted{python}{code/step6_axis_projected_quantities.py}
+\end{samepage}
+
+\begin{samepage}
+The random variables of this step, namely the conversion rates and the winning probability for an auction, are computed in the same way we did in the previous steps.
 \inputminted{python}{code/step6_random_variables_computation.py}
 
 Note the abstract methods that will allow us to implement specific learners to tackle the problem.
+\end{samepage}
 
+\begin{samepage}
 \subsection{The class \textit{UCBOptimalJointLearner}}
 This class implements the abstract methods described before, in order to provide an UCB learner for the given scenario.
 The most interesting methods are those to compute the radii for the UCB upper bound of our random variables.
@@ -562,7 +545,7 @@ The most interesting methods are those to compute the radii for the UCB upper bo
 We need also to compute the average winning probability for each bid. Note that also here we project the data by summing
 over the price arms.
 \inputminted{python}{code/step6_computation_winning_probability.py}
-
+\end{samepage}
 
 \clearpage
 \subsection{Experiment 1}
@@ -590,16 +573,12 @@ over the price arms.
 
 \clearpage
 \section{Step 7}
-Step 7 has a similar goal to step 6 except for the fact that now we must discriminate between customer classes. Differently
-from step 4, here we don't have to discover the contexts, we use the context structure found during step 4. The learning
-proceeds analogously to step 6 with the technique of quantities projection.
-Since we are discriminating, all the data we record is saved in a dictionary which keys are the feature combinations.
+Step 7 has a similar goal to step 6 except for the fact that now we must discriminate between customer classes. Differently from step 4, here we don't have to discover the contexts, we use the context structure found during step 4. The learning proceeds analogously to step 6 with the technique of axis projection.
+Since we are discriminating on the features, all the data we record is saved in a dictionary which keys are the feature combinations.
 The environment is still an instance of \textit{JointBanditEnvironment}, but we will use the method
-\textit{pull\_arm\_discriminating} to obtain disaggregated data.
+\textit{pull\_arm\_discriminating} to obtain disaggregated data.\\
 
-In order to perform this step we defined the class \textit{OptimalJointDiscriminatingLearner}, which upon creation
-accepts a \textit{context structure}. Just like in \textit{UCBOptimalPriceDiscriminatingLearner}, the strategy selection
-is deferred to the contexts and the resulting strategy is obtained by merging the results:
+In order to perform this step we defined the class \textit{OptimalJointDiscriminatingLearner}, which upon creation accepts a \textit{context structure}. Just like in \textit{UCBOptimalPriceDiscriminatingLearner}, the strategy selection is deferred to the contexts and the resulting strategy is obtained by merging the results:
 \inputminted{python}{code/step7_choose_strategy.py}
 As for the pull of the arms and the storage of the data we have:
 \inputminted{python}{code/step7_pull.py}

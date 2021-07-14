@@ -90,7 +90,7 @@ def main():
             output_file.write(f' UCB number of pulls:\n')
             output_file.write(table_pull.table)
             output_file.write(f'\n\n Optimal price: {opt_price:.2f}, Optimal bid: {opt_bid:.2f}\n\n')
-            output_file.write('Gaps from the optimal arm:\n')
+            output_file.write(' Rescaled gaps from the optimal arm:\n')
             output_file.write(table_gap.table)
 
         plot_results(["UCB"],
