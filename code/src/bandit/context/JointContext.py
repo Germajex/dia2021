@@ -65,10 +65,12 @@ class JointContext:
             for p in range(self.n_arms_price):
                 new_c[b].extend(self.new_clicks[p][b])
 
-        means = [np.mean(new_c[b]) for b in range(self.n_arms_bid)]
-        std_devs = [np.std(new_c[b]) for b in range(self.n_arms_bid)]
+        means = np.array([np.mean(new_c[b]) for b in range(self.n_arms_bid)])
+        std_devs = np.array([np.std(new_c[b]) for b in range(self.n_arms_bid)])
+        std_devs = np.where(std_devs > 0, std_devs, 1)
 
-        lower_security_value = [norm.ppf(security, m, std) for m, std in zip(means, std_devs)]
+        lower_security_value = np.array([norm.ppf(security, m, std) for m, std in zip(means, std_devs)])
+        lower_security_value = np.where(lower_security_value > 0, lower_security_value, 0)
 
         expected_profits = self.compute_expected_profits_fixed_price(arm_price, nc=lower_security_value)
         arm_mask = expected_profits > 0
@@ -156,6 +158,10 @@ class JointContext:
     def compute_cost_per_click(self, arm_bid):
         tot_clicks = np.sum([np.sum(self.new_clicks[arm_p][arm_bid]) for arm_p in range(self.n_arms_price)])
         tot_cost = self.tot_cost_per_bid[arm_bid]
+
+        if tot_clicks == 0:
+            tot_clicks += 1
+
         cost_per_click = tot_cost / tot_clicks
 
         return cost_per_click

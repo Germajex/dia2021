@@ -8,13 +8,15 @@ from src.bandit.banditEnvironments.PriceBanditEnvironment import PriceBanditEnvi
 from src.bandit.context.UCBJointContext import UCBJointContext
 from src.bandit.learner.OptimalJointDiscriminatingLearner import OptimalJointDiscriminatingLearner
 from src.bandit.learner.ucb.UCBOptimalPriceDiscriminatingLearner import UCBOptimalPriceDiscriminatingLearner
+import warnings
 
 
 def main():
+    warnings.filterwarnings('error')
     prices = np.linspace(10, 100, num=10, dtype=np.int64)
     bids = np.linspace(1, 60, num=10, dtype=np.int64)
     delay = 30
-    step_4_n_rounds = 400
+    step_4_n_rounds = 365
     n_rounds = 365
 
     env_for_step4 = Environment()
@@ -36,7 +38,6 @@ def main():
             feature_combs[i].append(contexts[i].features[j])
     for i in range(len(feature_combs)):
         print(f'Context {i}: {feature_combs[i]}')
-    print(f'[dbg] ')
 
     bandit_env = JointBanditEnvironment(env, prices, bids, delay)
     context_structure = [UCBJointContext(comb, bandit_env.margin, len(prices), len(bids), bandit_env.rng) for comb in
