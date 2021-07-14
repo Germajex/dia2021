@@ -37,6 +37,7 @@ def main():
 
         expected_profits = np.array([expected_profit(env, p, opt_bid) for p in prices])
         gaps = np.max(expected_profits) - expected_profits
+        norm_gaps = gaps / np.max(gaps)
         ts_cumulative_profits = ts_learner.compute_cumulative_exp_profits(expected_profits)
         ucb_cumulative_profits = ucb_learner.compute_cumulative_exp_profits(expected_profits)
         clairvoyant_cumulative_profits = np.cumsum([np.max(expected_profits)] * n_rounds)
@@ -54,9 +55,9 @@ def main():
         for i, p in enumerate(prices):
             table_data[i + 1].append(f'{expected_profits[i]:.2f}')
 
-        table_data[0].append('Gaps')
+        table_data[0].append('Norm. gaps')
         for i, p in enumerate(prices):
-            table_data[i + 1].append(f'{gaps[i]:.2f}')
+            table_data[i + 1].append(f'{norm_gaps[i]*100:4.1f}')
 
         table_data[0] += ['UCB Pulls', 'UCB Expected', 'TS Pulls', 'TS Expected']
         for learner in [ucb_learner, ts_learner]:

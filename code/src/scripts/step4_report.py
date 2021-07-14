@@ -92,10 +92,16 @@ def main():
                 for i in range(len(prices)):
                     table_data[i + 1].append('')
 
-                table_data[0].append('Expected')
+                expected_profits_context = np.array([
+                    sum(expected_profits[comb][i] for comb in context.features)
+                    for i, price in enumerate(prices)
+                ])
+                gaps_context = np.max(expected_profits_context)-expected_profits_context
+                norm_gaps_context = gaps_context / np.max(gaps_context)
+
+                table_data[0].append('Gaps')
                 for i, price in enumerate(prices):
-                    ep = sum(expected_profits[comb][i] for comb in context.features)
-                    table_data[i + 1].append(f'{ep:.2f}')
+                    table_data[i + 1].append(f'{norm_gaps_context[i]*100:4.1f}')
 
                 table_data[0].append('Pulls')
                 for i, n_pulls in enumerate(learner.get_context_number_of_pulls(context)):
@@ -115,7 +121,7 @@ def main():
 
         with open(dir + f'/output{envN}.txt', 'w', encoding='utf8') as output_file:
             output_file.write(f' Seed: {env.get_seed()}\n')
-            output_file.write(' Legend: context, true expected value, number of pulls\n')
+            output_file.write(' Legend: context, normalized gap, number of pulls\n')
             output_file.write(' UCB with context generation:\n')
             output_file.write(ucb_table.table)
             output_file.write('\n\n Performed splits:\n')

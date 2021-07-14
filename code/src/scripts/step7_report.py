@@ -17,10 +17,10 @@ def main():
     bids = np.linspace(1, 60, num=10, dtype=np.int64)
     delay = 30
     step_4_n_rounds = 400
-    n_rounds = 365  +400-365
+    n_rounds = 365
     interactive = False
 
-    for envN, seedV in enumerate([None, None, None]):
+    for envN, seedV in enumerate([3511939391, 1740212098, 4059059292]):
         env = Environment(random_seed=seedV) if seedV is not None else Environment()
         print(f'Running with seed {env.get_seed()}')
         env_for_step4 = Environment(seedV)
@@ -105,13 +105,13 @@ def main():
                         for comb in context.features
                     )
             gaps = np.max(expected_profs) - expected_profs
-
+            norm_gaps = gaps / np.max(gaps)
             table_exp_data = [['P\\B'] + [f'{b:.2f}' for b in bids]]
             for p in prices:
                 table_exp_data.append([f'{p:.2f}'])
             for p_i, p in enumerate(prices):
                 for b_i, b in enumerate(bids):
-                    table_exp_data[p_i + 1].append(f'{gaps[p_i][b_i]}')
+                    table_exp_data[p_i + 1].append(f'{norm_gaps[p_i][b_i]*100:4.1f}')
 
             table_exp = AsciiTable(table_exp_data)
             for i in range(len(table_exp_data[0])):
@@ -130,7 +130,9 @@ def main():
                                   +'\n\n')
                 output_file.write(f' UCB number of pulls:\n')
                 output_file.write(pull_tables[i].table)
-                output_file.write('\n\n Gaps:\n')
+                opt_p, opt_b, prof = step1(env, prices, bids, combinations=context.features)
+                output_file.write(f'\n\n Optimal price: {opt_p:5.2f}, Optimal bid: {opt_b:5.2f}\n')
+                output_file.write('\n Gaps normalized w.r.t to maximum gap:\n')
                 output_file.write(gaps_tables[i].table)
                 output_file.write('\n')
 

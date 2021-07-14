@@ -68,7 +68,7 @@ def main():
 
         table_data[0].append('Gaps')
         for i, p in enumerate(bids):
-            table_data[i + 1].append(f'{gaps[i]:.2f}')
+            table_data[i + 1].append(f'{rescaled_gaps[i]*100:4.1f}')
 
         table_data[0] += ['Pulls', 'Learner expected']
         for i, (n, e) in enumerate(zip(ucb_leaner.get_number_of_pulls(), ucb_leaner.compute_expected_profits())):

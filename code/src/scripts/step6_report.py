@@ -76,7 +76,7 @@ def main():
 
         for p_i, p in enumerate(prices):
             for b_i, b in enumerate(bids):
-                table_gap_data[p_i+1].append(f'{gaps[p_i][b_i]:.0f}')
+                table_gap_data[p_i+1].append(f'{rescaled_gaps[p_i][b_i]*100:4.1f}')
 
         table_gap = AsciiTable(table_gap_data)
         for i in range(len(table_gap_data[0])):
