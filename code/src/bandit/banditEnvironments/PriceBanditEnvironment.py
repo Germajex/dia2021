@@ -76,12 +76,16 @@ class PriceBanditEnvironment:
         return np.cumsum([round_profit] * n_rounds)
 
     def get_clairvoyant_best_prices_discriminating(self):
-        optimal_prices = [optimal_price_for_bid(self.env, self.prices, self.bid, [c]) for c in self.env.classes]
+        optimal_prices = [optimal_price_for_bid(self.env, self.prices, self.bid, c.features)
+                          for c in self.env.classes]
         return optimal_prices
 
     def get_clairvoyant_optimal_expected_profit_discriminating(self):
         optimal_prices = self.get_clairvoyant_best_prices_discriminating()
-        round_profit = np.sum([expected_profit(self.env, optimal_prices[ndx], self.bid, [c]) for ndx, c in enumerate(self.env.classes)])
+        round_profit = np.sum([
+            expected_profit(self.env, optimal_prices[ndx], self.bid, c.features)
+            for ndx, c in enumerate(self.env.classes)
+        ])
         return round_profit
 
     def get_clairvoyant_cumulative_profits_discriminating(self, n_rounds):

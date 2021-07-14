@@ -31,7 +31,7 @@ class JointBanditEnvironment:
         bid_arm_strategy = {comb: bid_arm for comb in self.env.get_features_combinations()}
 
         auctions, new_clicks, purchases, tot_cost_per_clicks, \
-            ((past_price_arm_strategy, past_bid_arm_strategy), past_future_visits) = self._inner_pull_arm(
+        ((past_price_arm_strategy, past_bid_arm_strategy), past_future_visits) = self._inner_pull_arm(
             price_arm_strategy, bid_arm_strategy)
 
         past_price_pulled_arm = None if past_price_arm_strategy is None else past_price_arm_strategy[(False, False)]
@@ -55,7 +55,7 @@ class JointBanditEnvironment:
         pricing_strategy = {c: self.prices[a] for c, a in price_arm_strategy.items()}
 
         auctions, new_clicks, purchases, tot_cost_per_clicks, \
-            new_future_visits, _ = self.env.simulate_one_day(pricing_strategy, bidding_strategy)
+        new_future_visits, _ = self.env.simulate_one_day(pricing_strategy, bidding_strategy)
 
         self.future_visits_queue.append(((price_arm_strategy, bid_arm_strategy), new_future_visits))
         past_future_visits = self.future_visits_queue.pop(0)
@@ -84,25 +84,20 @@ class JointBanditEnvironment:
 
         return np.cumsum(profits)
 
-    def get_clairvoyant_cumulative_profit_discriminating(self, n_rounds):
-        profits = [[self.get_clairvoyant_optimal_profit_discriminating()] * n_rounds]
-        return np.cumsum(profits)
+    def get_clairvoyant_cumulative_profit_discriminating(self, context_structure, n_rounds):
+        prof_one_round = self.get_clairvoyant_optimal_profit_discriminating(context_structure)
+        return np.cumsum([[prof_one_round] * n_rounds])
 
-    def get_clairvoyant_optimal_profit_discriminating(self):
+    def get_clairvoyant_optimal_profit_discriminating(self, context_structure):
         profit = 0
-        for c in self.env.classes:
-            bid = self.bids[len(self.bids) // 2]
-            opt_price = optimal_price_for_bid(self.env, self.prices, bid, [c])
-            opt_bid = optimal_bid_for_price(self.env, self.bids, opt_price, [c])
-            profit += expected_profit(self.env, opt_price, opt_bid, [c])
-
+        for context in context_structure:
+            _, _, context_profit = step1(self.env, self.prices, self.bids, context.features)
+            profit += context_profit
         return profit
 
     def get_learner_cumulative_profit_discriminating(self, strategies):
         profit = []
-        for strat in strategies:
-            price_strat = strat[0]
-            bid_strat = strat[1]
+        for price_strat, bid_strat in strategies:
             partial_profit = 0
             for comb in self.env.get_features_combinations():
                 arm_p = price_strat[comb]
