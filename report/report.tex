@@ -429,6 +429,33 @@ We added the explorative rounds after the following empiric observation: the spl
 
 {\footnotesize\verbatiminput{figures/step4/output2.txt}}
 
+\subsection{Final considerations about UCB vs TS}
+We found some discrepancies between the behaviour of Thompson Sampling and Upper Confidence Bound, leading to potential
+differences in the early convergence. We are estimating a conversion rate, which is lower as the price goes up and higher
+as the price approaches zero. Due to the nature of the problem, a small change in the conversion rate can lead to
+dramatic changes in the expected profit.
+
+What might happen is that given a high price, the real conversion rate is very low and so is the expected profit. Trivially
+if an item is very expensive only a few people will but it, then the company producing that item will earn nothing or
+even lose money. What happens if for some reason a small amount of people start buying that product? Suddenly, due to the
+high price, the revenue of the company skyrockets! This is exactly what happens if we overestimate the conversion rates
+for arms with a high price: the expected profit overshoots.
+
+If we think about the mechanisms behind UCB and TS we can clearly see that UCB tends to be optimistic and will always consider
+a higher value for the random variable it's estimating. On the other hand TS works by drawing samples from a prior distribution
+thus on the long run it won't be optimistic nor pessimistic, it will just consider the random variables with some noise.
+What are the consequences on the expected profit? UCB will give more shots to the higher prices since as we said before
+it overestimates the conversion rates and a small change in it will result in a much higher profit.
+
+For this reason, in some experiments TS converges faster, while UCB "wastes time" exploring very expensive arms, but due
+to the nature of the confidence bounds, the regret will still be logarithmic and also UCB converges in a decent number
+of rounds.
+
+From now on, we will use only a UCB-like approach. Despite the disadvantages we have just discussed, we think that a
+deterministic algorithm allows us to study in more depth the problem since we will face only decisions caused by
+math and we won't have randomness in the experiments (also facilitating the reproducibility, core aspect of the
+scientific method).
+
 \clearpage
 \section{Step 5}
 In order to learn online the best bid for a fixed price, we implement a symmetric approach with respect to Step 3, with which it has  many similarities. We defined the class \textit{BidBanditEnvironment}, which has internally an instance of \textit{Environment}. Upon the creation of an instance of a \textit{BidBanditEnvironment}, the underlying \textit{Environment}, the set of possible bids and the fixed price value must be supplied as arguments. The bandit environment hides the actual bids $B$ from the learner, and instead it shows a bandit-like set of arms numbered from $0$ to $|B|-1$.\\
