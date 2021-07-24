@@ -13,12 +13,12 @@ def main():
     prices = np.arange(10, 101, 10)
     bids = np.arange(1, 100)
 
-    env1 = Environment()
+    env1 = Environment(1740212098)
     env2 = Environment(env1.get_seed())
     env3 = Environment(env1.get_seed())
 
     print(f'Running with seed {env1.get_seed()}')
-    n_rounds = 365
+    n_rounds = 365 + 2000-365
     future_visits_delay = 30
 
     opt_price_1, opt_bid_1, profit_1 = step1(env1, prices, bids)
@@ -46,16 +46,14 @@ def main():
     opt_strategy = optimal_pricing_strategy_for_bid(env1, prices, opt_bid_1)
     opt_value = expected_profit_of_pricing_strategy(env1, opt_strategy, opt_bid_1)
 
+    expected_profits = {comb: [expected_profit_for_comb(env1, p, opt_bid_1, comb) for p in prices]
+                        for comb in env1.combinations}
+
     print("Optimal pricing strategy: " + ", ".join(
         f'{c.name}({", ".join(str(comb) for comb in c.features)}): {opt_strategy[c.features[0]]:.2f}'
         for c in env1.classes))
     print(f"With value: {opt_value:.2f}\n\n")
     clairvoyant_cumulative_profits = np.cumsum([opt_value] * n_rounds)
-    expected_profits = {}
-    for comb in env1.combinations:
-        expected_profits[comb] = []
-        for p in prices:
-            expected_profits[comb].append(expected_profit_for_comb(env1, p, opt_bid_1, comb))
 
     print("Learning UCBDisc")
 
@@ -75,14 +73,23 @@ def main():
     for name, learner in [("ucb with discrimination", ucb_disc_learner), ("ts with discrimination", ts_disc_learner)]:
         print(name)
         for i, context in enumerate(learner.get_contexts(), start=1):
+            expected_profits_context = np.array([
+                sum(expected_profits[comb][k] for comb in context.features)
+                for k, price in enumerate(prices)
+            ])
+            gaps_context = np.max(expected_profits_context) - expected_profits_context
+            norm_gaps_context = gaps_context / np.max(gaps_context)
+
             print(f'Context n°{i} - Combinations of features:', *context.features)
             print("Price:             " + " ".join(f'{p:10d}' for p in prices))
             print("\tProjected profits: " + " ".join(
                 f'{p:10.2f}' for p in learner.compute_context_projected_profit(context)))
             print("\tExpected profits:  " + " ".join(
                 f'{p:10.2f}' for p in learner.compute_context_expected_profit(context)))
+            print("\tNormalized gaps:   " + " ".join(
+                f'{p*100:10.1f}' for p in norm_gaps_context))
             print(
-                "\tAverages:          " + " ".join(f'{p:10.2f}' for p in learner.get_average_conversion_rates(context)))
+                "\tAverage cr:          " + " ".join(f'{p:10.2f}' for p in learner.get_average_conversion_rates(context)))
             print("\tNumber of pulls:   " + " ".join(f'{p:10d}' for p in learner.get_context_number_of_pulls(context)))
             print()
 
